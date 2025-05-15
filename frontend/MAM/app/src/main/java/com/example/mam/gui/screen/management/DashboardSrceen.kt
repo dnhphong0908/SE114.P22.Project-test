@@ -235,7 +235,10 @@ fun DashboardScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator()
+                            CircularProgressIndicator(color = OrangeDefault,
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .size(40.dp))
                         }
                     } else {
                         if (activeOrder.value.isEmpty()) {

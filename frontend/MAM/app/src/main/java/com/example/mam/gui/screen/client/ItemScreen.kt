@@ -94,9 +94,9 @@ fun ItemScreen(
     val scrollState = rememberScrollState()
     var quantity by remember { mutableStateOf(1) }
     quantity = cartItem.quantity
-    var spacerheight by remember { mutableStateOf(170) }
     val lazyState = rememberLazyListState()
     val coroutine = rememberCoroutineScope()
+    var spacerheight by remember { mutableStateOf(170) }
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {

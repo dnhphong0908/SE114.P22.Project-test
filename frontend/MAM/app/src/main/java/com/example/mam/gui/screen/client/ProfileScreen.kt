@@ -108,7 +108,7 @@ fun ProfileScreen(
             )
         )
     }
-    val user = userState?.value ?: if (isPreview) previewUser.value else return
+    val user = userState?.value ?: if (isPreview) previewUser.value else  previewUser.value
     val isEditingState = viewModel?.isEditing?.collectAsStateWithLifecycle()
     val previewIsEditing = remember { mutableStateOf(false) }
     val isEditing = isEditingState?.value ?: if (isPreview) previewIsEditing.value else false
@@ -363,5 +363,6 @@ fun ProfileScreen(
 @Preview(showBackground = true)
 @Composable
 fun ProfileScreenPreview() {
-    ProfileScreen()
+    val viewModel = ProfileViewModel()
+    ProfileScreen(viewModel = viewModel)
 }

@@ -485,6 +485,7 @@ fun NotificationItem(
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                 )
+                Spacer(modifier = Modifier.size(8.dp))
                 notification.createAt.atZone(ZoneId.systemDefault())?.let {
                     Text(
                         text = buildAnnotatedString {

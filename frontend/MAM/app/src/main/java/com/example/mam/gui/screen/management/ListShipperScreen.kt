@@ -470,6 +470,7 @@ fun ShipperItem(
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                 )
+                Spacer(modifier = Modifier.size(8.dp))
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {

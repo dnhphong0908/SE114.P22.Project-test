@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mam.entity.User
 import com.example.mam.services.APIservice
+import com.example.mam.services.RetrofitClient.api
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +18,7 @@ import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class ProfileViewModel(
-    private val api: APIservice? = null
+    //private val api: APIservice? = null
 ) : ViewModel() {
     private val _user = MutableStateFlow<User?>(null)
     val user: StateFlow<User?> = _user.asStateFlow()
@@ -47,10 +48,11 @@ class ProfileViewModel(
 
     fun fetchUser() {
         viewModelScope.launch {
-            val fetchedUser = api?.getUser()
-            _user.value = fetchedUser
+            //val fetchedUser = api?.getUser()
+            //_user.value = fetchedUser
         }
     }
+
     fun createImagePartFromUri(context: Context, uri: Uri): MultipartBody.Part {
         val contentResolver = context.contentResolver
         val inputStream = contentResolver.openInputStream(uri)!!
@@ -58,6 +60,7 @@ class ProfileViewModel(
         val requestBody = fileBytes.toRequestBody("image/*".toMediaTypeOrNull())
         return MultipartBody.Part.createFormData("avatar", "avatar.jpg", requestBody)
     }
+
     fun uploadAvatar(context: Context, uri: Uri) {
         viewModelScope.launch {
             try {
