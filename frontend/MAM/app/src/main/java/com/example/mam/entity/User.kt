@@ -13,5 +13,7 @@ data class User(
     val address: String = "",
     val createAt: Instant = Instant.now(),
     val updateAt: Instant = Instant.now(),
+    val role: String = "",
+    val status: String = "",
 ) {
 }

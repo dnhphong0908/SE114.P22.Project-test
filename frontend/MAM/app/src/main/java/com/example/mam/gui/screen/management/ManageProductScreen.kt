@@ -1,8 +1,12 @@
 package com.example.mam.gui.screen.management
 
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,25 +21,18 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowDropUp
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Remove
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Sort
 import androidx.compose.material.icons.outlined.ArrowBack
-import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -51,8 +48,6 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -62,9 +57,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -73,16 +68,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.mam.R
-import com.example.mam.entity.ProductCategory
 import com.example.mam.entity.Variance
 import com.example.mam.entity.VarianceOption
 import com.example.mam.gui.component.CircleIconButton
@@ -99,7 +93,6 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ManageProductViewModel
-import kotlinx.coroutines.flow.forEach
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -128,6 +121,8 @@ fun ManageProductScreen(
     val isSetting = viewModel.isSetting.collectAsStateWithLifecycle().value
     val categoryList = viewModel.categoryList.collectAsStateWithLifecycle().value
     var isEditMode by remember { mutableStateOf(isEdit) }
+    val context = LocalContext.current
+    val activity = context as? Activity
     val imagePicker = if (!isPreview) {
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
@@ -161,12 +156,28 @@ fun ManageProductScreen(
                 foregroundColor = OrangeDefault,
                 icon = Icons.Outlined.ArrowBack,
                 shadow = "outer",
-                onClick = onBackClick,
+                onClick = {
+                    if (isEditMode) {
+                        isEditMode = false
+                    } else {
+                        onBackClick()
+                    }
+                },
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(top = 16.dp, start = 16.dp)
             )
-            CircleIconButton(
+            val isButtonEnable = if (isAdd || isEditMode) {
+                productName.isNotEmpty()
+                        && productPrice > 0
+                        && productShortDescription.isNotEmpty()
+                        && productLongDescription.isNotEmpty()
+                        && viewModel.isProductNameValid().isEmpty()
+                        && viewModel.isProductPriceValid().isEmpty()
+                        && viewModel.isProductShortDescriptionValid().isEmpty()
+                        && viewModel.isProductLongDescriptionValid().isEmpty()
+            } else true
+            if (isButtonEnable) CircleIconButton(
                 backgroundColor = OrangeLighter,
                 foregroundColor = OrangeDefault,
                 icon = if(isEditMode || isAdd) Icons.Default.Done else Icons.Default.Edit,
@@ -254,6 +265,29 @@ fun ManageProductScreen(
                             .aspectRatio(1f)
                             .padding(8.dp)
                             .clip(RoundedCornerShape(20.dp))
+                            .then(
+                                if (isEditMode || isAdd) {
+                                    Modifier.clickable {
+                                        val permission =
+                                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                                android.Manifest.permission.READ_MEDIA_IMAGES
+                                            } else {
+                                                android.Manifest.permission.READ_EXTERNAL_STORAGE
+                                            }
+                                        if (context.checkSelfPermission(permission) != PackageManager.PERMISSION_GRANTED && activity != null) {
+                                            ActivityCompat.requestPermissions(
+                                                activity,
+                                                arrayOf(permission),
+                                                123
+                                            )
+                                        } else {
+                                            imagePicker?.launch("image/*")
+                                        }
+                                    }
+                                }
+                                else Modifier
+                            )
+
                     )
                 }
                 if (!isAdd) item {
@@ -454,6 +488,17 @@ fun ManageProductScreen(
                                 modifier = Modifier
                             )
                         },
+                        supportingText = {
+                            if (viewModel.isProductNameValid().isNotEmpty() && productName.isNotEmpty()) {
+                                Text(
+                                    text = viewModel.isProductNameValid(),
+                                    color = ErrorColor,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    modifier = Modifier
+                                )
+                            }
+                        },
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Text,
                             imeAction = ImeAction.Done),
@@ -492,6 +537,17 @@ fun ManageProductScreen(
                                 modifier = Modifier
                             )
                         },
+                        supportingText = {
+                            if (viewModel.isProductPriceValid().isNotEmpty()) {
+                                Text(
+                                    text = viewModel.isProductPriceValid(),
+                                    color = ErrorColor,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    modifier = Modifier
+                                )
+                            }
+                        },
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
                             imeAction = ImeAction.Done),
@@ -528,6 +584,17 @@ fun ManageProductScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
+                        },
+                        supportingText = {
+                            if (viewModel.isProductShortDescriptionValid().isNotEmpty() && productShortDescription.isNotEmpty()) {
+                                Text(
+                                    text = viewModel.isProductShortDescriptionValid(),
+                                    color = ErrorColor,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    modifier = Modifier
+                                )
+                            }
                         },
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Text,
@@ -566,6 +633,17 @@ fun ManageProductScreen(
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
+                        },
+                        supportingText = {
+                            if (viewModel.isProductLongDescriptionValid().isNotEmpty() && productLongDescription.isNotEmpty()) {
+                                Text(
+                                    text = viewModel.isProductLongDescriptionValid(),
+                                    color = ErrorColor,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    modifier = Modifier
+                                )
+                            }
                         },
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Text,
@@ -641,6 +719,7 @@ fun ManageProductScreen(
                                             null
                                         }
                                     },
+                                    singleLine = true,
                                     keyboardOptions = KeyboardOptions.Default.copy(
                                         keyboardType = KeyboardType.Text,
                                         imeAction = ImeAction.Done),
@@ -711,6 +790,7 @@ fun ManageProductScreen(
                                                 null
                                             }
                                        },
+                                        singleLine = true,
                                         keyboardOptions = KeyboardOptions.Default.copy(
                                             keyboardType = KeyboardType.Text,
                                             imeAction = ImeAction.Done),
@@ -863,8 +943,9 @@ fun ManageProductScreenPreview() {
             savedStateHandle = null
         ),
         onBackClick = {},
-        isPreview = false,
-        isAdd = true,
-        isEdit = false
+        onAddClick = {},
+        isPreview = true,
+        isAdd = false,
+        isEdit = true
     )
 }

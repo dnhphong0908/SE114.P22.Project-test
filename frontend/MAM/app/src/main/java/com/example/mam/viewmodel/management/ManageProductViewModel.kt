@@ -65,64 +65,64 @@ class ManageProductViewModel(savedStateHandle: SavedStateHandle? ): ViewModel() 
         _productName.value = name
     }
 
-    fun isProductNameValid(): Int {
+    fun isProductNameValid(): String {
         val name = _productName.value.trim()
-        val regex = "^[\\p{L}]+$".toRegex()
+        val regex = "^[\\p{L} ]+$".toRegex()
         if (name.length > 50) {
-            return 1 // Name is too long
+            return "Tên quá dài (>50 ký tự)" // Name is too long
         }
         else if (name.length < 5) {
-            return 2 // Name is too short
+            return "Tên quá ngắn (<5 ký tự)" // Name is too short
         }
         else if (!regex.matches(name)) {
-            return 3 // Name contains invalid characters
+            return "Tên không hợp lệ" // Name contains invalid characters
         }
-        return 0
+        return "" // Name is valid
     }
 
     fun setProductShortDescription(shortDescription: String) {
         _productShortDescription.value = shortDescription
     }
 
-    fun isProductShortDescriptionValid(): Int {
+    fun isProductShortDescriptionValid(): String {
         val shortDescription = _productShortDescription.value.trim()
         if (shortDescription.length > 100) {
-            return 1 // Short description is too long
+            return "Mô tả quá dài (>100 ký tự)" // Short description is too long
         }
         else if (shortDescription.length < 10) {
-            return 2 // Short description is too short
+            return "Mô tả quá ngắn (<10 ký tự)" // Short description is too short
         }
-        return 0
+        return "" // Short description is valid
     }
 
     fun setProductLongDescription(longDescription: String) {
         _productLongDescription.value = longDescription
     }
 
-    fun isProductLongDescriptionValid(): Int {
+    fun isProductLongDescriptionValid(): String {
         val longDescription = _productLongDescription.value.trim()
         if (longDescription.length > 500) {
-            return 1 // Long description is too long
+            return "Mô tả quá dài (>500 ký tự)" // Long description is too long
         }
         else if (longDescription.length < 20) {
-            return 2 // Long description is too short
+            return "Mô tả quá ngắn (<20 ký tự)" // Long description is too short
         }
-        return 0
+        return "" // Long description is valid
     }
 
     fun setProductPrice(price: Int) {
         _productPrice.value = price
     }
 
-    fun isProductPriceValid(): Int {
+    fun isProductPriceValid(): String {
         val price = _productPrice.value
         if (price < 1000) {
-            return 1 // Price is negative
+            return "Giá quá thấp (<1000 VND)" // Price is too low
         }
-        else if (price > 1000000000) {
-            return 2 // Price is too high
+        else if (price > 1000000) {
+            return "Giá quá cao (>1 triệu VND)" // Price is too high
         }
-        return 0
+        return ""
     }
 
     fun setProductCategory(category: ProductCategory) {

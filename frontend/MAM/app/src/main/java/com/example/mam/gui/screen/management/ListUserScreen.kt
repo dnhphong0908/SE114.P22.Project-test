@@ -139,7 +139,7 @@ fun ListUserScreen(
                         .padding(end = 16.dp, top = 16.dp)
                 )
                 Text(
-                    text = "Người dùng",
+                    text = "Tài khoản",
                     style = Typography.titleLarge,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -207,7 +207,7 @@ fun ListUserScreen(
                             singleLine = true,
                             placeholder = {
                                 Text(
-                                    text = "Tìm kiếm người dùng",
+                                    text = "Tìm kiếm tài khoản",
                                     color = GreyDefault,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Normal
@@ -344,7 +344,7 @@ fun ListUserScreen(
                         if (userList.isEmpty()) {
                             item {
                                 Text(
-                                    text = "Không có người dùng nào",
+                                    text = "Không có tài khoản nào",
                                     color = GreyDefault,
                                     fontSize = 18.sp,
                                     fontWeight = FontWeight.SemiBold,
@@ -425,7 +425,17 @@ fun UserItem(
                     .padding(10.dp)
             ) {
                 Text(
-                    text = user.fullName,
+                    text = "#${user.role}",
+                    textAlign = TextAlign.Start,
+                    color = OrangeDefault,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                Text(
+                    text = user.username,
                     textAlign = TextAlign.Start,
                     color = BrownDefault,
                     fontSize = 18.sp,
@@ -462,8 +472,10 @@ fun UserItemPreview() {
         user = User(
             id = "1",
             fullName = "Nguyen Van A",
+            username = "nguyenvana",
             phoneNumber = "0123456789",
-            avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg"
+            avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
+            role = "Admin"
         ),
         onUserClick = {},
         onEditUserClick = {},
@@ -485,20 +497,26 @@ fun ListUserScreenPreview() {
             User(
                 id = "1",
                 fullName = "Nguyen Van A",
+                username = "nguyenvana",
                 phoneNumber = "0123456789",
-                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg"
+                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
+                role = "Admin"
             ),
             User(
                 id = "2",
                 fullName = "Nguyen Van B",
+                username = "nguyenvanb",
                 phoneNumber = "0123456789",
-                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg"
+                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
+                role = "User"
             ),
             User(
                 id = "3",
                 fullName = "Nguyen Van C",
+                username = "nguyenvanc",
                 phoneNumber = "0123456789",
-                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg"
+                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
+                role = "User"
             )
         )
     )
