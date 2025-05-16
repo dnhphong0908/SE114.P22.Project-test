@@ -251,7 +251,7 @@ fun OuterShadowFilledButton(
 @Composable
 fun NormalButtonWithIcon(
     text: String,
-    fontSize: TextUnit = 14.sp,
+    fontSize: TextUnit = 16.sp,
     isEnable: Boolean = true,
     color: Color = OrangeDefault,
     textColor: Color = WhiteDefault,
@@ -260,7 +260,8 @@ fun NormalButtonWithIcon(
     image: Int ?= null,
     onClick: () -> Unit,
     shape: RoundedCornerShape = RoundedCornerShape(8.dp),
-    modifier: Modifier
+    modifier: Modifier,
+    spacer: Boolean = true
 ){
     Button(
         colors = ButtonDefaults.buttonColors(containerColor = color),
@@ -270,15 +271,15 @@ fun NormalButtonWithIcon(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.wrapContentWidth()
         ) {
             Text(
                 text = text,
                 fontSize = fontSize,
                 color = textColor,
             )
-
-            Spacer(modifier = Modifier.weight(1f)) // đẩy icon sang cuối
+            if(spacer == true)
+                Spacer(modifier = Modifier.weight(1f)) // đẩy icon sang cuối
 
             icon?.let {
                 Icon(
