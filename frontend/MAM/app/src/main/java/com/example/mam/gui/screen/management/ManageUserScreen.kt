@@ -91,7 +91,6 @@ import java.time.format.DateTimeFormatter
 fun ManageUserScreen(
     viewModel: ManageUserViewModel,
     onBackClick: () -> Unit,
-    onAddClick: () -> Unit,
     isPreview: Boolean = false,
     isEdit : Boolean = false,
     isAdd: Boolean = false,
@@ -128,7 +127,7 @@ fun ManageUserScreen(
             viewModel.setImgUrl("")
             viewModel.setFullName("")
             viewModel.setEmail("")
-            viewModel.setRole("")
+            viewModel.setRole("Admin")
             viewModel.setPhone("")
             viewModel.setStatus("")
         }
@@ -179,7 +178,7 @@ fun ManageUserScreen(
                         isEditMode = false
                     } else if (isAdd) {
                         viewModel.addUser()
-                        onAddClick()
+                        onBackClick()
                     } else {
                         isEditMode = true
                     }
@@ -439,7 +438,7 @@ fun ManageUserScreen(
                 item {
                     OutlinedTextField(
                         value = userName,
-                        readOnly = !(isEditMode || isAdd),
+                        readOnly = !((isEditMode && role == "Admin" ) || isAdd),
                         onValueChange = {
                             viewModel.setUserName(it)
                         },
@@ -486,7 +485,7 @@ fun ManageUserScreen(
                 item {
                     OutlinedTextField(
                         value = fullName,
-                        readOnly = !(isEditMode || isAdd),
+                        readOnly = !((isEditMode && role == "Admin" ) || isAdd),
                         onValueChange = {
                             viewModel.setFullName(it)
                         },
@@ -533,7 +532,7 @@ fun ManageUserScreen(
                 item {
                     OutlinedTextField(
                         value = email,
-                        readOnly = !(isEditMode || isAdd),
+                        readOnly = !((isEditMode && role == "Admin" ) || isAdd),
                         onValueChange = {
                             viewModel.setEmail(it)
                         },
@@ -579,7 +578,7 @@ fun ManageUserScreen(
                 item {
                     OutlinedTextField(
                         value = phone,
-                        readOnly = !(isEditMode || isAdd),
+                        readOnly = !((isEditMode && role == "Admin" ) || isAdd),
                         onValueChange = {
                             viewModel.setPhone(it)
                         },
@@ -637,7 +636,6 @@ fun ManageUserScreenPreview() {
     ManageUserScreen(
         viewModel = ManageUserViewModel(savedStateHandle = SavedStateHandle(mapOf("userId" to "1"))),
         onBackClick = {},
-        onAddClick = {},
         isPreview = true,
         isEdit = true,
         isAdd = false
