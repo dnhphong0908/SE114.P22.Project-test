@@ -11,8 +11,12 @@ class DashboardViewModel(): ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _activeOrder = MutableStateFlow<MutableList<Order>>(mutableListOf())
-    val activeOrder: StateFlow<List<Order>> = _activeOrder
+    private val _processingOrderNum = MutableStateFlow(0)
+    val processingOrderNum: StateFlow<Int> = _processingOrderNum
+
+    private val _notProcessingOrderNum = MutableStateFlow(0)
+    val notProcessingOrderNum: StateFlow<Int> = _notProcessingOrderNum
+
     fun loadData() {
         viewModelScope.launch {
             try {

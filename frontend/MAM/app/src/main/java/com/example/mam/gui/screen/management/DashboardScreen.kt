@@ -1,11 +1,14 @@
 package com.example.mam.gui.screen.management
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,23 +23,21 @@ import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Fastfood
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Moped
 import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.outlined.Logout
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +45,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color.Companion.White
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
@@ -75,7 +77,8 @@ fun DashboardScreen(
     // You can use viewModel to access the data and state
     // For example:
     val isLoading = viewModel.isLoading.collectAsState()
-    val activeOrder = viewModel.activeOrder.collectAsState()
+    val processingOrderNum = viewModel.processingOrderNum.collectAsState().value
+    val notProcessingOrderNum = viewModel.notProcessingOrderNum.collectAsState().value
     LaunchedEffect(key1 = Unit) {
         viewModel.loadData()
     }
@@ -145,8 +148,76 @@ fun DashboardScreen(
         )
         {
             item {
-                Box(
-                    contentAlignment = Alignment.Center,
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .weight(1f),
+                        colors = CardDefaults.cardColors(containerColor = WhiteDefault),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 4.dp,
+                        ),
+                        onClick = { },
+                        shape = RoundedCornerShape(20.dp),
+                    ) {
+                        Text(
+                            text = "Đơn đang xử lý",
+                            color = BrownDefault,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 5.dp)
+                        )
+                        Text(
+                            text = processingOrderNum.toString(),
+                            color = OrangeDefault,
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .padding(top = 5.dp, start = 10.dp, end = 10.dp, bottom = 10.dp)
+                        )
+                    }
+                    Card(
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .weight(1f),
+                        colors = CardDefaults.cardColors(containerColor = WhiteDefault),
+                        elevation = CardDefaults.cardElevation(
+                            defaultElevation = 4.dp,
+                        ),
+                        onClick = { },
+                        shape = RoundedCornerShape(20.dp),
+                    ) {
+                        Text(
+                            text = "Đơn chưa tiếp nhận",
+                            color = BrownDefault,
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 5.dp)
+                        )
+                        Text(
+                            text = notProcessingOrderNum.toString(),
+                            color = OrangeDefault,
+                            fontSize = 26.sp,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .padding(top = 5.dp, start = 10.dp, end = 10.dp, bottom = 10.dp)
+                        )
+                    }
+                }
+            }
+            item {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
                     modifier = Modifier
                         .wrapContentSize()
                         .padding(16.dp)
@@ -156,6 +227,16 @@ fun DashboardScreen(
                         )
                         .padding(16.dp)
                 ) {
+                    Text(
+                        text = "Quản lý",
+                        color = BrownDefault,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .fillMaxWidth()
+                    )
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -205,64 +286,6 @@ fun DashboardScreen(
                             }
                         }
                     }
-
-                }
-            }
-            item {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .background(
-                            color = OrangeLight,
-                            shape = RoundedCornerShape(20.dp)
-                        )
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Đơn hàng đang xử lý",
-                        color = BrownDefault,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .padding(10.dp)
-                            .fillMaxWidth()
-                    )
-                    if (isLoading.value) {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = OrangeDefault,
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .size(40.dp))
-                        }
-                    } else {
-                        if (activeOrder.value.isEmpty()) {
-                            Text(
-                                text = "Hiện chưa có đơn hàng nào",
-                                color = GreyDefault,
-                                fontSize = 16.sp,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier
-                                    .padding(10.dp)
-                                    .fillMaxWidth()
-                            )
-
-                        } else {
-                            activeOrder.value.forEach { order ->
-                                OrderItem(
-                                    order = order,
-                                    onClick = { onActiveOrderClicked(order.id) },
-                                    onEditClick = { },
-                                    onDeleteClick = { },
-                                )
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -275,9 +298,7 @@ enum class MyNav(val label: String, val icon: ImageVector) {
     Shipper("Shipper", Icons.Default.Moped),
     Notification("Thông báo", Icons.Default.NotificationsActive),
     Promotion("Khuyến mãi", Icons.Default.Sell),
-    Order("Đơn hàng", Icons.Default.ShoppingBag),
-    Statistic("Thống kê", Icons.Default.BarChart)
-
+    Order("Đơn hàng", Icons.Default.ShoppingBag)
 }
 @Preview
 @Composable
