@@ -31,6 +31,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -217,6 +218,15 @@ fun FilterBar(
             selectedDate = selectedDate,
             onDateSelected = onDateSelected
         )
+        Spacer(modifier = Modifier.width(8.dp))
+        if (selectedDate.value != null){
+            TextButton(onClick = {
+                selectedDate.value = null
+                onDateSelected(null)
+            }) {
+                Text("Xóa lọc", fontSize = 16.sp, color = OrangeDefault)
+            }
+        }
     }
 }
 

@@ -24,8 +24,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.Discount
 import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.GifBox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -225,7 +226,7 @@ fun NotificationItem(notification: Notification) {
             ){
                 Icon(
                     imageVector = notification.icon,
-                    contentDescription = "Done",
+                    contentDescription = "",
                     tint = WhiteDefault,
                     modifier = Modifier
                         .size(40.dp)
@@ -233,8 +234,8 @@ fun NotificationItem(notification: Notification) {
                 )
             }
             Spacer(modifier = Modifier.width(8.dp))
-
-            Column {
+            Column(
+            ) {
                 Text(
                     notification.title ?: "",
                     color = BrownDefault,
@@ -277,6 +278,14 @@ fun PreviewNotificationScreen() {
                 timestamp = "09:00 10/04/2025",
                 isRead = true,
                 icon = Icons.Filled.DoneAll
+            ),
+            Notification(
+                id = "3",
+                title = "Khuyến mãi cho đơn hàng đầu tiên!",
+                content = "Với mỗi đơn hàng cho tài khoản lần đầu tiên sử dụng ứng dụng MĂM, bạn thể nhận được voucher giảm 50% cho tổng hóa đơn.",
+                timestamp = "09:00 10/04/2025",
+                isRead = false,
+                icon = Icons.Filled.Discount
             )
         )
     )
