@@ -230,7 +230,8 @@ fun ProfileInput(
                 unfocusedIndicatorColor = foregroundColor,  // Màu viền khi không focus
                 focusedTextColor = textColor,       // Màu chữ khi focus
                 unfocusedTextColor = textColor,      // Màu chữ khi không focus
-                cursorColor = textColor             // Màu con trỏ nhập liệu
+                cursorColor = textColor,             // Màu con trỏ nhập liệu
+                disabledContainerColor = backgroundColor,
             ),
             shape = RoundedCornerShape(radius),
             onValueChange = onValueChange,
