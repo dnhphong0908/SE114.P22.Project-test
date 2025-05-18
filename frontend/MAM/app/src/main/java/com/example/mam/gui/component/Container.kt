@@ -45,6 +45,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
+import coil.compose.AsyncImage
 import com.example.mam.R
 import com.example.mam.entity.CartItem
 import com.example.mam.entity.OrderItem
@@ -57,6 +58,7 @@ import com.example.mam.ui.theme.GreyLight
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLight
 import com.example.mam.ui.theme.WhiteDefault
+import com.google.android.gms.common.internal.Asserts
 
 
 @Composable
@@ -268,8 +270,9 @@ fun OrderItemContainer(
                     .fillMaxHeight()
                     .wrapContentWidth()
                     .padding(horizontal = 10.dp)) {
-                Image(
-                    painter = painterResource(item.product.img),
+                AsyncImage(
+                    model = item.image,
+                    placeholder = painterResource(R.drawable.ic_mam_logo),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -287,7 +290,7 @@ fun OrderItemContainer(
             ) {
                 Column {
                     Text(
-                        text = item.product.name,
+                        text = item.name,
                         textAlign = TextAlign.Start,
                         maxLines = 2,
                         fontSize = 18.sp,
@@ -450,19 +453,12 @@ fun ContainerPreview(){
         )
         OrderItemContainer(
             item = OrderItem(
-                Product(
-                    "P003",
-                    "Pizza truyền thống",
-                    "",
-                    "Sốt BBQ đặc trưng, gà nướng, hành tây, ớt chuông, lá basil và phô mai Mozzarella. ",
-                    100000,
-                    true,
-                    "PC001",
-                    img = R.drawable.bacon_and_cheese_heaven
-                ),
-                1,
+                cartItem.product.name,
+                "",
+                cartItem.product.id,
+                cartItem.quantity,
                 cartItem.getOptionsToString(),
-                cartItem.getPrice()
+                cartItem.product.originalPrice,
             )
         )
     }

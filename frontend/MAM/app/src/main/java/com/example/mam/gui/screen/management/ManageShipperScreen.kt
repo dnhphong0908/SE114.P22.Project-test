@@ -24,6 +24,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.ArrowBack
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -173,157 +174,179 @@ fun ManageShipperScreen(
             item {
                 Spacer(modifier = Modifier.size(20.dp))
             }
-            if (!isAdd) item {
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
-                            append("ID: ")
-                        }
-                        append(shipperID)
-                    },
-                    textAlign = TextAlign.Start,
-                    color = GreyDefault,
-                    fontWeight = FontWeight.Normal,
-                    fontSize = 18.sp,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
-                        .fillMaxWidth()
-                )
+            if (isLoading)
+            {
+                item {
+                    CircularProgressIndicator(
+                        color = OrangeDefault,
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .size(40.dp)
+                    )
+                }
             }
-            item {
-                OutlinedTextField(
-                    value = shipperName,
-                    onValueChange = {
-                        viewModel.setShipperName(it)
-                    },
-                    textStyle = TextStyle(
-                        color = BrownDefault,
-                        fontSize = 18.sp,
+            else {
+                if (!isAdd) item {
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                append("ID: ")
+                            }
+                            append(shipperID)
+                        },
+                        textAlign = TextAlign.Start,
+                        color = GreyDefault,
                         fontWeight = FontWeight.Normal,
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = BrownDefault,
-                        unfocusedBorderColor = GreyDefault,
-                    ),
-                    singleLine = true,
-                    label = {
-                        Text(
-                            text = "Tên shipper",
+                        fontSize = 18.sp,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp)
+                            .fillMaxWidth()
+                    )
+                }
+                item {
+                    OutlinedTextField(
+                        value = shipperName,
+                        onValueChange = {
+                            viewModel.setShipperName(it)
+                        },
+                        textStyle = TextStyle(
                             color = BrownDefault,
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier
-                        )
-                    },
-                    supportingText = {
-                        if (viewModel.isShipperNameValid().isNotEmpty() && shipperName.isNotEmpty()) {
+                            fontWeight = FontWeight.Normal,
+                        ),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BrownDefault,
+                            unfocusedBorderColor = GreyDefault,
+                        ),
+                        singleLine = true,
+                        label = {
                             Text(
-                                text = viewModel.isShipperNameValid(),
-                                color = ErrorColor,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Normal,
+                                text = "Tên shipper",
+                                color = BrownDefault,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done),
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                )
-            }
-            item {
-                OutlinedTextField(
-                    value = shipperPhone,
-                    onValueChange = {
-                        viewModel.setShipperPhone(it)
-                    },
-                    textStyle = TextStyle(
-                        color = BrownDefault,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Normal,
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = BrownDefault,
-                        unfocusedBorderColor = GreyDefault,
-                    ),
-                    singleLine = true,
-                    label = {
-                        Text(
-                            text = "Số điện thoại",
+                        },
+                        supportingText = {
+                            if (viewModel.isShipperNameValid()
+                                    .isNotEmpty() && shipperName.isNotEmpty()
+                            ) {
+                                Text(
+                                    text = viewModel.isShipperNameValid(),
+                                    color = ErrorColor,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    modifier = Modifier
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    )
+                }
+                item {
+                    OutlinedTextField(
+                        value = shipperPhone,
+                        onValueChange = {
+                            viewModel.setShipperPhone(it)
+                        },
+                        textStyle = TextStyle(
                             color = BrownDefault,
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier
-                        )
-                    },
-                    supportingText = {
-                        if (viewModel.isPhoneValid().isNotEmpty() && shipperPhone.isNotEmpty()) {
+                            fontWeight = FontWeight.Normal,
+                        ),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BrownDefault,
+                            unfocusedBorderColor = GreyDefault,
+                        ),
+                        singleLine = true,
+                        label = {
                             Text(
-                                text = viewModel.isPhoneValid(),
-                                color = ErrorColor,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Normal,
+                                text = "Số điện thoại",
+                                color = BrownDefault,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done),
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                )
-            }
-            item {
-                OutlinedTextField(
-                    value = shipperLicense,
-                    onValueChange = {
-                        viewModel.setShipperLicense(it)
-                    },
-                    textStyle = TextStyle(
-                        color = BrownDefault,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Normal,
-                    ),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = BrownDefault,
-                        unfocusedBorderColor = GreyDefault,
-                    ),
-                    singleLine = true,
-                    label = {
-                        Text(
-                            text = "Biển số xe",
+                        },
+                        supportingText = {
+                            if (viewModel.isPhoneValid()
+                                    .isNotEmpty() && shipperPhone.isNotEmpty()
+                            ) {
+                                Text(
+                                    text = viewModel.isPhoneValid(),
+                                    color = ErrorColor,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    modifier = Modifier
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    )
+                }
+                item {
+                    OutlinedTextField(
+                        value = shipperLicense,
+                        onValueChange = {
+                            viewModel.setShipperLicense(it)
+                        },
+                        textStyle = TextStyle(
                             color = BrownDefault,
                             fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier
-                        )
-                    },
-                    supportingText = {
-                        if (viewModel.isLicenseValid().isNotEmpty() && shipperLicense.isNotEmpty()) {
+                            fontWeight = FontWeight.Normal,
+                        ),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = BrownDefault,
+                            unfocusedBorderColor = GreyDefault,
+                        ),
+                        singleLine = true,
+                        label = {
                             Text(
-                                text = viewModel.isLicenseValid(),
-                                color = ErrorColor,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Normal,
+                                text = "Biển số xe",
+                                color = BrownDefault,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions.Default.copy(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Done),
-                    shape = RoundedCornerShape(20.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                )
+                        },
+                        supportingText = {
+                            if (viewModel.isLicenseValid()
+                                    .isNotEmpty() && shipperLicense.isNotEmpty()
+                            ) {
+                                Text(
+                                    text = viewModel.isLicenseValid(),
+                                    color = ErrorColor,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Normal,
+                                    modifier = Modifier
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Text,
+                            imeAction = ImeAction.Done
+                        ),
+                        shape = RoundedCornerShape(20.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                    )
+                }
             }
         }
     }

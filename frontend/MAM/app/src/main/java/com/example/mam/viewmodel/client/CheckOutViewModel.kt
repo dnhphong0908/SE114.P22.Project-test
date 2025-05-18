@@ -100,7 +100,7 @@ class CheckOutViewModel():  ViewModel(){
     fun loadOrderItems(){
         val tmpList: MutableList<OrderItem> = mutableListOf()
         _cart.items.forEach{ item ->
-            tmpList.add(OrderItem(item.product,item.quantity, item.getOptionsToString(), item.getPrice()))
+            tmpList.add(OrderItem(item.product.name, "item.product.img",item.product.id,item.quantity, item.getOptionsToString(), item.getPrice()))
         }
         _orderItems.value = tmpList
     }

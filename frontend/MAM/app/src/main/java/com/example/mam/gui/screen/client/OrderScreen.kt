@@ -227,7 +227,7 @@ fun OrderScreen(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .fillMaxWidth(0.6f)
+                                    .fillMaxWidth(0.8f)
                                     .height(10.dp)
                                     .background(GreyLight, RoundedCornerShape(50))
                                     .align(Alignment.Center)

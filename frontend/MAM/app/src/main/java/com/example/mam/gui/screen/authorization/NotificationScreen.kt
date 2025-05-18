@@ -230,14 +230,16 @@ fun NotificationItem(notification: Notification) {
                         )
                     )
             ){
-                Icon(
-                    imageVector = notification.icon,
-                    contentDescription = "",
-                    tint = WhiteDefault,
-                    modifier = Modifier
-                        .size(40.dp)
-                        .align(Alignment.Center)
-                )
+                notification.icon?.let {
+                    Icon(
+                        imageVector = it,
+                        contentDescription = "",
+                        tint = WhiteDefault,
+                        modifier = Modifier
+                            .size(40.dp)
+                            .align(Alignment.Center)
+                    )
+                }
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column(
@@ -302,7 +304,7 @@ fun PreviewNotificationScreen() {
                 id = "3",
                 title = "Khuyến mãi cho đơn hàng đầu tiên!",
                 content = "Với mỗi đơn hàng cho tài khoản lần đầu tiên sử dụng ứng dụng MĂM, bạn thể nhận được voucher giảm 50% cho tổng hóa đơn.",
-                timestamp = "09:00 10/04/2025",
+                timestamp = Instant.now(),
                 isRead = false,
                 icon = Icons.Filled.Discount
             )
