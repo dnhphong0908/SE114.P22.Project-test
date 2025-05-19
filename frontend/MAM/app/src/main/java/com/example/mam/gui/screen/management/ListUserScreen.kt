@@ -458,9 +458,9 @@ fun UserItem(
             IconButton(onClick = { onEditUserClick(user.id) }) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
             }
-            IconButton(onClick = { onDeleteUserClick(user.id) }) {
-                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
-            }
+//            IconButton(onClick = { onDeleteUserClick(user.id) }) {
+//                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
+//            }
         }
     }
 }

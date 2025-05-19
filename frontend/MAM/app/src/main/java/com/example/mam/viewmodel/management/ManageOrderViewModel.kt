@@ -36,7 +36,7 @@ class ManageOrderViewModel(savedStateHandle: SavedStateHandle?): ViewModel() {
     private val _isStatusLoading = MutableStateFlow(false)
     val isStatusLoading = _isStatusLoading.asStateFlow()
 
-    fun setStatus(status: Int) {
+    fun setStatus() {
         _orderStatus.value++
     }
 
@@ -45,6 +45,7 @@ class ManageOrderViewModel(savedStateHandle: SavedStateHandle?): ViewModel() {
             try {
                 _isStatusLoading.value = true
                 // Simulate network call
+                _order.value = _order.value.copy(orderStatus = _orderStatus.value)
             } catch (e: Exception) {
                 // Handle error
             } finally {

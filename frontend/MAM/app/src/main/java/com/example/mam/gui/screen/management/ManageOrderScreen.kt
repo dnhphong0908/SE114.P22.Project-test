@@ -1,5 +1,6 @@
 package com.example.mam.gui.screen.management
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -65,7 +67,6 @@ fun ManageOrderScreen(
     viewModel: ManageOrderViewModel,
     onBackClick: () -> Unit,
     isPreview: Boolean = false,
-    isEdit: Boolean = false,
 ) {
     val order = viewModel.order.collectAsStateWithLifecycle().value
     val shipper = viewModel.shipper.collectAsStateWithLifecycle().value
@@ -75,8 +76,8 @@ fun ManageOrderScreen(
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
     val isStatusLoading = viewModel.isStatusLoading.collectAsStateWithLifecycle().value
     var isShowDialog by remember { mutableStateOf(false)}
-
-    LaunchedEffect(Unit) {
+    var context = LocalContext.current
+    LaunchedEffect(key1 = order) {
         if (isPreview) {
             viewModel.mockData()
         }
@@ -120,8 +121,14 @@ fun ManageOrderScreen(
                 message = "Bạn có chắc chắn muốn cập nhật trạng thái đơn hàng này không?",
                 onDismiss = { isShowDialog = false },
                 onConfirm = {
-                    viewModel.updateStatus()
+                    viewModel.setStatus()
                     isShowDialog = false
+                    viewModel.updateStatus()
+                    Toast.makeText(
+                        context,
+                        "Cập nhật trạng thái đơn hàng thành công",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             )
         }
@@ -170,9 +177,9 @@ fun ManageOrderScreen(
                             .size(40.dp)
                     )
                 }
-                else {
+                else if (orderStatus <= 3) {
                     OuterShadowFilledButton(
-                        text = orderStatus.toString(),
+                        text = getStatusUpdateMessage(order.orderStatus),
                         onClick = {isShowDialog = true},
                         textColor = WhiteDefault,
                         color = OrangeDefault,
@@ -181,7 +188,6 @@ fun ManageOrderScreen(
                             .fillMaxWidth(0.9f)
                             .padding(5.dp)
                     )
-
                 }
             }
             if (isLoading) {
@@ -426,6 +432,27 @@ fun ManageOrderScreen(
                             .padding(start = 10.dp)
                             .fillMaxWidth()
                     )
+                    Text(
+                        text = buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    color = BrownDefault,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            ) {
+                                append("Trạng thái đơn hàng: ")
+                            }
+                            append(getStatusMessage(order.orderStatus))
+                        },
+                        fontSize = 18.sp,
+                        color = OrangeDefault,
+                        textAlign = TextAlign.Start,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .padding(start = 10.dp)
+                            .fillMaxWidth()
+                    )
                 }
             }
                 item {
@@ -450,6 +477,27 @@ fun ManageOrderScreen(
     }
 }
 
+fun getStatusMessage(status: Int): String {
+    return when (status) {
+        0 -> "Chờ xác nhận"
+        1 -> "Đã xác nhận"
+        2 -> "Đang chế biến"
+        3 -> "Đang giao hàng"
+        4 -> "Đã giao hàng"
+        else -> "Không xác định"
+    }
+}
+
+fun getStatusUpdateMessage(status: Int): String {
+    return when (status) {
+        0 -> "Xác nhận đơn hàng"
+        1 -> "Đang chế biến"
+        2 -> "Đang giao hàng"
+        3 -> "Đã giao hàng"
+        else -> "Không xác định"
+    }
+}
+
 @Preview
 @Composable
 fun ManageOrderScreenPreview() {
@@ -457,6 +505,5 @@ fun ManageOrderScreenPreview() {
         viewModel = ManageOrderViewModel(savedStateHandle = SavedStateHandle(mapOf("orderId" to "orderId"))),
         onBackClick = {},
         isPreview = true,
-        isEdit = false
     )
 }

@@ -237,7 +237,7 @@ fun OrderScreen(
                         }
                         Text(
                             text = when (status.value) {
-                                0 -> "Đơn hàng chưa được xử lý"
+                                0 -> "Đơn hàng chờ được xác nhận"
                                 1 -> "Đơn hàng đã được tiếp nhận"
                                 2 -> "Đơn hàng đang được chế biến"
                                 3 -> "Đơn hàng đang được giao tới bạn"
