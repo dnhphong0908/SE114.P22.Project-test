@@ -26,6 +26,8 @@ import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
@@ -55,11 +57,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -78,6 +83,9 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListPromotionViewModel
+import java.text.DecimalFormat
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ListPromotionScreen(
@@ -385,6 +393,7 @@ fun PromotionItem(
     onEditClick: (String) -> Unit,
     onDeleteClick: (String) -> Unit,
 ){
+    var expand by remember { mutableStateOf(false) }
     Card(
         onClick = { onItemClick(promo.code) },
         colors = CardDefaults.cardColors(
@@ -426,7 +435,9 @@ fun PromotionItem(
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
                 )
             }
             IconButton(onClick = { onEditClick(promo.code) }) {
@@ -435,8 +446,111 @@ fun PromotionItem(
             IconButton(onClick = { onDeleteClick(promo.code) }) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
             }
+            IconButton(onClick = { expand = !expand }) {
+                if (!expand) Icon(
+                    Icons.Default.ExpandMore,
+                    contentDescription = "Expand",
+                    tint = BrownDefault
+                )
+                else Icon(
+                    Icons.Default.ExpandLess,
+                    contentDescription = "Collapse",
+                    tint = BrownDefault
+                )
+            }
+        }
+        if (expand) {
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                        append("Mô tả: ")
+                    }
+                    append(promo.description)},
+                textAlign = TextAlign.Start,
+                color = BrownDefault,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+            )
+            promo.createAt.atZone(ZoneId.systemDefault())?.let {
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                            append("Hạn sử dụng: ")
+                        }
+                        append(it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " - "
+                                + promo.endDate.atZone(ZoneId.systemDefault())?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))!!)
+                    },
+                    textAlign = TextAlign.Start,
+                    color = BrownDefault,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Normal,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                )
+            }
+            Text(
+                text = buildAnnotatedString {
+                    withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
+                        append("Giá trị đơn hàng tối thiểu: ")
+                    }
+                    append(parsePrice(promo.minValue))},
+                textAlign = TextAlign.Start,
+                color = BrownDefault,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Normal,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .fillMaxWidth()
+            )
+            Spacer(modifier = Modifier.size(8.dp))
+            promo.createAt.atZone(ZoneId.systemDefault())?.let {
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("Ngày tạo: ")
+                        }
+                        append(it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")))
+                    },
+                    color = GreyDefault,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .fillMaxWidth()
+                )
+            }
+
+            promo.updateAt.atZone(ZoneId.systemDefault())?.let {
+                Text(
+                    text = buildAnnotatedString {
+                        withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                            append("Ngày cập nhật: ")
+                        }
+                        append(it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")))
+                    },
+                    color = GreyDefault,
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier
+                        .padding(start = 16.dp, bottom = 16.dp, end = 16.dp)
+                        .fillMaxWidth()
+                )
+            }
         }
     }
+}
+
+fun parsePrice(value: Int): String {
+    val formatter = DecimalFormat("#,###")
+    return "${formatter.format(value)} VND"
 }
 
 @Preview
