@@ -78,6 +78,7 @@ import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.Transparent
 import com.example.mam.ui.theme.WhiteDefault
 import kotlinx.coroutines.launch
+import coil.compose.AsyncImage
 
 @Composable
 fun UnderlinedClickableText(
@@ -488,8 +489,8 @@ fun ProductClientListItem(
             modifier = modifier
                 .fillMaxSize()
         ) {
-            Image(
-                painter = painterResource(item.img),
+            AsyncImage(
+                model = item.imageUrl, // Đây là URL từ API
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

@@ -82,6 +82,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListProductViewModel
+import coil.compose.AsyncImage
 
 @Composable
 fun ListProductScreen(
@@ -406,8 +407,8 @@ fun ProductItem(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Image(
-                painter = painterResource(id = product.img),
+            AsyncImage(
+                model = product.imageUrl, // Đây là URL từ API
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -466,7 +467,6 @@ fun ProductItemPreview() {
             originalPrice = 100000,
             isAvailable = true,
             idCategory = "1",
-            img = R.drawable.bacon_and_cheese_heaven
         ),
         onProductClick = {},
         onEditProductClick = {},
@@ -493,7 +493,6 @@ fun ListProductScreenPreview() {
                 originalPrice = 100000,
                 isAvailable = true,
                 idCategory = "1",
-                img = R.drawable.bacon_and_cheese_heaven
             ),
             Product(
                 id = "2",
@@ -503,7 +502,6 @@ fun ListProductScreenPreview() {
                 originalPrice = 100000,
                 isAvailable = true,
                 idCategory = "1",
-                img = R.drawable.bacon_and_cheese_heaven
             )
         )
     )

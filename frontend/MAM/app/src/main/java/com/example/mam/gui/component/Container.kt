@@ -148,8 +148,8 @@ fun CartItemContainer(
                 modifier = Modifier
                     .fillMaxHeight()
                     .fillMaxWidth(0.4f)) {
-                Image(
-                    painter = painterResource(cartItem.product.img),
+                AsyncImage(
+                    model = cartItem.product.imageUrl, // Đây là URL từ API
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
@@ -340,11 +340,11 @@ fun AdditionalProduct(
             .height(160.dp)
     )
     {
-        Image(
-            painter = painterResource(item.img),
+        AsyncImage(
+            model = item.imageUrl, // Đây là URL từ API
             contentDescription = null,
             contentScale = ContentScale.Crop,
-            modifier =Modifier
+            modifier = Modifier
                 .align(Alignment.TopCenter)
                 .size(80.dp)
                 .clip(CircleShape)
@@ -409,7 +409,6 @@ fun ContainerPreview(){
                     100000,
                     true,
                     "PC001",
-                    img =  R.drawable.bacon_and_cheese_heaven
                 ),
                 1,
                 mutableListOf(
@@ -429,7 +428,6 @@ fun ContainerPreview(){
                 100000,
                 true,
                 "PC001",
-                img = R.drawable.bacon_and_cheese_heaven
             )
         )
         val cartItem = CartItem(
@@ -441,7 +439,6 @@ fun ContainerPreview(){
                 100000,
                 true,
                 "PC001",
-                img = R.drawable.bacon_and_cheese_heaven
             ),
             1,
             mutableListOf(

@@ -14,8 +14,8 @@ class CartViewModel(): ViewModel() {
     val cart = _cart.asStateFlow()
     fun getCart(id: String){
         val newCart = Cart()
-        val product1 = Product("P003", "Pizza truyền thống", "", "", 120000, true, "PC001", R.drawable.bacon_and_cheese_heaven)
-        val product2 = Product("P006", "Hotdog truyền thống", "", "", 80000, true, "PC003", R.drawable.bacon_and_cheese_heaven)
+        val product1 = Product("P003", "Pizza truyền thống", "", "", 120000, true, "PC001", "")
+        val product2 = Product("P006", "Hotdog truyền thống", "", "", 80000, true, "PC003", "")
 
         val option1 = VarianceOption("V007P003", "V007", "25cm", 10000)
         val option2 = VarianceOption("V004P003", "V004", "Hành tây", 5000)
@@ -40,8 +40,7 @@ class CartViewModel(): ViewModel() {
                 "",
                 100000,
                 true,
-                "PC007",
-                R.drawable.bacon_and_cheese_heaven),
+                "PC007"),
             Product(
                 "P019",
                 "Khoai tây chiên",
@@ -49,8 +48,7 @@ class CartViewModel(): ViewModel() {
                 "",
                 100000,
                 true,
-                "PC007",
-                R.drawable.bacon_and_cheese_heaven),
+                "PC007"),
             Product(
                 "P019",
                 "Khoai tây chiên",
@@ -58,8 +56,7 @@ class CartViewModel(): ViewModel() {
                 "",
                 100000,
                 true,
-                "PC007",
-                R.drawable.bacon_and_cheese_heaven),
+                "PC007"),
             Product(
                 "P019",
                 "Khoai tây chiên",
@@ -67,8 +64,7 @@ class CartViewModel(): ViewModel() {
                 "",
                 100000,
                 true,
-                "PC007",
-                R.drawable.bacon_and_cheese_heaven),
+                "PC007"),
             Product(
                 "P020",
                 "Khoai tây chiên",
@@ -76,8 +72,7 @@ class CartViewModel(): ViewModel() {
                 "",
                 100000,
                 true,
-                "PC007",
-                R.drawable.bacon_and_cheese_heaven)
+                "PC007")
         )
     }
 
