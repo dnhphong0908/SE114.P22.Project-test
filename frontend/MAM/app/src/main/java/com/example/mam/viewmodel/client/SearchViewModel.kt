@@ -27,27 +27,27 @@ class SearchViewModel(): ViewModel() {
 
     fun loadListProduct(){
         _originListProduct.value = mutableListOf(
-            Product("P000", "Burger thịt hun khói phô mai", "", "", 100000, true, "PC002", R.drawable.bacon_and_cheese_heaven),
-            Product("P001", "Burger thịt hun khói phô mai", "", "", 100000, true, "PC002", R.drawable.bacon_and_cheese_heaven),
-            Product("P002", "Burger thịt hun khói phô mai", "", "", 100000, true, "PC002", R.drawable.bacon_and_cheese_heaven),
-            Product("P003", "Pizza truyền thống", "", "", 100000, true, "PC001", R.drawable.bacon_and_cheese_heaven),
-            Product("P004", "Pizza truyền thống", "", "", 100000, true, "PC001", R.drawable.bacon_and_cheese_heaven),
-            Product("P005", "Pizza truyền thống", "", "", 100000, true, "PC001", R.drawable.bacon_and_cheese_heaven),
-            Product("P006", "Hotdog truyền thống", "", "", 100000, true, "PC003", R.drawable.bacon_and_cheese_heaven),
-            Product("P007", "Hotdog truyền thống", "", "", 100000, false, "PC003", R.drawable.bacon_and_cheese_heaven),
-            Product("P008", "Hotdog truyền thống", "", "", 100000, true, "PC003", R.drawable.bacon_and_cheese_heaven),
-            Product("P009", "Gà rán", "", "", 100000, true, "PC004", R.drawable.bacon_and_cheese_heaven),
-            Product("P010", "Gà rán", "", "", 100000, true, "PC004", R.drawable.bacon_and_cheese_heaven),
-            Product("P011", "Gà rán", "", "", 100000, true, "PC004", R.drawable.bacon_and_cheese_heaven),
-            Product("P012", "Bít tết áp chảo", "", "", 100000, true, "PC005", R.drawable.bacon_and_cheese_heaven),
-            Product("P013", "Bít tết áp chảo", "", "", 100000, true, "PC005", R.drawable.bacon_and_cheese_heaven),
-            Product("P014", "Bít tết áp chảo", "", "", 100000, true, "PC005", R.drawable.bacon_and_cheese_heaven),
-            Product("P015", "Nước chanh", "", "", 100000, true, "PC006", R.drawable.bacon_and_cheese_heaven),
-            Product("P016", "Nước chanh", "", "", 100000, true, "PC006", R.drawable.bacon_and_cheese_heaven),
-            Product("P017", "Nước chanh", "", "", 100000, true, "PC006", R.drawable.bacon_and_cheese_heaven),
-            Product("P018", "Khoai tây chiên", "", "", 100000, true, "PC007", R.drawable.bacon_and_cheese_heaven),
-            Product("P019", "Khoai tây chiên", "", "", 100000, true, "PC007", R.drawable.bacon_and_cheese_heaven),
-            Product("P020", "Khoai tây chiên", "", "", 100000, true, "PC007", R.drawable.bacon_and_cheese_heaven) )
+            Product("P000", "Burger thịt hun khói phô mai", "", "", 100000, true, "PC002", ""),
+            Product("P001", "Burger thịt hun khói phô mai", "", "", 100000, true, "PC002", ""),
+            Product("P002", "Burger thịt hun khói phô mai", "", "", 100000, true, "PC002", ""),
+            Product("P003", "Pizza truyền thống", "", "", 100000, true, "PC001", ""),
+            Product("P004", "Pizza truyền thống", "", "", 100000, true, "PC001", ""),
+            Product("P005", "Pizza truyền thống", "", "", 100000, true, "PC001", ""),
+            Product("P006", "Hotdog truyền thống", "", "", 100000, true, "PC003", ""),
+            Product("P007", "Hotdog truyền thống", "", "", 100000, false, "PC003", ""),
+            Product("P008", "Hotdog truyền thống", "", "", 100000, true, "PC003", ""),
+            Product("P009", "Gà rán", "", "", 100000, true, "PC004", ""),
+            Product("P010", "Gà rán", "", "", 100000, true, "PC004", ""),
+            Product("P011", "Gà rán", "", "", 100000, true, "PC004", ""),
+            Product("P012", "Bít tết áp chảo", "", "", 100000, true, "PC005", ""),
+            Product("P013", "Bít tết áp chảo", "", "", 100000, true, "PC005", ""),
+            Product("P014", "Bít tết áp chảo", "", "", 100000, true, "PC005", ""),
+            Product("P015", "Nước chanh", "", "", 100000, true, "PC006", ""),
+            Product("P016", "Nước chanh", "", "", 100000, true, "PC006", ""),
+            Product("P017", "Nước chanh", "", "", 100000, true, "PC006", ""),
+            Product("P018", "Khoai tây chiên", "", "", 100000, true, "PC007", ""),
+            Product("P019", "Khoai tây chiên", "", "", 100000, true, "PC007", ""),
+            Product("P020", "Khoai tây chiên", "", "", 100000, true, "PC007", "") )
         _listProduct.value = _originListProduct.value
     }
 
