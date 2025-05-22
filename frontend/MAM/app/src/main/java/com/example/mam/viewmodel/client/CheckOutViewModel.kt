@@ -85,8 +85,8 @@ class CheckOutViewModel():  ViewModel(){
     }
     fun loadCart() {
         val newCart = Cart()
-        val product1 = Product("P003", "Pizza truyền thống", "", "", 120000, true, "PC001", R.drawable.bacon_and_cheese_heaven)
-        val product2 = Product("P006", "Hotdog truyền thống", "", "", 80000, true, "PC003", R.drawable.bacon_and_cheese_heaven)
+        val product1 = Product("P003", "Pizza truyền thống", "", "", 120000, true, "PC001", "")
+        val product2 = Product("P006", "Hotdog truyền thống", "", "", 80000, true, "PC003", "")
 
         val option1 = VarianceOption("V007P003", "V007", "25cm", 10000)
         val option2 = VarianceOption("V004P003", "V004", "Hành tây", 5000)

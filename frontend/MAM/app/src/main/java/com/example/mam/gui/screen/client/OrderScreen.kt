@@ -431,8 +431,8 @@ fun OrderScreen(
                         )
                     }
                     Box (Modifier
-                        .padding(bottom = 10.dp)
                         .outerShadow()
+                        .padding(bottom = 5.dp)
                         .fillMaxWidth(0.9f)
                         .wrapContentHeight()
                         .background(OrangeLight, shape = RoundedCornerShape(50))
