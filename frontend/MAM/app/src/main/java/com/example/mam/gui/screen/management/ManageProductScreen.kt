@@ -101,7 +101,6 @@ import java.time.format.DateTimeFormatter
 fun ManageProductScreen(
     viewModel: ManageProductViewModel,
     onBackClick: () -> Unit,
-    onAddClick: () -> Unit,
     isPreview: Boolean = false,
     isAdd: Boolean = false,
     isEdit: Boolean = false,
@@ -138,6 +137,7 @@ fun ManageProductScreen(
             viewModel.loadData()
         }
         else viewModel.setCategoryList()
+        viewModel.setProductImageUrl("https://static.vecteezy.com/system/resources/previews/056/202/171/non_2x/add-image-or-photo-icon-vector.jpg")
     }
     Column(
         modifier = Modifier
@@ -167,7 +167,7 @@ fun ManageProductScreen(
                     .align(Alignment.TopStart)
                     .padding(top = 16.dp, start = 16.dp)
             )
-            val isButtonEnable = if (isAdd || isEditMode) {
+            val isButtonEnable = (isAdd || isEditMode) &&
                 productName.isNotEmpty()
                         && productPrice > 0
                         && productShortDescription.isNotEmpty()
@@ -176,7 +176,6 @@ fun ManageProductScreen(
                         && viewModel.isProductPriceValid().isEmpty()
                         && viewModel.isProductShortDescriptionValid().isEmpty()
                         && viewModel.isProductLongDescriptionValid().isEmpty()
-            } else true
             if (isButtonEnable) CircleIconButton(
                 backgroundColor = OrangeLighter,
                 foregroundColor = OrangeDefault,
@@ -185,12 +184,12 @@ fun ManageProductScreen(
                 onClick = {
                     if (isEditMode) {
                         viewModel.updateProduct()
-                        isEditMode = false
+                        onBackClick()
                     } else if (isAdd) {
                         viewModel.addProduct()
-                        onAddClick()
+                        onBackClick()
                     } else {
-                        isEditMode = true
+                       onBackClick()
                     }
 
 
@@ -943,7 +942,6 @@ fun ManageProductScreenPreview() {
             savedStateHandle = null
         ),
         onBackClick = {},
-        onAddClick = {},
         isPreview = true,
         isAdd = false,
         isEdit = true

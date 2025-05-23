@@ -67,6 +67,10 @@ class ListPromotionViewModel(): ViewModel() {
             try {
                 _isLoading.value = true
                 // Simulate network call
+                _promoList.value = mutableListOf(
+                    Promotion("PROMO123", 10000),
+                    Promotion("PROMO456", 20000),
+                    Promotion("PROMO789", 30000))
             } catch (e: Exception) {
                 // Handle error
             } finally {

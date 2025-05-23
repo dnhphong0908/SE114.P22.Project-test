@@ -67,6 +67,32 @@ class ListUserViewModel(): ViewModel() {
             try {
                 _isLoading.value = true
                 // Simulate network call
+                _user.value = mutableListOf(
+                    User(
+                        id = "1",
+                        fullName = "Nguyen Van A",
+                        username = "nguyenvana",
+                        phoneNumber = "0123456789",
+                        avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
+                        role = "Admin"
+                    ),
+                    User(
+                        id = "2",
+                        fullName = "Nguyen Van B",
+                        username = "nguyenvanb",
+                        phoneNumber = "0123456789",
+                        avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
+                        role = "User"
+                    ),
+                    User(
+                        id = "3",
+                        fullName = "Nguyen Van C",
+                        username = "nguyenvanc",
+                        phoneNumber = "0123456789",
+                        avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
+                        role = "User"
+                    )
+                )
             } catch (e: Exception) {
                 // Handle error
             } finally {

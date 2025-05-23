@@ -102,7 +102,7 @@ fun ManageCategoryScreen(
         if (isAdd) {
             viewModel.setCategoryName("")
             viewModel.setCategoryDescription("")
-            viewModel.setCategoryImage("")
+            viewModel.setCategoryImage("https://static.vecteezy.com/system/resources/previews/056/202/171/non_2x/add-image-or-photo-icon-vector.jpg")
         }
         if (isPreview) {
             viewModel.mockData()

@@ -46,6 +46,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,9 +94,7 @@ fun ListOrderScreen(
     viewModel: ListOrderViewModel,
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
-    onOrderClick: (String) -> Unit = {},
     onEditOrderClick: (String) -> Unit = {},
-    onDeleteOrderClick: (String) -> Unit = {},
     mockData: List<Order>? = null,
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
@@ -105,6 +104,10 @@ fun ListOrderScreen(
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
 
+    LaunchedEffect(Unit){
+        viewModel.loadSortingOptions()
+        viewModel.loadData()
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -326,9 +329,7 @@ fun ListOrderScreen(
                     items(mockData) { order ->
                         com.example.mam.gui.screen.management.OrderItem(
                             order = order,
-                            onClick = onOrderClick,
                             onEditClick = onEditOrderClick,
-                            onDeleteClick = onDeleteOrderClick
                         )
                     }
                 }
@@ -357,9 +358,7 @@ fun ListOrderScreen(
                             items(orderList) { order ->
                                 com.example.mam.gui.screen.management.OrderItem(
                                     order = order,
-                                    onClick = onOrderClick,
                                     onEditClick = onEditOrderClick,
-                                    onDeleteClick = onDeleteOrderClick
                                 )
                             }
 
@@ -375,14 +374,12 @@ fun ListOrderScreen(
 fun OrderItem(
     order: Order,
     isViewOnly: Boolean = false,
-    onClick: (String) -> Unit,
     onEditClick: (String) -> Unit,
-    onDeleteClick: (String) -> Unit,
 ) {
     val viewModel: ListOrderViewModel = ListOrderViewModel()
     val owner = viewModel.loadOwnerOfOrder(order.usedId)
     Card(
-        onClick = { onClick(order.id) },
+        onClick = { },
         colors = CardDefaults.cardColors(
             containerColor = WhiteDefault
         ),
@@ -412,6 +409,16 @@ fun OrderItem(
                     .weight(1f)
                     .padding(10.dp)
             ) {
+                Text(
+                    text = getStatusMessage(order.orderStatus),
+                    textAlign = TextAlign.Start,
+                    color = OrangeDefault,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth()
+                )
                 Text(
                     text = owner.fullName,
                     textAlign = TextAlign.Start,
@@ -446,16 +453,18 @@ fun OrderItem(
                 )
             }
             if (!isViewOnly) {
-                IconButton(onClick = { onEditClick(order.id) }) {
+                if (order.orderStatus<4)IconButton(onClick = { onEditClick(order.id) }) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
                 }
-                IconButton(onClick = { onDeleteClick(order.id) }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
-                }
+//                IconButton(onClick = { onDeleteClick(order.id) }) {
+//                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
+//                }
             }
         }
     }
 }
+
+
 
 @Preview
 @Composable
@@ -476,9 +485,7 @@ fun PreviewOrderItem() {
     )
     OrderItem(
         order = order,
-        onClick = {},
         onEditClick = {},
-        onDeleteClick = {}
     )
 }
 
@@ -488,9 +495,7 @@ fun PreviewListOrderScreen() {
     ListOrderScreen(
         viewModel = ListOrderViewModel(),
         onBackClick = {},
-        onOrderClick = {},
         onEditOrderClick = {},
-        onDeleteOrderClick = {},
         mockData = listOf(
             Order(
                 id = "1",
@@ -501,7 +506,7 @@ fun PreviewListOrderScreen() {
                 orderItems = mutableListOf(),
                 totalPrice = 100000,
                 note = "Note",
-                orderStatus = 1,
+                orderStatus = 4,
                 expectDeliveryTime = java.time.Instant.now(),
                 actualDeliveryTime = java.time.Instant.now(),
                 shipperId = "1"

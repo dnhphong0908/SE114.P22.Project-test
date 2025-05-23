@@ -66,6 +66,26 @@ class ListProductViewModel(): ViewModel() {
             try {
                 _isLoading.value = true
                 // Simulate network call
+                _product.value = mutableListOf(
+                    Product(
+                        id = "1",
+                        name = "Burger Bacon & Cheese",
+                        shortDescription = "Short description",
+                        longDescription = "Long description",
+                        originalPrice = 100000,
+                        isAvailable = true,
+                        idCategory = "1",
+                    ),
+                    Product(
+                        id = "2",
+                        name = "Burger Bacon & Cheese",
+                        shortDescription = "Short description",
+                        longDescription = "Long description",
+                        originalPrice = 100000,
+                        isAvailable = true,
+                        idCategory = "1",
+                    )
+                )
             } catch (e: Exception) {
                 // Handle error
             } finally {

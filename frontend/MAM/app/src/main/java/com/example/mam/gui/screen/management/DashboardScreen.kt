@@ -12,12 +12,14 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
@@ -381,8 +383,8 @@ fun DashboardScreen(
                     SoldCategoryChart(
                         viewModel = viewModel,
                         modifier = Modifier
-                            .fillMaxWidth()
                             .padding(8.dp)
+                            .fillMaxWidth()
                             .height(500.dp)
                     )
                 }
@@ -722,7 +724,7 @@ fun SoldCategoryChart(
             DonutPieChart(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(400.dp),
+                    .aspectRatio(1f),
                 data,
                 pieChartConfig
             ) { slice ->
@@ -766,6 +768,8 @@ fun SoldCategoryChart(
                 },
                 modifier = Modifier
                     .padding(8.dp)
+                    .width(400.dp)
+                    .height(500.dp)
             )
         }
     }
