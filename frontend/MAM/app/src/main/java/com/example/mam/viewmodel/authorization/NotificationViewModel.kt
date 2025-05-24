@@ -4,12 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mam.entity.Notification
 import com.example.mam.services.APIservice
+import com.example.mam.services.RetrofitClient.api
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 open class NotificationViewModel(
-    private val api: APIservice
+    //private val api: APIservice
 ): ViewModel() {
     private val _notifications = MutableStateFlow<List<Notification>>(emptyList())
     val notifications: StateFlow<List<Notification>> = _notifications
@@ -21,8 +22,8 @@ open class NotificationViewModel(
         viewModelScope.launch {
             try {
                 _isLoading.value = true
-                val response = api.getNotifications()
-                _notifications.value = response
+                //val response = api.getNotifications()
+                //_notifications.value = response
             } catch (e: Exception) {
                 // Handle error
             } finally {

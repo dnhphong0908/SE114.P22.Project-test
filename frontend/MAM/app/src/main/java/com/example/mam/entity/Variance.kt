@@ -4,4 +4,5 @@ data class Variance(
     val id: String = "",
     val name: String = "",
     val idProduct: String = "",
+    val isMutipleChoice: Boolean = false,
 )

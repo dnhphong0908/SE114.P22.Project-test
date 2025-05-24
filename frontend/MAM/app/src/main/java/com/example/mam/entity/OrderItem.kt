@@ -3,7 +3,9 @@ package com.example.mam.entity
 import java.text.DecimalFormat
 
 data class OrderItem (
-    val product: Product = Product(),
+    val name: String = "",
+    val image: String = "",
+    val id: String = "",
     var quantity: Int = 0,
     val options: String = "",
     val price: Int = 0,

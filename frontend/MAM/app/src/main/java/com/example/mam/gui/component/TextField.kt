@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.*
@@ -53,6 +54,7 @@ import androidx.core.text.isDigitsOnly
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.ErrorColor
 import com.example.mam.ui.theme.GreyDark
+import com.example.mam.ui.theme.GreyDefault
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.Transparent
 import com.example.mam.ui.theme.Variables
@@ -83,14 +85,9 @@ fun EditField(
             fontSize = Variables.BodySizeMedium, // <-- Chỉnh font size ở đây
             color = textColor // Đảm bảo màu chữ vẫn đúng
         ),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = backgroundColor,  // Màu nền khi focus
-            unfocusedContainerColor = backgroundColor, // Màu nền khi không focus
-            focusedIndicatorColor = foregroundColor,  // Màu viền khi focus
-            unfocusedIndicatorColor = foregroundColor,  // Màu viền khi không focus
-            focusedTextColor = textColor,       // Màu chữ khi focus
-            unfocusedTextColor = textColor,      // Màu chữ khi không focus
-            cursorColor = textColor             // Màu con trỏ nhập liệu
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = BrownDefault,
+            unfocusedBorderColor = GreyDefault,
         ),
         shape = RoundedCornerShape(radius),
         onValueChange = onValueChange,
@@ -233,7 +230,8 @@ fun ProfileInput(
                 unfocusedIndicatorColor = foregroundColor,  // Màu viền khi không focus
                 focusedTextColor = textColor,       // Màu chữ khi focus
                 unfocusedTextColor = textColor,      // Màu chữ khi không focus
-                cursorColor = textColor             // Màu con trỏ nhập liệu
+                cursorColor = textColor,             // Màu con trỏ nhập liệu
+                disabledContainerColor = backgroundColor,
             ),
             shape = RoundedCornerShape(radius),
             onValueChange = onValueChange,
@@ -351,14 +349,9 @@ fun PasswordField(
                 fontWeight = FontWeight.Bold
             )
         },
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = backgroundColor,  // Màu nền khi focus
-            unfocusedContainerColor = backgroundColor, // Màu nền khi không focus
-            focusedIndicatorColor = foregroundColor,  // Màu viền khi focus
-            unfocusedIndicatorColor = foregroundColor,  // Màu viền khi không focus
-            focusedTextColor = textColor,       // Màu chữ khi focus
-            unfocusedTextColor = textColor,      // Màu chữ khi không focus
-            cursorColor = textColor
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = BrownDefault,
+            unfocusedBorderColor = GreyDefault,
         ),
         shape = RoundedCornerShape(20.dp),
         singleLine = true,

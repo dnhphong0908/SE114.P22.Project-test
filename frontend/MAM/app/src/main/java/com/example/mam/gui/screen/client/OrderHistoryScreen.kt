@@ -1,5 +1,6 @@
 package com.example.mam.gui.screen.client
 
+import android.app.DatePickerDialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
@@ -21,40 +24,52 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.mam.entity.Order
 import com.example.mam.entity.OrderItem
 import com.example.mam.gui.component.CircleIconButton
+import com.example.mam.gui.component.NormalButtonWithIcon
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyDark
 import com.example.mam.ui.theme.GreyDefault
-import com.example.mam.ui.theme.GreyLight
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Variables
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.client.OrderHistoryViewModel
-import com.yourapp.ui.notifications.NotificationItem
+import com.example.mam.viewmodel.client.OrderStatusFilter
 import java.time.Instant
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import androidx.compose.runtime.getValue
 
 @Composable
 fun OrderHistoryScreen(
@@ -67,12 +82,25 @@ fun OrderHistoryScreen(
     if (mockOrder != null && localOrder.isEmpty()) {
         localOrder.addAll(mockOrder)
     }
-    val orders = if (mockOrder != null) localOrder else viewModel?.orders?.collectAsState()?.value
 
     val isLoading = mockOrder == null &&
             (viewModel?.isLoading?.collectAsState()?.value ?: true)
 
     val scrollState = rememberScrollState()
+
+    val selectedDate = remember { mutableStateOf<LocalDate?>(null) }
+
+    val filteredMockOrder = remember(selectedDate.value, localOrder) {
+        localOrder.filter { order ->
+            selectedDate.value?.let { date ->
+                order.actualDeliveryTime
+                    ?.atZone(ZoneId.systemDefault())
+                    ?.toLocalDate() == date
+            } ?: true
+        }
+    }
+
+    val orders = if (mockOrder != null) filteredMockOrder else viewModel?.filteredOrder?.collectAsState()?.value
 
     LaunchedEffect(Unit) {
         if (mockOrder == null) {
@@ -149,8 +177,24 @@ fun OrderHistoryScreen(
                     )
                     .height(300.dp)
                     .padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
+                item{
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 12.dp),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Spacer(modifier = Modifier.width(12.dp))
+                        FilterBar(
+                            selectedDate = selectedDate,
+                            onDateSelected = { selectedDate.value = it
+                                viewModel?.setDateFilter(it) // optional nếu dùng viewmodel
+                            }
+                        )
+                    }
+                }
                 items(orders.orEmpty()) { order ->
                     OrderHistoryItem(order)
                 }
@@ -158,6 +202,65 @@ fun OrderHistoryScreen(
         }
     }
 }
+@Composable
+fun FilterBar(
+    selectedDate: MutableState<LocalDate?>,
+    onDateSelected: (LocalDate?) -> Unit,
+) {
+    val expanded = remember { mutableStateOf(false) }
+    val selectedDate = remember { mutableStateOf<LocalDate?>(null) }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+        horizontalArrangement = Arrangement.End,
+    ) {
+        DatePickerButton(
+            selectedDate = selectedDate,
+            onDateSelected = onDateSelected
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        if (selectedDate.value != null){
+            TextButton(onClick = {
+                selectedDate.value = null
+                onDateSelected(null)
+            }) {
+                Text("Xóa lọc", fontSize = 16.sp, color = OrangeDefault)
+            }
+        }
+    }
+}
+
+@Composable
+fun DatePickerButton(
+    selectedDate: MutableState<LocalDate?>,
+    onDateSelected: (LocalDate?) -> Unit
+) {
+    val context = LocalContext.current
+
+    Button(
+        onClick = {
+            val calendar = Calendar.getInstance()
+
+            DatePickerDialog(
+                context,
+                { _, year, month, day ->
+                    val date = LocalDate.of(year, month + 1, day)
+                    selectedDate.value = date
+                    onDateSelected(date)
+                },
+                calendar.get(Calendar.YEAR),
+                calendar.get(Calendar.MONTH),
+                calendar.get(Calendar.DAY_OF_MONTH)
+            ).show()
+        },
+        colors = ButtonDefaults.buttonColors(OrangeDefault)
+    ) {
+        val text = selectedDate.value?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) ?: "Chọn ngày"
+        Text(text, fontSize = 16.sp)
+    }
+}
+
+
 @Composable
 fun OrderHistoryItem(order: Order) {
     val formattedTime = order.actualDeliveryTime?.let { formatInstantToDisplay(it) }

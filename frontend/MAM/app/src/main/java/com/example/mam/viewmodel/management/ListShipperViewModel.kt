@@ -67,6 +67,11 @@ class ListShipperViewModel(): ViewModel() {
             try {
                 _isLoading.value = true
                 // Simulate network call
+                _shipper.value = mutableListOf(
+                    Shipper("Nguyễn Văn A", "0123456789", "59-A1 999.99", "1"),
+                    Shipper("Trần Thị B", "0987654321", "59-A1 999.99", "2"),
+                    Shipper("Lê Văn C", "0912345678", "59-A1 999.99", "3")
+                )
             } catch (e: Exception) {
                 // Handle error
             } finally {

@@ -480,6 +480,7 @@ fun CategoryItem(
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                 )
+                Spacer(modifier = Modifier.size(8.dp))
                 category.createAt.atZone(ZoneId.systemDefault())?.let {
                     Text(
                         text = buildAnnotatedString {

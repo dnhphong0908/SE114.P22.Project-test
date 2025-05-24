@@ -77,6 +77,50 @@ class ListOrderViewModel(): ViewModel() {
             try {
                 _isLoading.value = true
                 // Simulate network call
+                _order.value = mutableListOf(
+                    Order(
+                        id = "1",
+                        usedId = "1",
+                        orderDate = java.time.Instant.now(),
+                        paymentId = "1",
+                        shippingAddress = "123 Street",
+                        orderItems = mutableListOf(),
+                        totalPrice = 100000,
+                        note = "Note",
+                        orderStatus = 4,
+                        expectDeliveryTime = java.time.Instant.now(),
+                        actualDeliveryTime = java.time.Instant.now(),
+                        shipperId = "1"
+                    ),
+                    Order(
+                        id = "1",
+                        usedId = "1",
+                        orderDate = java.time.Instant.now(),
+                        paymentId = "1",
+                        shippingAddress = "123 Street",
+                        orderItems = mutableListOf(),
+                        totalPrice = 100000,
+                        note = "Note",
+                        orderStatus = 1,
+                        expectDeliveryTime = java.time.Instant.now(),
+                        actualDeliveryTime = java.time.Instant.now(),
+                        shipperId = "1"
+                    ),
+                    Order(
+                        id = "1",
+                        usedId = "1",
+                        orderDate = java.time.Instant.now(),
+                        paymentId = "1",
+                        shippingAddress = "123 Street",
+                        orderItems = mutableListOf(),
+                        totalPrice = 100000,
+                        note = "Note",
+                        orderStatus = 1,
+                        expectDeliveryTime = java.time.Instant.now(),
+                        actualDeliveryTime = java.time.Instant.now(),
+                        shipperId = "1"
+                    )
+                )
             } catch (e: Exception) {
                 // Handle error
             } finally {

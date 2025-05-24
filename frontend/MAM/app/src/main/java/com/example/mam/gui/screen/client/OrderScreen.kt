@@ -227,7 +227,7 @@ fun OrderScreen(
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier
-                                    .fillMaxWidth(0.6f)
+                                    .fillMaxWidth(0.8f)
                                     .height(10.dp)
                                     .background(GreyLight, RoundedCornerShape(50))
                                     .align(Alignment.Center)
@@ -237,7 +237,7 @@ fun OrderScreen(
                         }
                         Text(
                             text = when (status.value) {
-                                0 -> "Đơn hàng chưa được xử lý"
+                                0 -> "Đơn hàng chờ được xác nhận"
                                 1 -> "Đơn hàng đã được tiếp nhận"
                                 2 -> "Đơn hàng đang được chế biến"
                                 3 -> "Đơn hàng đang được giao tới bạn"
@@ -431,8 +431,8 @@ fun OrderScreen(
                         )
                     }
                     Box (Modifier
-                        .padding(bottom = 10.dp)
                         .outerShadow()
+                        .padding(bottom = 5.dp)
                         .fillMaxWidth(0.9f)
                         .wrapContentHeight()
                         .background(OrangeLight, shape = RoundedCornerShape(50))

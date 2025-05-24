@@ -46,6 +46,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -82,6 +83,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListProductViewModel
+import coil.compose.AsyncImage
 
 @Composable
 fun ListProductScreen(
@@ -91,7 +93,6 @@ fun ListProductScreen(
     onProductClick: (String) -> Unit = {},
     onAddProductClick: () -> Unit = {},
     onEditProductClick: (String) -> Unit = {},
-    onDeleteProductClick: (String) -> Unit = {},
     mockData: List<Product> ?= null
 
 ) {
@@ -102,6 +103,10 @@ fun ListProductScreen(
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
 
+    LaunchedEffect(Unit){
+        viewModel.loadSortingOptions()
+        viewModel.loadData()
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -248,7 +253,10 @@ fun ListProductScreen(
                             shape = RoundedCornerShape(50.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .onFocusChanged { if(it.isFocused && searchHistory.isNotEmpty()) expanded.value = true },
+                                .onFocusChanged {
+                                    if (it.isFocused && searchHistory.isNotEmpty()) expanded.value =
+                                        true
+                                },
                         )
                         DropdownMenu(
                             expanded = expanded.value,
@@ -325,7 +333,7 @@ fun ListProductScreen(
                             product = product,
                             onProductClick = onProductClick,
                             onEditProductClick = onEditProductClick,
-                            onDeleteProductClick = onDeleteProductClick
+                            onDeleteProductClick = {  },
                         )
                     }
                 }
@@ -358,7 +366,7 @@ fun ListProductScreen(
                                     product = product,
                                     onProductClick = onProductClick,
                                     onEditProductClick = onEditProductClick,
-                                    onDeleteProductClick = onDeleteProductClick
+                                    onDeleteProductClick = {  }
                                 )
                             }
                 }
@@ -406,8 +414,8 @@ fun ProductItem(
             modifier = Modifier
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
-            Image(
-                painter = painterResource(id = product.img),
+            AsyncImage(
+                model = product.imageUrl, // Đây là URL từ API
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -466,7 +474,6 @@ fun ProductItemPreview() {
             originalPrice = 100000,
             isAvailable = true,
             idCategory = "1",
-            img = R.drawable.bacon_and_cheese_heaven
         ),
         onProductClick = {},
         onEditProductClick = {},
@@ -483,7 +490,6 @@ fun ListProductScreenPreview() {
         onProductClick = {},
         onAddProductClick = {},
         onEditProductClick = {},
-        onDeleteProductClick = {},
         mockData = listOf(
             Product(
                 id = "1",
@@ -493,7 +499,6 @@ fun ListProductScreenPreview() {
                 originalPrice = 100000,
                 isAvailable = true,
                 idCategory = "1",
-                img = R.drawable.bacon_and_cheese_heaven
             ),
             Product(
                 id = "2",
@@ -503,7 +508,6 @@ fun ListProductScreenPreview() {
                 originalPrice = 100000,
                 isAvailable = true,
                 idCategory = "1",
-                img = R.drawable.bacon_and_cheese_heaven
             )
         )
     )

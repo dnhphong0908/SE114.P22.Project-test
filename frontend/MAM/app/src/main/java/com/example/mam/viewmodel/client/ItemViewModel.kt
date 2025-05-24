@@ -37,8 +37,7 @@ class ItemViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         "Sốt BBQ đặc trưng, gà nướng, hành tây, ớt chuông, lá basil và phô mai Mozzarella. ",
         100000,
         true,
-        "PC001",
-        R.drawable.bacon_and_cheese_heaven)
+        "PC001")
     private val _cartItem = MutableStateFlow(CartItem(product = item, 1))
     var cartItem = _cartItem.asStateFlow()
     fun loadAllVariance(): List<Variance> {

@@ -12,7 +12,7 @@ data class Product(
     val originalPrice: Int = 0,
     val isAvailable: Boolean = true,
     val idCategory: String = "",
-    @DrawableRes val img: Int = 0,
+    val imageUrl: String? = "",
     val createAt: Instant = Instant.now(),
     val updateAt: Instant = Instant.now(),
 ){
