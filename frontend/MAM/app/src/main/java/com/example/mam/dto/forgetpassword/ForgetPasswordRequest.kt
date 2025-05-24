@@ -1,4 +1,4 @@
-package com.example.mam.dto.authorization.forgetpassword
+package com.example.mam.dto.forgetpassword
 
 data class ForgetPasswordRequest (
     val username: String = "",
