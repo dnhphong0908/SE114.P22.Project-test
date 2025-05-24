@@ -1,14 +1,12 @@
 package com.plcoding.composeotpinput
 
 import androidx.lifecycle.ViewModel
-import com.example.mam.viewmodel.authorization.otp.OtpAction
-import com.example.mam.viewmodel.authorization.otp.OtpState
-import kotlinx.coroutines.Dispatchers
+import com.example.mam.viewmodel.authentication.otp.OtpAction
+import com.example.mam.viewmodel.authentication.otp.OtpState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withContext
 
 private const val VALID_OTP_CODE = "1414"
 

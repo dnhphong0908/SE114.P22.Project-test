@@ -1,9 +1,9 @@
-package com.example.mam.viewmodel.authorization
+package com.example.mam.viewmodel.authentication
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.mam.services.RetrofitClient
-import com.example.mam.dto.signin.SignInRequest
+import com.example.mam.dto.authentication.SignInRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,7 +26,7 @@ class SignInViewModel() : ViewModel() {
         return withContext(Dispatchers.IO) {
             try {
                 val request = SignInRequest(_signInState.value.username.trim(), _signInState.value.password)
-                val response = RetrofitClient.api.login(request)
+                val response = RetrofitClient.authPublic.login(request)
                 Log.d("LOGIN", "AccessToken: ${response.accessToken}")
                 Log.d("LOGIN", "RefreshToken: ${response.refreshToken}")
 

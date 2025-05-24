@@ -1,6 +1,6 @@
 package com.example.mam.navigation
 
-enum class AuthorizationScreen {
+enum class AuthenticationScreen {
     Start,
     SignIn,
     ForgetPW,

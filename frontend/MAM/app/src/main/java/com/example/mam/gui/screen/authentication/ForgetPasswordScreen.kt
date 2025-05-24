@@ -1,4 +1,4 @@
-package com.example.mam.gui.screen.authorization
+package com.example.mam.gui.screen.authentication
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,13 +33,13 @@ import com.example.mam.gui.component.EditFieldType1
 import com.example.mam.gui.component.OuterShadowFilledButton
 import com.example.mam.gui.component.PasswordFieldType1
 import com.example.mam.gui.component.outerShadow
-import com.example.mam.dto.forgetpassword.ForgetPasswordRequest
+import com.example.mam.dto.authentication.ForgetPasswordRequest
 import com.example.mam.ui.theme.GreyDark
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
-import com.example.mam.viewmodel.authorization.ForgetPasswordViewModel
+import com.example.mam.viewmodel.authentication.ForgetPasswordViewModel
 
 @Composable
 fun ForgetPasswordScreen(

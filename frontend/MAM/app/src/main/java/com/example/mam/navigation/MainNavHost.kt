@@ -15,11 +15,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.mam.gui.screen.authorization.ForgetPasswordScreen
-import com.example.mam.gui.screen.authorization.OTPScreen
-import com.example.mam.gui.screen.authorization.SignInScreen
-import com.example.mam.gui.screen.authorization.SignUpScreen
-import com.example.mam.gui.screen.authorization.StartScreen
+import com.example.mam.gui.screen.authentication.ForgetPasswordScreen
+import com.example.mam.gui.screen.authentication.OTPScreen
+import com.example.mam.gui.screen.authentication.SignInScreen
+import com.example.mam.gui.screen.authentication.SignUpScreen
+import com.example.mam.gui.screen.authentication.StartScreen
 import com.example.mam.gui.screen.client.CartScreen
 import com.example.mam.gui.screen.client.CheckOutScreen
 import com.example.mam.gui.screen.client.HomeScreen
@@ -29,7 +29,6 @@ import com.example.mam.gui.screen.client.OrderScreen
 import com.example.mam.gui.screen.client.ProfileScreen
 import com.example.mam.gui.screen.client.SearchScreen
 import com.example.mam.gui.screen.management.DashboardScreen
-import com.example.mam.gui.screen.management.DashboardScreenPreview
 import com.example.mam.gui.screen.management.ListCategoryScreen
 import com.example.mam.gui.screen.management.ListNotificationScreen
 import com.example.mam.gui.screen.management.ListOrderScreen
@@ -44,10 +43,10 @@ import com.example.mam.gui.screen.management.ManageProductScreen
 import com.example.mam.gui.screen.management.ManagePromotionScreen
 import com.example.mam.gui.screen.management.ManageShipperScreen
 import com.example.mam.gui.screen.management.ManageUserScreen
-import com.example.mam.viewmodel.authorization.ForgetPasswordViewModel
-import com.example.mam.viewmodel.authorization.NotificationViewModel
-import com.example.mam.viewmodel.authorization.SignInViewModel
-import com.example.mam.viewmodel.authorization.SignUpViewModel
+import com.example.mam.viewmodel.authentication.ForgetPasswordViewModel
+import com.example.mam.viewmodel.authentication.NotificationViewModel
+import com.example.mam.viewmodel.authentication.SignInViewModel
+import com.example.mam.viewmodel.authentication.SignUpViewModel
 import com.example.mam.viewmodel.client.CartViewModel
 import com.example.mam.viewmodel.client.CheckOutViewModel
 import com.example.mam.viewmodel.client.HomeScreenViewModel
@@ -71,7 +70,6 @@ import com.example.mam.viewmodel.management.ManagePromotionViewModel
 import com.example.mam.viewmodel.management.ManageShipperViewModel
 import com.example.mam.viewmodel.management.ManageUserViewModel
 import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.mapbox.maps.extension.style.layers.generated.backgroundLayer
 import com.yourapp.ui.notifications.NotificationScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -82,7 +80,7 @@ import kotlinx.coroutines.launch
 fun MainNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = "Authorization",
+    startDestination: String = "Authentication",
 ) {
     AnimatedNavHost(
         navController = navController,
@@ -90,11 +88,11 @@ fun MainNavHost(
         modifier = modifier
     ) {
         navigation(
-            startDestination = AuthorizationScreen.Start.name,
-            route = "Authorization"
+            startDestination = AuthenticationScreen.Start.name,
+            route = "Authentication"
         ) {
             composable(
-                route = AuthorizationScreen.Start.name,
+                route = AuthenticationScreen.Start.name,
                 enterTransition = {
                     slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.Up,
@@ -119,19 +117,19 @@ fun MainNavHost(
             ) { backStackEntry ->
                 StartScreen(
                     onSignInClicked = {
-                        navController.navigate(AuthorizationScreen.SignIn.name)
+                        navController.navigate(AuthenticationScreen.SignIn.name)
                     },
                     onSignUpClicked = {
-                        navController.navigate(AuthorizationScreen.SignUp.name)
+                        navController.navigate(AuthenticationScreen.SignUp.name)
                     },
                     onTermsClicked = {
-                        navController.navigate(AuthorizationScreen.Terms.name)
+                        navController.navigate(AuthenticationScreen.Terms.name)
                     }
                 )
             }
 
             composable(
-                route = AuthorizationScreen.SignIn.name,
+                route = AuthenticationScreen.SignIn.name,
                 enterTransition = {
                     slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.Up,
@@ -179,7 +177,7 @@ fun MainNavHost(
 //                        }
                     },
                     onForgotClicked = {
-                        navController.navigate(AuthorizationScreen.ForgetPW.name)
+                        navController.navigate(AuthenticationScreen.ForgetPW.name)
                     },
                     onBackClicked = {
                         navController.popBackStack()
@@ -188,7 +186,7 @@ fun MainNavHost(
             }
 
             composable(
-                route = AuthorizationScreen.SignUp.name,
+                route = AuthenticationScreen.SignUp.name,
                 enterTransition = {
                     slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.Up,
@@ -219,12 +217,12 @@ fun MainNavHost(
                         CoroutineScope(backStackEntry.lifecycle.coroutineScope.coroutineContext).launch {
                             when (signUpVM.SignUp()) {
                                 0 -> signUpVM.notifySignUpFalse()
-                                1 -> navController.navigate(AuthorizationScreen.SignIn.name)
+                                1 -> navController.navigate(AuthenticationScreen.SignIn.name)
                             }
                         }
                     },
                     onSignInClicked = {
-                        navController.navigate(AuthorizationScreen.SignIn.name)
+                        navController.navigate(AuthenticationScreen.SignIn.name)
                     },
                     onBackClicked = {
                         navController.popBackStack()
@@ -233,7 +231,7 @@ fun MainNavHost(
             }
 
             composable(
-                route = AuthorizationScreen.ForgetPW.name,
+                route = AuthenticationScreen.ForgetPW.name,
                 enterTransition = {
                     slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.Up,
@@ -269,7 +267,7 @@ fun MainNavHost(
                 )
             }
             composable(
-                route = AuthorizationScreen.OTP.name,
+                route = AuthenticationScreen.OTP.name,
                 enterTransition = {
                     slideIntoContainer(
                         AnimatedContentTransitionScope.SlideDirection.Up,

@@ -1,10 +1,8 @@
-package com.example.mam.viewmodel.authorization
+package com.example.mam.viewmodel.authentication
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mam.entity.Notification
-import com.example.mam.services.APIservice
-import com.example.mam.services.RetrofitClient.api
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch

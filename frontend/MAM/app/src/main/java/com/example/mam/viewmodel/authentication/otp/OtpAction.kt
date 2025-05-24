@@ -1,4 +1,4 @@
-package com.example.mam.viewmodel.authorization.otp
+package com.example.mam.viewmodel.authentication.otp
 
 sealed interface OtpAction {
     data class OnEnterNumber(val number: Int?, val index: Int) : OtpAction
