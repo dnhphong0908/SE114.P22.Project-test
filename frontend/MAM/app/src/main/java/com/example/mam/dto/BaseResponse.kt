@@ -2,10 +2,10 @@ package com.example.mam.dto
 
 import java.time.Instant
 
-data class BaseResponse(
-    val id: Long,
-    val createAt: Instant,
-    val updateAt: Instant,
-    val createBy: Long,
-    val updateBy: Long,
+open class BaseResponse(
+    val id: Long = 0,
+    val createAt: Instant = Instant.now(),
+    val updateAt: Instant = Instant.now(),
+    val createBy: Long = 0,
+    val updateBy: Long = 0,
 )
