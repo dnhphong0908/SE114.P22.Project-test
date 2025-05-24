@@ -308,6 +308,7 @@ fun BasicOutlinedButton(
     foregroundColor: Color = BrownDefault,
     icon: ImageVector ?= null,
     image: Int ?= null,
+    url: String ?= null,
     isEnable: Boolean = true,
     onClick: () -> Unit,
     modifier: Modifier
@@ -341,6 +342,14 @@ fun BasicOutlinedButton(
                     .padding(end = 8.dp)
             )
         }
+        url?.let {
+            AsyncImage(
+            model = url ,
+            contentDescription = null,
+            modifier = Modifier
+                .size(30.dp)
+                .padding(end = 8.dp)
+        ) }
         Text(
             text = text,
             color = foregroundColor

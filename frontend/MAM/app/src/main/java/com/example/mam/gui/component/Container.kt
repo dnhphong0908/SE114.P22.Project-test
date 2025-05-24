@@ -85,9 +85,10 @@ fun ProductContainer(
     ) {
         Spacer(modifier = Modifier.height(20.dp))
 
-        Image(
-            painter = painterResource(category.icon),
+        AsyncImage(
+            model = category.iconUrl, // Đây là URL từ API
             contentDescription = null,
+            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(50.dp)
         )
