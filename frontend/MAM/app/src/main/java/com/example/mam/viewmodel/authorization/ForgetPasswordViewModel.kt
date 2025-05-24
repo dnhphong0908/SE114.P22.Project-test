@@ -2,13 +2,12 @@ package com.example.mam.viewmodel.authorization
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mam.services.dto.authorization.request.ForgetPasswordRequest
+import com.example.mam.services.dto.authorization.forgetpassword.ForgetPasswordRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class ForgetPasswordViewModel(): ViewModel() {
     private val _forgetPasswordState = MutableStateFlow(ForgetPasswordRequest())

@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/vnpay")
+@RequestMapping("/api/v1/vnpay")
 public class VnPayController {
     @Autowired
     private VnPayService vnPayService;

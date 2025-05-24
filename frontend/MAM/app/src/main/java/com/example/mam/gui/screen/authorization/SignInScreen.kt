@@ -23,7 +23,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,7 +41,7 @@ import com.example.mam.gui.component.OuterShadowFilledButton
 import com.example.mam.gui.component.PasswordField
 import com.example.mam.gui.component.UnderlinedClickableText
 import com.example.mam.gui.component.outerShadow
-import com.example.mam.services.dto.authorization.request.SignInRequest
+import com.example.mam.services.dto.authorization.signin.SignInRequest
 import com.example.mam.ui.theme.GreyDark
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter

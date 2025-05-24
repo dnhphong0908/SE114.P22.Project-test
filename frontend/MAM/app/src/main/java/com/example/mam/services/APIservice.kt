@@ -3,8 +3,8 @@ package com.example.mam.services
 import com.example.mam.entity.Notification
 import com.example.mam.entity.Order
 import com.example.mam.entity.User
-import com.example.mam.services.dto.authorization.request.SignInRequest
-import com.example.mam.services.dto.authorization.response.SignInResponse
+import com.example.mam.services.dto.authorization.signin.SignInRequest
+import com.example.mam.services.dto.authorization.signin.SignInResponse
 import okhttp3.MultipartBody
 import retrofit2.http.Body
 import retrofit2.http.GET
