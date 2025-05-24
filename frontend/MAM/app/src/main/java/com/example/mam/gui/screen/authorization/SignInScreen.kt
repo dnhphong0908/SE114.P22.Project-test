@@ -42,7 +42,7 @@ import com.example.mam.gui.component.OuterShadowFilledButton
 import com.example.mam.gui.component.PasswordField
 import com.example.mam.gui.component.UnderlinedClickableText
 import com.example.mam.gui.component.outerShadow
-import com.example.mam.entity.authorization.request.SignInRequest
+import com.example.mam.services.dto.authorization.request.SignInRequest
 import com.example.mam.ui.theme.GreyDark
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter

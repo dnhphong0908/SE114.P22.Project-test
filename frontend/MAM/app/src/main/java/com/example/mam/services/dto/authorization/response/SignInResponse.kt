@@ -1,4 +1,4 @@
-package com.example.mam.entity.authorization.response
+package com.example.mam.services.dto.authorization.response
 
 data class SignInResponse (
     val accessToken: String,
