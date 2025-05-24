@@ -2,7 +2,7 @@ package com.se114p12.backend.services.authentication;
 
 import com.se114p12.backend.entities.user.User;
 import com.se114p12.backend.enums.LoginProvider;
-import com.se114p12.backend.exception.BadRequestException;
+import com.se114p12.backend.exceptions.BadRequestException;
 import com.se114p12.backend.util.LoginUtil;
 
 import java.util.Collections;

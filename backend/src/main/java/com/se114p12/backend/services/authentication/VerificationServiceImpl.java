@@ -2,9 +2,9 @@ package com.se114p12.backend.services.authentication;
 
 import com.se114p12.backend.entities.authentication.Verification;
 import com.se114p12.backend.enums.VerificationType;
-import com.se114p12.backend.exception.ResourceNotFoundException;
-import com.se114p12.backend.repository.authentication.UserRepository;
-import com.se114p12.backend.repository.authentication.VerificationRepository;
+import com.se114p12.backend.exceptions.ResourceNotFoundException;
+import com.se114p12.backend.repositories.authentication.UserRepository;
+import com.se114p12.backend.repositories.authentication.VerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

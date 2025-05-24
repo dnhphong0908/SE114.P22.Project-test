@@ -1,7 +1,7 @@
 package com.se114p12.backend.controllers.notification;
 
-import com.se114p12.backend.dto.nofitication.NotificationRequestDTO;
-import com.se114p12.backend.dto.nofitication.NotificationResponseDTO;
+import com.se114p12.backend.dtos.nofitication.NotificationRequestDTO;
+import com.se114p12.backend.dtos.nofitication.NotificationResponseDTO;
 import com.se114p12.backend.services.notification.NotificationService;
 import com.se114p12.backend.util.JwtUtil;
 import lombok.RequiredArgsConstructor;

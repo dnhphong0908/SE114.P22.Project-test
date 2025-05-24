@@ -1,6 +1,6 @@
 package com.se114p12.backend.services.payment;
 
-import com.se114p12.backend.config.VnPayConfig;
+import com.se114p12.backend.configs.VnPayConfig;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

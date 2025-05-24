@@ -1,11 +1,11 @@
 package com.se114p12.backend.services.product;
 
-import com.se114p12.backend.dto.product.CategoryRequestDTO;
-import com.se114p12.backend.dto.product.CategoryResponseDTO;
+import com.se114p12.backend.dtos.product.CategoryRequestDTO;
+import com.se114p12.backend.dtos.product.CategoryResponseDTO;
 import com.se114p12.backend.entities.product.ProductCategory;
-import com.se114p12.backend.exception.ResourceNotFoundException;
-import com.se114p12.backend.mapper.product.CategoryMapper;
-import com.se114p12.backend.repository.product.ProductCategoryRepository;
+import com.se114p12.backend.exceptions.ResourceNotFoundException;
+import com.se114p12.backend.mappers.product.CategoryMapper;
+import com.se114p12.backend.repositories.product.ProductCategoryRepository;
 import com.se114p12.backend.services.general.StorageService;
 import com.se114p12.backend.vo.PageVO;
 import lombok.RequiredArgsConstructor;

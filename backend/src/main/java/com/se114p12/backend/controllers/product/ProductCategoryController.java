@@ -1,7 +1,7 @@
 package com.se114p12.backend.controllers.product;
 
-import com.se114p12.backend.dto.product.CategoryRequestDTO;
-import com.se114p12.backend.dto.product.CategoryResponseDTO;
+import com.se114p12.backend.dtos.product.CategoryRequestDTO;
+import com.se114p12.backend.dtos.product.CategoryResponseDTO;
 import com.se114p12.backend.entities.product.ProductCategory;
 import com.se114p12.backend.services.product.CategoryServiceImpl;
 import com.se114p12.backend.vo.PageVO;

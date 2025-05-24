@@ -1,7 +1,7 @@
 package com.se114p12.backend.controllers.user;
 
-import com.se114p12.backend.dto.user.UserRequestDTO;
-import com.se114p12.backend.dto.user.UserResponseDTO;
+import com.se114p12.backend.dtos.user.UserRequestDTO;
+import com.se114p12.backend.dtos.user.UserResponseDTO;
 import com.se114p12.backend.entities.user.User;
 import com.se114p12.backend.services.user.UserService;
 import com.se114p12.backend.vo.PageVO;

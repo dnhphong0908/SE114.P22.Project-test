@@ -1,7 +1,7 @@
 package com.se114p12.backend.controllers.product;
 
-import com.se114p12.backend.dto.product.ProductRequestDTO;
-import com.se114p12.backend.dto.product.ProductResponseDTO;
+import com.se114p12.backend.dtos.product.ProductRequestDTO;
+import com.se114p12.backend.dtos.product.ProductResponseDTO;
 import com.se114p12.backend.services.product.ProductService;
 import com.se114p12.backend.vo.PageVO;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -1,21 +1,19 @@
 package com.se114p12.backend.services.role;
 
-import com.se114p12.backend.dto.role.RoleRequestDTO;
-import com.se114p12.backend.dto.role.RoleResponseDTO;
+import com.se114p12.backend.dtos.role.RoleRequestDTO;
+import com.se114p12.backend.dtos.role.RoleResponseDTO;
 import com.se114p12.backend.entities.authentication.Role;
-import com.se114p12.backend.exception.DataConflictException;
-import com.se114p12.backend.exception.ResourceNotFoundException;
-import com.se114p12.backend.mapper.role.RoleMapper;
-import com.se114p12.backend.repository.authentication.RoleRepository;
+import com.se114p12.backend.exceptions.DataConflictException;
+import com.se114p12.backend.exceptions.ResourceNotFoundException;
+import com.se114p12.backend.mappers.role.RoleMapper;
+import com.se114p12.backend.repositories.authentication.RoleRepository;
 import com.se114p12.backend.vo.PageVO;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.List;
 
 @RequiredArgsConstructor

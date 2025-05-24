@@ -1,7 +1,7 @@
 package com.se114p12.backend.controllers;
 
-import com.se114p12.backend.dto.role.RoleRequestDTO;
-import com.se114p12.backend.dto.role.RoleResponseDTO;
+import com.se114p12.backend.dtos.role.RoleRequestDTO;
+import com.se114p12.backend.dtos.role.RoleResponseDTO;
 import com.se114p12.backend.entities.authentication.Role;
 import com.se114p12.backend.services.role.RoleService;
 import com.se114p12.backend.vo.PageVO;

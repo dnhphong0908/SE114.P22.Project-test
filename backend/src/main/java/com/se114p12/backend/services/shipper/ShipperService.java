@@ -1,10 +1,10 @@
 package com.se114p12.backend.services.shipper;
 
 import com.se114p12.backend.entities.shipper.Shipper;
-import com.se114p12.backend.dto.shipper.ShipperRequest;
-import com.se114p12.backend.dto.shipper.ShipperResponse;
-import com.se114p12.backend.mapper.shipper.ShipperMapper;
-import com.se114p12.backend.repository.shipper.ShipperRepository;
+import com.se114p12.backend.dtos.shipper.ShipperRequest;
+import com.se114p12.backend.dtos.shipper.ShipperResponse;
+import com.se114p12.backend.mappers.shipper.ShipperMapper;
+import com.se114p12.backend.repositories.shipper.ShipperRepository;
 import com.se114p12.backend.vo.PageVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
