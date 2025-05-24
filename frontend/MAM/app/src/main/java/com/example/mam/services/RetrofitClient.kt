@@ -1,6 +1,5 @@
 package com.example.mam.services
 
-import com.example.mam.entity.User
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -9,7 +8,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 object RetrofitClient {
     private const val BASE_URL = "http://159.223.62.237/api/v1/"
     private val authInterceptor = Interceptor { chain ->
-        val accessToken = "yourAccessToken" // Get dynamically if needed
+        val accessToken = "" // Replace with logic to retrieve the access token from DataStoreManager or other source
+
         val request = chain.request().newBuilder()
             .addHeader("Authorization", "Bearer $accessToken")
             .build()

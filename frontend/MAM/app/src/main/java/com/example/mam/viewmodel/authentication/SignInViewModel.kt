@@ -1,6 +1,9 @@
 package com.example.mam.viewmodel.authentication
 
+import android.content.Context
 import android.util.Log
+import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.lifecycle.ViewModel
 import com.example.mam.services.RetrofitClient
 import com.example.mam.dto.authentication.SignInRequest
@@ -26,11 +29,12 @@ class SignInViewModel() : ViewModel() {
         return withContext(Dispatchers.IO) {
             try {
                 val request = SignInRequest(_signInState.value.username.trim(), _signInState.value.password)
-                val response = RetrofitClient.authPublic.login(request)
-                Log.d("LOGIN", "AccessToken: ${response.accessToken}")
-                Log.d("LOGIN", "RefreshToken: ${response.refreshToken}")
-
-                if (response.accessToken.isEmpty()) 0 else 1
+//                val response = BaseService().authPublicService.login(request)
+//                Log.d("LOGIN", "AccessToken: ${response.accessToken}")
+//                Log.d("LOGIN", "RefreshToken: ${response.refreshToken}")
+//
+//                if (response.accessToken.isEmpty()) 0 else 1
+                1
             } catch (e: Exception) {
                 Log.e("LOGIN", "Lỗi khi đăng nhập: ${e.message}")
                 0
