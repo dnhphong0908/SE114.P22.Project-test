@@ -1,4 +1,4 @@
-package com.example.mam.viewmodel.authorization.otp
+package com.example.mam.viewmodel.authentication.otp
 
 data class OtpState(
     val code: List<Int?> = (1..4).map {null},

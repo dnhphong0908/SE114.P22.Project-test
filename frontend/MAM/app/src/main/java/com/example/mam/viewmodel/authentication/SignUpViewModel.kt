@@ -1,8 +1,8 @@
-package com.example.mam.viewmodel.authorization
+package com.example.mam.viewmodel.authentication
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.example.mam.dto.signup.SignUpRequest
+import com.example.mam.dto.authentication.SignUpRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

@@ -1,4 +1,4 @@
-package com.example.mam.gui.screen.authorization
+package com.example.mam.gui.screen.authentication
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.background
@@ -10,14 +10,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -54,8 +52,8 @@ import com.example.mam.ui.theme.OrangeLight
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Variables
 import com.example.mam.ui.theme.WhiteDefault
-import com.example.mam.viewmodel.authorization.ForgetPasswordViewModel
-import com.example.mam.viewmodel.authorization.otp.OtpAction
+import com.example.mam.viewmodel.authentication.ForgetPasswordViewModel
+import com.example.mam.viewmodel.authentication.otp.OtpAction
 import com.plcoding.composeotpinput.OtpViewModel
 
 @SuppressLint("StateFlowValueCalledInComposition")

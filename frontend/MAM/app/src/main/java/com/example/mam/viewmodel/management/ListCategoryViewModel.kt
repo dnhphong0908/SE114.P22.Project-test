@@ -73,17 +73,14 @@ class ListCategoryViewModel(): ViewModel() {
                     ProductCategory(
                         id = "1",
                         name = "Hamburger",
-                        icon = R.drawable.ic_hamburger
                     ),
                     ProductCategory(
                         id = "2",
                         name = "Pizza",
-                        icon = R.drawable.ic_pizza
                     ),
                     ProductCategory(
                         id = "3",
                         name = "Chicken",
-                        icon = R.drawable.ic_chicken
                     )
                 )
             } catch (e: Exception) {

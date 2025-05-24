@@ -1,4 +1,4 @@
-package com.example.mam.gui.screen.authorization
+package com.example.mam.gui.screen.authentication
 
 import android.annotation.SuppressLint
 import androidx.compose.foundation.Image
@@ -41,12 +41,12 @@ import com.example.mam.gui.component.OuterShadowFilledButton
 import com.example.mam.gui.component.PasswordField
 import com.example.mam.gui.component.UnderlinedClickableText
 import com.example.mam.gui.component.outerShadow
-import com.example.mam.dto.signin.SignInRequest
+import com.example.mam.dto.authentication.SignInRequest
 import com.example.mam.ui.theme.GreyDark
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
-import com.example.mam.viewmodel.authorization.SignInViewModel
+import com.example.mam.viewmodel.authentication.SignInViewModel
 
 @Composable
 fun SignInScreen(
