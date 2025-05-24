@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
@@ -72,6 +73,8 @@ import com.example.mam.viewmodel.management.ManageUserViewModel
 import com.google.accompanist.navigation.animation.AnimatedNavHost
 import com.yourapp.ui.notifications.NotificationScreen
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 
 
@@ -82,6 +85,7 @@ fun MainNavHost(
     navController: NavHostController = rememberNavController(),
     startDestination: String = "Authentication",
 ) {
+    val coroutineScope = CoroutineScope(Job() + Dispatchers.IO)
     AnimatedNavHost(
         navController = navController,
         startDestination = startDestination,
@@ -154,7 +158,7 @@ fun MainNavHost(
                     )
                 }
             ) { backStackEntry ->
-                val signInVM: SignInViewModel = viewModel(backStackEntry)
+                val signInVM: SignInViewModel = viewModel(backStackEntry, factory = SignInViewModel.Factory)
                 SignInScreen(
                     onSignInClicked = {
                         if (signInVM.signInState.value.username == "1" || signInVM.signInState.value.password == "1") {
@@ -163,18 +167,19 @@ fun MainNavHost(
                             }
                         }
                         else if (signInVM.signInState.value.username == "2" || signInVM.signInState.value.password == "2") {
-                        navController.navigate(route = "Dashboard") {
-                            popUpTo("Authorization") { inclusive = true }
+                            navController.navigate(route = "Dashboard") {
+                                popUpTo("Authorization") { inclusive = true }
+                            }
+                        }else {
+                            coroutineScope.launch {
+                                when (signInVM.SignIn()) {
+                                    0 -> signInVM.notifySignInFalse()
+                                    1 -> navController.navigate("Home") {
+                                        popUpTo("Authorization") { inclusive = true }
+                                    }
+                                }
+                            }
                         }
-                    }
-
-//                        CoroutineScope(backStackEntry.lifecycle.coroutineScope.coroutineContext).launch {
-//                            val result = signInVM.SignIn()
-//                            when (result) {
-//                                0 -> signInVM.notifySignInFalse()
-//                                1 -> {} // Thành công, xử lý logic ở đây
-//                            }
-//                        }
                     },
                     onForgotClicked = {
                         navController.navigate(AuthenticationScreen.ForgetPW.name)
@@ -214,7 +219,7 @@ fun MainNavHost(
                 val signUpVM: SignUpViewModel = viewModel(backStackEntry)
                 SignUpScreen(
                     onSignUpClicked = {
-                        CoroutineScope(backStackEntry.lifecycle.coroutineScope.coroutineContext).launch {
+                        coroutineScope.launch {
                             when (signUpVM.SignUp()) {
                                 0 -> signUpVM.notifySignUpFalse()
                                 1 -> navController.navigate(AuthenticationScreen.SignIn.name)

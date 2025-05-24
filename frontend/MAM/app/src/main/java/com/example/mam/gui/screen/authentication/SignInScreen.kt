@@ -56,7 +56,7 @@ fun SignInScreen(
     viewModel: SignInViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
-    val signInState: SignInRequest by viewModel.signInState.collectAsStateWithLifecycle()
+    val signInState = viewModel.signInState.collectAsStateWithLifecycle().value
     val scrollState = rememberScrollState()
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
