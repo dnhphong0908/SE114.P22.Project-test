@@ -1,6 +1,20 @@
 package com.se114p12.backend.util;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import com.se114p12.backend.entities.user.User;
+import com.se114p12.backend.dto.authentication.GoogleLoginRequestDTO;
+import com.se114p12.backend.exception.BadRequestException;
 import com.se114p12.backend.exception.ResourceNotFoundException;
+import com.se114p12.backend.repository.authentication.UserRepository;
+
+import java.time.Instant;
+import java.util.Collections;
+
+import com.se114p12.backend.services.authentication.CustomUserDetails;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -10,70 +24,68 @@ import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
 import org.springframework.security.oauth2.jwt.*;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
-import java.util.Optional;
-
 @Service
+@RequiredArgsConstructor
 public class JwtUtil {
     public static final MacAlgorithm JWT_ALGORITHM = MacAlgorithm.HS256;
+    private final LoginUtil loginUtil;
+    private final UserRepository userRepository;
 
     @Value("${jwt.access.token.expiration}")
     private Long accessTokenExpirationTime;
 
-    @Value("${jwt.refresh.token.expiration}")
-    private Long refreshTokenExpirationTime;
-
     private final JwtEncoder jwtEncoder;
     private final JwtDecoder jwtDecoder;
 
-    public JwtUtil(JwtEncoder jwtEncoder,
-                   JwtDecoder jwtDecoder) {
-        this.jwtEncoder = jwtEncoder;
-        this.jwtDecoder = jwtDecoder;
-    }
+    public String generateAccessToken(Long userId) {
 
-    public String generateAccessToken(String email) {
+        User user =
+                userRepository
+                        .findById(userId)
+                        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
         Instant now = Instant.now();
         Instant exp = now.plusSeconds(accessTokenExpirationTime);
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .subject(email)
-                .issuedAt(now)
-                .expiresAt(exp)
-                .build();
+        JwtClaimsSet claims =
+                JwtClaimsSet.builder()
+                        .subject(user.getId().toString())
+                        .issuedAt(now)
+                        .claim("role", user.getRole().getName())
+                        .expiresAt(exp)
+                        .build();
         JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
         return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
     }
 
-    public String generateRefreshToken(String email) {
-        Instant now = Instant.now();
-        Instant exp = now.plusSeconds(refreshTokenExpirationTime);
-        JwtClaimsSet claims = JwtClaimsSet.builder()
-                .subject(email)
-                .issuedAt(now)
-                .expiresAt(exp)
-                .build();
-        JwsHeader jwsHeader = JwsHeader.with(JWT_ALGORITHM).build();
-        return this.jwtEncoder.encode(JwtEncoderParameters.from(jwsHeader, claims)).getTokenValue();
-    }
-
-    private static String extractPrincipal(Authentication authentication) {
-        if (authentication == null) {
+    /**
+     * Extracts the principal (user identifier) from the Authentication object. Supports UserDetails
+     * (userId), Jwt (sub).
+     *
+     * @param authentication the Authentication object from SecurityContext
+     * @return the user identifier (preferably userId)
+     * @throws IllegalStateException if principal type is unsupported
+     */
+    private Long extractPrincipal(Authentication authentication) {
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails userDetails) {
+            return ((CustomUserDetails) userDetails).getId();
+        } else if (principal instanceof Jwt jwt) {
+            return Long.parseLong(jwt.getSubject());
+        } else if (principal instanceof String) {
+            // fallback case: 'anonymous' user
             return null;
-        } else if (authentication.getPrincipal() instanceof UserDetails springSecurityUser) {
-            return springSecurityUser.getUsername();
-        } else if (authentication.getPrincipal() instanceof Jwt jwt) {
-            return jwt.getSubject();
-        } else if (authentication.getPrincipal() instanceof String s) {
-            return s;
         }
-        return null;
+        throw new IllegalStateException(
+                "Unsupported principal type: " + principal.getClass().getName());
     }
 
-    public static String getCurrentUserCredentials() {
+    public Long getCurrentUserId() {
         SecurityContext context = SecurityContextHolder.getContext();
-        return Optional.ofNullable(extractPrincipal(context.getAuthentication())).orElseThrow(
-                () -> new ResourceNotFoundException("User not found")
-        );
+        Authentication authentication = context.getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("No authenticated user found");
+        }
+        return extractPrincipal(authentication);
     }
 
     public Jwt checkValidity(String token) {
@@ -83,4 +95,23 @@ public class JwtUtil {
             throw new JwtException("Invalid JWT token", e);
         }
     }
+
+    public GoogleIdToken verifyGoogleCredential(GoogleLoginRequestDTO googleLoginRequest) {
+        try {
+            GoogleIdTokenVerifier verifier =
+                    new GoogleIdTokenVerifier.Builder(
+                            new NetHttpTransport(), GsonFactory.getDefaultInstance())
+                            .setAudience(Collections.singletonList(googleLoginRequest.getClientId()))
+                            .build();
+
+            GoogleIdToken googleIdToken = verifier.verify(googleLoginRequest.getCredential());
+            if (googleIdToken == null) {
+                throw new BadRequestException("Invalid Google ID token");
+            }
+            return googleIdToken;
+        } catch (Exception e) {
+            throw new BadRequestException(e.getMessage());
+        }
+    }
+
 }

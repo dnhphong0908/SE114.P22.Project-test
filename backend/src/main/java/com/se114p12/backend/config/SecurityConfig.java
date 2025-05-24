@@ -1,5 +1,8 @@
 package com.se114p12.backend.config;
 
+import com.se114p12.backend.repository.authentication.UserRepository;
+import com.se114p12.backend.util.JwtUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -11,11 +14,17 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
+@RequiredArgsConstructor
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
-public class SecurityConfig {
+@EnableMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
+public class SecurityConfig implements WebMvcConfigurer {
+
+  private final JwtUtil jwtUtil;
+  private final UserRepository userRepository;
 
   @Bean
   public SecurityFilterChain filterChain(
@@ -26,8 +35,10 @@ public class SecurityConfig {
                 authorize
                     .requestMatchers(
                         "/api/v1/auth/login",
+                        "/api/v1/auth/oauth2/google",
                         "/api/v1/auth/register",
                         "/api/v1/auth/refresh",
+                        "/api/v1/auth/forgot-password",
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html")
@@ -45,5 +56,26 @@ public class SecurityConfig {
   @Bean
   public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
+  }
+
+  @Bean
+  public AppInterceptor appInterceptor() {
+    return new AppInterceptor(jwtUtil, userRepository);
+  }
+
+  @Override
+  public void addInterceptors(InterceptorRegistry registry) {
+    registry
+        .addInterceptor(appInterceptor())
+        .addPathPatterns("/api/v1/**")
+        .excludePathPatterns(
+            "/api/v1/auth/login",
+            "/api/v1/auth/oauth2/google",
+            "/api/v1/auth/register",
+            "/api/v1/auth/refresh",
+            "/api/v1/auth/forgot-password",
+            "/v3/api-docs/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html");
   }
 }
