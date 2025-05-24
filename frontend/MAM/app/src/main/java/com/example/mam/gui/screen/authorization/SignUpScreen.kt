@@ -37,7 +37,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mam.R
-import com.example.mam.services.dto.authorization.signup.SignUpRequest
+import com.example.mam.dto.authorization.signup.SignUpRequest
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.EditFieldType1
 import com.example.mam.gui.component.OuterShadowFilledButton

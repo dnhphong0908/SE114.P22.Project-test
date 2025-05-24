@@ -1,6 +1,5 @@
 package com.example.mam.gui.screen.management
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,10 +21,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
@@ -58,7 +55,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -71,9 +67,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter.State.Empty.painter
 import com.example.mam.entity.Order
-import com.example.mam.entity.OrderItem
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
@@ -87,7 +81,6 @@ import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListOrderViewModel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlin.math.acos
 
 @Composable
 fun ListOrderScreen(
@@ -377,7 +370,7 @@ fun OrderItem(
     onEditClick: (String) -> Unit,
 ) {
     val viewModel: ListOrderViewModel = ListOrderViewModel()
-    val owner = viewModel.loadOwnerOfOrder(order.usedId)
+    val owner = viewModel.loadOwnerOfOrder(order.userId)
     Card(
         onClick = { },
         colors = CardDefaults.cardColors(
@@ -471,7 +464,7 @@ fun OrderItem(
 fun PreviewOrderItem() {
     val order = Order(
         id = "1",
-        usedId = "1",
+        userId = "1",
         orderDate = java.time.Instant.now(),
         paymentId = "1",
         shippingAddress = "123 Street",
@@ -499,7 +492,7 @@ fun PreviewListOrderScreen() {
         mockData = listOf(
             Order(
                 id = "1",
-                usedId = "1",
+                userId = "1",
                 orderDate = java.time.Instant.now(),
                 paymentId = "1",
                 shippingAddress = "123 Street",
@@ -513,7 +506,7 @@ fun PreviewListOrderScreen() {
             ),
             Order(
                 id = "1",
-                usedId = "1",
+                userId = "1",
                 orderDate = java.time.Instant.now(),
                 paymentId = "1",
                 shippingAddress = "123 Street",
@@ -527,7 +520,7 @@ fun PreviewListOrderScreen() {
             ),
             Order(
                 id = "1",
-                usedId = "1",
+                userId = "1",
                 orderDate = java.time.Instant.now(),
                 paymentId = "1",
                 shippingAddress = "123 Street",

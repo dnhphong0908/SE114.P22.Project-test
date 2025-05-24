@@ -3,7 +3,7 @@ package com.example.mam.viewmodel.authorization
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import com.example.mam.services.RetrofitClient
-import com.example.mam.services.dto.authorization.signin.SignInRequest
+import com.example.mam.dto.authorization.signin.SignInRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

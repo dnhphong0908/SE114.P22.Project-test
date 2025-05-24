@@ -2,7 +2,7 @@ package com.example.mam.viewmodel.authorization
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.mam.services.dto.authorization.forgetpassword.ForgetPasswordRequest
+import com.example.mam.dto.authorization.forgetpassword.ForgetPasswordRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
