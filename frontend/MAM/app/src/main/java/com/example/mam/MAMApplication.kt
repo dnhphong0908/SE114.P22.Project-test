@@ -7,6 +7,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.mam.data.UserPreferencesRepository
 
+//Để quản lý (khời tạo) dataStore
 private const val TOKEN_MANAGER = "Token_Manager"
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
     name = TOKEN_MANAGER

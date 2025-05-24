@@ -19,8 +19,10 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 
 class SignInViewModel(
+    // Nhận UserPreferencesRepository từ MAMApplication
     private val userPreferencesRepository: UserPreferencesRepository
 ) : ViewModel() {
+    // Lấy access token và refresh token từ UserPreferencesRepository
     private val accessToken = userPreferencesRepository.accessToken.map { it }
     private val refreshToken = userPreferencesRepository.refreshToken.map { it }
 
@@ -41,6 +43,13 @@ class SignInViewModel(
                 val request = _signInState.value
                 Log.d("LOGIN", "CredentialID: ${request.credentialId}")
                 Log.d("LOGIN", "Password: ${request.password}")
+                if (refreshToken.first().isNotEmpty()) {
+                    Log.d("LOGIN", "Đã có refresh token, không cần đăng nhập lại")
+                    //Gọi service đăng nhập với refresh token
+                    return@withContext 1
+                }
+                
+                // Gọi service đăng nhập
                 val response = BaseService(accessToken = accessToken.first()).authPublicService.login(request)
                 Log.d("LOGIN", "AccessToken: ${response.accessToken}")
                 Log.d("LOGIN", "RefreshToken: ${response.refreshToken}")
@@ -63,6 +72,7 @@ class SignInViewModel(
 
     }
 
+    // Factory để khởi tạo ViewModel với tham số là UserPreferencesRepository
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
