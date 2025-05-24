@@ -6,7 +6,6 @@ import java.time.Instant
 data class Promotion(
     val code: String = "",
     val value: Int = 0,
-    val name: String = "",
     val description: String = "",
     val startDate: Instant = Instant.now(),
     val endDate: Instant = Instant.now(),
@@ -16,6 +15,6 @@ data class Promotion(
 ){
     fun getValueToString(): String {
         val formatter = DecimalFormat("#,###")
-        return "- ${formatter.format(value)} VND"
+        return "${formatter.format(value)} VND"
     }
 }

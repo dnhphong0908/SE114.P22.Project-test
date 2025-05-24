@@ -124,7 +124,7 @@ fun ManageUserScreen(
             viewModel.loadData()
         } else {
             viewModel.setUserName("")
-            viewModel.setImgUrl("")
+            viewModel.setImgUrl("https://static.vecteezy.com/system/resources/previews/056/202/171/non_2x/add-image-or-photo-icon-vector.jpg")
             viewModel.setFullName("")
             viewModel.setEmail("")
             viewModel.setRole("Admin")

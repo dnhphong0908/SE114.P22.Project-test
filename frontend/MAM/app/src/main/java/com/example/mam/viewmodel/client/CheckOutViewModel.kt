@@ -8,6 +8,7 @@ import com.example.mam.entity.Order
 import com.example.mam.entity.OrderItem
 import com.example.mam.entity.PaymentType
 import com.example.mam.entity.Product
+import com.example.mam.entity.Promotion
 import com.example.mam.entity.User
 import com.example.mam.entity.VarianceOption
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,11 +27,11 @@ class CheckOutViewModel():  ViewModel(){
 
     var address: String = "Hàn Thuyên, khu phố 6 P, Thủ Đức, Hồ Chí Minh."
 
-    private val _promoCode = MutableStateFlow<String>("")
-    var promoCode = _promoCode.asStateFlow()
-
-    private val _discount = MutableStateFlow(0)
+    private val _discount = MutableStateFlow(Promotion())
     var discount = _discount.asStateFlow()
+
+    private val _discountList = MutableStateFlow<MutableList<Promotion>>(mutableListOf())
+    val discountList = _discountList.asStateFlow()
 
     private val _note = MutableStateFlow("")
     var note = _note.asStateFlow()
@@ -44,24 +45,16 @@ class CheckOutViewModel():  ViewModel(){
         return "${formatter.format(price)} VND"
     }
 
-    fun setDiscount(code: String){
-        _promoCode.value = code
-    }
-
-    fun getDiscount() {
-        _discount.value = if(_promoCode.value == "MAMXINCHAO") 20000 else 0
+    fun setDiscount(code: Promotion){
+        _discount.value = code
     }
 
     fun getTotalPrice(): Int{
-        return _cart.total - _discount.value
+        return _cart.total - _discount.value.value
     }
 
     fun getCartTotalToString(): String{
         return _cart.getTotalToString()
-    }
-
-    fun getDiscountToString(): String {
-        return getPriceToString(_discount.value)
     }
 
     fun getTotalPriceToString(): String {

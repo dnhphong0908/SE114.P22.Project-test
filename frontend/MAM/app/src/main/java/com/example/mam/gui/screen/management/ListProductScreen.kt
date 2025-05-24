@@ -46,6 +46,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -92,7 +93,6 @@ fun ListProductScreen(
     onProductClick: (String) -> Unit = {},
     onAddProductClick: () -> Unit = {},
     onEditProductClick: (String) -> Unit = {},
-    onDeleteProductClick: (String) -> Unit = {},
     mockData: List<Product> ?= null
 
 ) {
@@ -103,6 +103,10 @@ fun ListProductScreen(
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
 
+    LaunchedEffect(Unit){
+        viewModel.loadSortingOptions()
+        viewModel.loadData()
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -249,7 +253,10 @@ fun ListProductScreen(
                             shape = RoundedCornerShape(50.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .onFocusChanged { if(it.isFocused && searchHistory.isNotEmpty()) expanded.value = true },
+                                .onFocusChanged {
+                                    if (it.isFocused && searchHistory.isNotEmpty()) expanded.value =
+                                        true
+                                },
                         )
                         DropdownMenu(
                             expanded = expanded.value,
@@ -326,7 +333,7 @@ fun ListProductScreen(
                             product = product,
                             onProductClick = onProductClick,
                             onEditProductClick = onEditProductClick,
-                            onDeleteProductClick = onDeleteProductClick
+                            onDeleteProductClick = {  },
                         )
                     }
                 }
@@ -359,7 +366,7 @@ fun ListProductScreen(
                                     product = product,
                                     onProductClick = onProductClick,
                                     onEditProductClick = onEditProductClick,
-                                    onDeleteProductClick = onDeleteProductClick
+                                    onDeleteProductClick = {  }
                                 )
                             }
                 }
@@ -483,7 +490,6 @@ fun ListProductScreenPreview() {
         onProductClick = {},
         onAddProductClick = {},
         onEditProductClick = {},
-        onDeleteProductClick = {},
         mockData = listOf(
             Product(
                 id = "1",

@@ -2,15 +2,12 @@ package com.example.mam.viewmodel.authorization
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mam.services.RetrofitClient
-import com.example.mam.entity.authorization.request.SignInRequest
+import com.example.mam.dto.authorization.signin.SignInRequest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class SignInViewModel() : ViewModel() {

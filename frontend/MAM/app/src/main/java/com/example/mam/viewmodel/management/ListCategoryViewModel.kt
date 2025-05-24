@@ -2,6 +2,7 @@ package com.example.mam.viewmodel.management
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mam.R
 import com.example.mam.entity.ProductCategory
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -68,6 +69,23 @@ class ListCategoryViewModel(): ViewModel() {
             try {
                 _isLoading.value = true
                 // Simulate network call
+                _category.value = mutableListOf(
+                    ProductCategory(
+                        id = "1",
+                        name = "Hamburger",
+                        icon = R.drawable.ic_hamburger
+                    ),
+                    ProductCategory(
+                        id = "2",
+                        name = "Pizza",
+                        icon = R.drawable.ic_pizza
+                    ),
+                    ProductCategory(
+                        id = "3",
+                        name = "Chicken",
+                        icon = R.drawable.ic_chicken
+                    )
+                )
             } catch (e: Exception) {
                 // Handle error
             } finally {

@@ -47,6 +47,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -93,9 +94,6 @@ fun ListPromotionScreen(
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onAddClick: () -> Unit = {},
-    onItemClick: (String) -> Unit = {},
-    onEditClick: (String) -> Unit = {},
-    onDeleteClick: (String) -> Unit = {},
     mockData: List<Promotion>? = null,
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
@@ -105,6 +103,10 @@ fun ListPromotionScreen(
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
 
+    LaunchedEffect(Unit){
+        viewModel.loadSortingOptions()
+        viewModel.loadData()
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -326,9 +328,7 @@ fun ListPromotionScreen(
                     items(mockData) { promo ->
                         PromotionItem(
                             promo = promo,
-                            onItemClick = onItemClick,
-                            onEditClick = onEditClick,
-                            onDeleteClick = onDeleteClick
+                            onDeleteClick = {}
                         )
                     }
                 }
@@ -359,10 +359,7 @@ fun ListPromotionScreen(
                             items(promoList) { promo ->
                                 PromotionItem(
                                     promo = promo,
-                                    onItemClick = onItemClick,
-                                    onEditClick = onEditClick,
-                                    onDeleteClick = onDeleteClick
-                                )
+                                    onDeleteClick = {}                                )
                             }
                 }
 
@@ -389,13 +386,11 @@ fun ListPromotionScreen(
 @Composable
 fun PromotionItem(
     promo: Promotion,
-    onItemClick: (String) -> Unit,
-    onEditClick: (String) -> Unit,
     onDeleteClick: (String) -> Unit,
 ){
     var expand by remember { mutableStateOf(false) }
     Card(
-        onClick = { onItemClick(promo.code) },
+        onClick = { },
         colors = CardDefaults.cardColors(
             containerColor = WhiteDefault
         ),
@@ -440,9 +435,9 @@ fun PromotionItem(
                         .fillMaxWidth()
                 )
             }
-            IconButton(onClick = { onEditClick(promo.code) }) {
-                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
-            }
+//            IconButton(onClick = { onEditClick(promo.code) }) {
+//                Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
+//            }
             IconButton(onClick = { onDeleteClick(promo.code) }) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
             }
@@ -558,8 +553,6 @@ fun parsePrice(value: Int): String {
 fun PromotionItemPreview() {
     PromotionItem(
         promo = Promotion("PROMO123", 10000),
-        onItemClick = {},
-        onEditClick = {},
         onDeleteClick = {}
     )
 }
@@ -571,9 +564,6 @@ fun ListPromotionScreenPreview() {
         viewModel = ListPromotionViewModel(),
         onBackClick = {},
         onAddClick = {},
-        onItemClick = {},
-        onEditClick = {},
-        onDeleteClick = {},
         mockData = listOf(
             Promotion("PROMO123", 10000),
             Promotion("PROMO456", 20000),

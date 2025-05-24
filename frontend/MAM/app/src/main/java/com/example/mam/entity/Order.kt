@@ -5,7 +5,7 @@ import java.time.Instant
 
 data class Order(
     val id: String = "",
-    val usedId: String = "",
+    val userId: String = "",
     val orderDate: Instant ?= null,
     val paymentId: String = "",
     val shippingAddress: String = "",

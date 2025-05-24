@@ -18,7 +18,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import java.time.Instant
 
 class ManageProductViewModel(savedStateHandle: SavedStateHandle? ): ViewModel() {
-    private val productId: String? = savedStateHandle?.get<String>("productId")
+    private val productId: String = savedStateHandle?.get<String>("productId")?: ""
 
     private val _categoryList =  MutableStateFlow<List<ProductCategory>>(emptyList())
     val categoryList = _categoryList.asStateFlow()

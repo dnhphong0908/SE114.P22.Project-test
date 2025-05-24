@@ -62,7 +62,7 @@ class ManageOrderViewModel(savedStateHandle: SavedStateHandle?): ViewModel() {
                 // Simulate network call
                 _order.value = Order(
                     id = orderId ?: "",
-                    usedId = "userId",
+                    userId = "userId",
                     orderDate = null,
                     paymentId = "paymentId",
                     shippingAddress = "shippingAddress",
@@ -86,7 +86,7 @@ class ManageOrderViewModel(savedStateHandle: SavedStateHandle?): ViewModel() {
     fun mockData(){
         _order.value = Order(
             id = "orderId",
-            usedId = "userId",
+            userId = "userId",
             orderDate = Instant.now(),
             paymentId = "paymentId",
             shippingAddress = "shippingAddress",
