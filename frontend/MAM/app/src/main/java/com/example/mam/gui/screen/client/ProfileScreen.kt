@@ -63,7 +63,7 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.mam.entity.User
-import com.example.mam.entity.authorization.request.SignUpRequest
+import com.example.mam.services.dto.authorization.request.SignUpRequest
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.NormalButtonWithIcon
 import com.example.mam.gui.component.OuterShadowFilledButton

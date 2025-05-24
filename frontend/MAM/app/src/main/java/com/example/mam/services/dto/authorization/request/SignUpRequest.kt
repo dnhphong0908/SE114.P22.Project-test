@@ -1,4 +1,4 @@
-package com.example.mam.entity.authorization.request
+package com.example.mam.services.dto.authorization.request
 
 data class SignUpRequest(
     val fullName: String = "",
