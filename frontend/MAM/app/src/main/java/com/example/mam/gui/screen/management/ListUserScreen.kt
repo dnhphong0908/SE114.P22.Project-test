@@ -1,4 +1,4 @@
-package com.example.mam.gui.screen.management
+ package com.example.mam.gui.screen.management
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
