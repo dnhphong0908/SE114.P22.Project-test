@@ -27,14 +27,14 @@ class HomeScreenViewModel(): ViewModel() {
 
     fun loadListCategory(){
         _listCategory.value = mutableListOf(
-            ProductCategory("PC000", "Đề xuất", "", R.drawable.ic_glowing_star),
-            ProductCategory("PC001", "Pizza", "", R.drawable.ic_pizza),
-            ProductCategory("PC002", "Burger", "", R.drawable.ic_hamburger),
-            ProductCategory("PC003", "Hotdog", "", R.drawable.ic_hotdog),
-            ProductCategory("PC004", "Gà rán", "", R.drawable.ic_chicken),
-            ProductCategory("PC005", "Thịt", "", R.drawable.ic_meat),
-            ProductCategory("PC006", "Thức uống", "", R.drawable.ic_drink),
-            ProductCategory("PC007", "Khác", "", R.drawable.ic_other)
+            ProductCategory("PC000", "Đề xuất", "", "R.drawable.ic_glowing_star"),
+            ProductCategory("PC001", "Pizza", "", "R.drawable.ic_pizza"),
+            ProductCategory("PC002", "Burger", "", "R.drawable.ic_hamburger"),
+            ProductCategory("PC003", "Hotdog", "", "R.drawable.ic_hotdog"),
+            ProductCategory("PC004", "Gà rán", "", "R.drawable.ic_chicken"),
+            ProductCategory("PC005", "Thịt", "", "R.drawable.ic_meat"),
+            ProductCategory("PC006", "Thức uống", "", "R.drawable.ic_drink"),
+            ProductCategory("PC007", "Khác", "", "R.drawable.ic_other")
         )
     }
 

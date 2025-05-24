@@ -222,7 +222,7 @@ fun HomeScreen(
                             Spacer(Modifier.width(5.dp))
                             BasicOutlinedButton(
                                 text = category.name,
-                                image = category.icon,
+                                url = category.iconUrl,
                                 onClick = {
                                     scope.launch {
                                     val targetIndex = categories.indexOf(category)

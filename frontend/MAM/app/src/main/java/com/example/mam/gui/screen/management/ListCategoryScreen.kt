@@ -80,6 +80,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
 import com.example.mam.R
 import com.example.mam.entity.ProductCategory
 import com.example.mam.gui.component.CircleIconButton
@@ -415,8 +416,8 @@ fun CategoryItem(
                 modifier = Modifier
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Image(
-                    painter = painterResource(id = category.icon),
+                AsyncImage(
+                    model = category.iconUrl,
                     contentDescription = null,
                     modifier = Modifier.size(40.dp).padding(end = 8.dp)
                 )
@@ -528,7 +529,6 @@ fun CategoryItemPreview() {
                 id = "1",
                 name = "Hamburger",
                 description = "Món ăn nhanh",
-                icon = R.drawable.ic_hamburger
             ),
             onEditClick = {},
             onDeleteClick = {}
@@ -548,17 +548,14 @@ fun CategoryScreenPreview() {
             ProductCategory(
                 id = "1",
                 name = "Hamburger",
-                icon = R.drawable.ic_hamburger
             ),
             ProductCategory(
                 id = "2",
                 name = "Pizza",
-                icon = R.drawable.ic_pizza
             ),
             ProductCategory(
                 id = "3",
                 name = "Chicken",
-                icon = R.drawable.ic_chicken
             )
         )
     )
