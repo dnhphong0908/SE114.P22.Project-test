@@ -1,5 +1,6 @@
 package com.example.mam.navigation
 
+import android.util.Log
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
@@ -7,8 +8,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.coroutineScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -75,7 +74,9 @@ import com.yourapp.ui.notifications.NotificationScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -161,21 +162,30 @@ fun MainNavHost(
                 val signInVM: SignInViewModel = viewModel(backStackEntry, factory = SignInViewModel.Factory)
                 SignInScreen(
                     onSignInClicked = {
-                        if (signInVM.signInState.value.username == "1" || signInVM.signInState.value.password == "1") {
+                        if (signInVM.signInState.value.credentialId == "1" || signInVM.signInState.value.password == "1") {
                             navController.navigate(route = "Home") {
                                 popUpTo("Authorization") { inclusive = true }
                             }
                         }
-                        else if (signInVM.signInState.value.username == "2" || signInVM.signInState.value.password == "2") {
+                        else if (signInVM.signInState.value.credentialId == "2" || signInVM.signInState.value.password == "2") {
                             navController.navigate(route = "Dashboard") {
                                 popUpTo("Authorization") { inclusive = true }
                             }
                         }else {
                             coroutineScope.launch {
-                                when (signInVM.SignIn()) {
-                                    0 -> signInVM.notifySignInFalse()
-                                    1 -> navController.navigate("Home") {
-                                        popUpTo("Authorization") { inclusive = true }
+                                val result = signInVM.SignIn()
+                                Log.d("LOGIN", "SignIn result: $result")
+                                Log.d("LOGIN", "Prepare to navigate based on result")
+
+                                withContext(Dispatchers.Main) { // Ensure UI updates happen on the main thread
+                                    if (result == 0) {
+                                        Log.d("LOGIN", "Login failed, showing error")
+                                        signInVM.notifySignInFalse()
+                                    } else if (result == 1) {
+                                        Log.d("LOGIN", "Login successful, navigating to Home")
+                                        navController.navigate(route = "Home") {
+                                            popUpTo("Authorization") { inclusive = true }
+                                        }
                                     }
                                 }
                             }
