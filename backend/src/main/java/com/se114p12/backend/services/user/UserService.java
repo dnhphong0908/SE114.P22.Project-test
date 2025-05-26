@@ -1,7 +1,6 @@
 package com.se114p12.backend.services.user;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.se114p12.backend.dto.authentication.PasswordChangeDTO;
 import com.se114p12.backend.dto.authentication.RegisterRequestDTO;
 import com.se114p12.backend.dto.user.UserRequestDTO;
 import com.se114p12.backend.dto.user.UserResponseDTO;
@@ -18,17 +17,13 @@ public interface UserService {
 
   UserResponseDTO findByPhone(String phone);
 
-  UserResponseDTO register(RegisterRequestDTO registerRequestDTO);
-
   UserResponseDTO getOrRegisterGoogleUser(GoogleIdToken.Payload payload);
+
+  UserResponseDTO register(RegisterRequestDTO userRequestDTO);
 
   UserResponseDTO update(Long id, UserRequestDTO userRequestDTO);
 
   void delete(Long id);
-
-  void resetPassword(PasswordChangeDTO passwordChangeDTO);
-
-  void verifyEmail(String code);
 
   void assignRoleToUser(Long userId, Long roleId);
 
