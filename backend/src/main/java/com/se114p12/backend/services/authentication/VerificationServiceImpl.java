@@ -43,8 +43,8 @@ public class VerificationServiceImpl implements VerificationService {
   @Override
   public String createOtpVerification(Long userId, OTPAction action) {
     String otpCode = OtpGenerator.generateOtp();
-    otpCode = otpCode + "_" + action.name();
-    createVerification(userId, VerificationType.OTP, otpCode, OTP_EXPIRATION_TIME);
+    String verificationCode = otpCode + "_" + action.name();
+    createVerification(userId, VerificationType.OTP, verificationCode, OTP_EXPIRATION_TIME);
     return otpCode;
   }
 

@@ -122,7 +122,7 @@ public class AuthServiceImpl implements AuthService {
         verificationService.verifyVerificationCode(code, VerificationType.OTP);
     verificationService.deleteVerification(verification);
     switch (verifyOTPRequestDTO.getAction()) {
-      case RESET_PASSWORD:
+      case FORGOT_PASSWORD:
         Verification resetPasswordVerification =
             verificationService.createResetPasswordVerification(verification.getUser().getId());
         return resetPasswordVerification.getCode();

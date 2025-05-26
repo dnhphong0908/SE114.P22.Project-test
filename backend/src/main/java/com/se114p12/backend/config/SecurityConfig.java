@@ -40,7 +40,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                         "/api/v1/auth/refresh",
                         "/api/v1/auth/forgot-password",
                         "/api/v1/auth/send-otp",
-                        "/api/v1/auth/verify-email",
+                        "/api/v1/auth/verify-otp",
                         "/api/v1/auth/verify-email",
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
