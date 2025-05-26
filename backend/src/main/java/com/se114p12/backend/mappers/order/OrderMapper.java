@@ -8,5 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring", uses = {OrderDetailMapper.class})
 public interface OrderMapper {
     @Mapping(source = "user.id", target = "userId")
+    @Mapping(source = "shipper.id", target = "shipperId")
     OrderResponseDTO entityToResponseDTO(Order order);
 }

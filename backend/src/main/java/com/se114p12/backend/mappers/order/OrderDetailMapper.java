@@ -8,5 +8,6 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface OrderDetailMapper {
     @Mapping(source = "order.id", target = "orderId")
+    @Mapping(target = "totalPrice", expression = "java(orderDetail.getPrice().multiply(java.math.BigDecimal.valueOf(orderDetail.getQuantity())))")
     OrderDetailResponseDTO entityToResponseDTO(OrderDetail orderDetail);
 }

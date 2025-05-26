@@ -1,5 +1,6 @@
 package com.se114p12.backend.dtos.order;
 
+import com.se114p12.backend.dtos.BaseResponseDTO;
 import com.se114p12.backend.enums.OrderStatus;
 import lombok.Data;
 
@@ -8,8 +9,7 @@ import java.time.Instant;
 import java.util.List;
 
 @Data
-public class OrderResponseDTO {
-    private Long id;
+public class OrderResponseDTO extends BaseResponseDTO {
     private String shippingAddress;
     private BigDecimal totalPrice;
     private String note;
@@ -18,8 +18,4 @@ public class OrderResponseDTO {
     private OrderStatus orderStatus;
     private Long userId;
     private List<OrderDetailResponseDTO> orderDetails;
-    private Instant createdAt;
-    private Instant updatedAt;
-    private Long createdBy;
-    private Long updatedBy;
 }
