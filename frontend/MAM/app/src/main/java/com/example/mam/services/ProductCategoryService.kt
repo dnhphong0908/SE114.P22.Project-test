@@ -1,0 +1,38 @@
+package com.example.mam.services
+
+import com.example.mam.dto.product.CategoryRequest
+import com.example.mam.dto.product.CategoryResponse
+import com.example.mam.dto.vo.PageVO
+import retrofit2.Response
+import retrofit2.http.Body
+import retrofit2.http.DELETE
+import retrofit2.http.GET
+import retrofit2.http.POST
+import retrofit2.http.PUT
+import retrofit2.http.Path
+import retrofit2.http.Query
+
+interface ProductCategoryService {
+ @GET("product-categories/{id}")
+ suspend fun getCategory(@Path("id") id: Long): Response<CategoryResponse>
+
+ @GET("product-categories")
+ suspend fun getCategories(
+     @Query("page") page: Int,
+     @Query("size") size: Int,
+     @Query("sort") sort: List<String>? = null,
+     @Query("specification") specification: String
+ ): Response<PageVO<CategoryResponse>>
+
+ @PUT("product-categories/{id}")
+ suspend fun updateCategory(
+     @Path("id") id: Long,
+     @Body request: CategoryRequest
+ ): Response<CategoryResponse>
+
+ @POST("product-categories")
+ suspend fun createCategory(@Body request: CategoryRequest): Response<CategoryResponse>
+
+ @DELETE("product-categories/{id}")
+ suspend fun deleteCategory(@Path("id") id: Long): Response<Void>
+}
