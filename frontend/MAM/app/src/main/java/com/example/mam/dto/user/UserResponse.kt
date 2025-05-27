@@ -13,12 +13,12 @@ enum class LoginProvider {
     GOOGLE,
 }
 data class UserResponse(
-    val fullname: String,
-    val username: String,
-    val email: String,
-    val phone: String,
-    val avatarUrl: String,
-    val status: UserStatus,
-    val loginProvider: LoginProvider,
-    val role: RoleResponse
+    val fullname: String = "",
+    val username: String = "",
+    val email: String = "",
+    val phone: String = "",
+    val avatarUrl: String = "",
+    val status: UserStatus = UserStatus.PENDING,
+    val loginProvider: LoginProvider = LoginProvider.LOCAL,
+    val role: RoleResponse = RoleResponse()
 )

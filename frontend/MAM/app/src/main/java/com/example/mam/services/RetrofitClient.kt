@@ -2,6 +2,9 @@ package com.example.mam.services
 
 import androidx.navigation.NavController
 import com.example.mam.data.UserPreferencesRepository
+import com.mapbox.common.MapboxOptions.accessToken
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
@@ -22,6 +25,17 @@ object RetrofitClient {
     fun createPrivateRetrofit(
         userPreferencesRepository: UserPreferencesRepository
     ): Retrofit {
+        val authInterceptor = Interceptor { chain ->
+            var request = chain.request()
+            // Lấy access token từ UserPreferencesRepository
+            val accessToken = runBlocking {userPreferencesRepository.accessToken.first()}
+            if (accessToken.isNotEmpty()) {
+                request = request.newBuilder()
+                    .header("Authorization", "Bearer $accessToken")
+                    .build()
+            }
+            chain.proceed(request)
+        }
         val okHttpClient = OkHttpClient.Builder()
             .addInterceptor(AuthInterceptor(userPreferencesRepository))
             .build()

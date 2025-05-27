@@ -32,7 +32,9 @@ class AuthInterceptor(
 
         // 🔄 If token expired (401), refresh and retry the request
         if (response.code == 401) {
+            Log.d("AUTH", "Old AccessToken: ${accessToken}.")
             Log.d("AUTH", "Token expired, attempting to refresh...")
+
             val newToken = runBlocking { refreshAccessToken() }
             if (newToken == null) {
                 Log.d("AUTH", "Failed to refresh token, redirecting to login...")
@@ -46,7 +48,7 @@ class AuthInterceptor(
                     newToken?.refreshToken ?: ""
                 )
             }
-
+            Log.d("AUTH", "New AccessToken: ${newToken.accessToken}.")
             // 🔄 Retry with new token
             request = request.newBuilder()
                 .header("Authorization", "Bearer ${newToken.accessToken}")

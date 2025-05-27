@@ -96,16 +96,16 @@ fun MainNavHost(
     startDestination: String = "Authentication",
 ) {
     val unAuthorize by AuthEventManager.unauthorizedEvent.collectAsStateWithLifecycle()
-//    LaunchedEffect(unAuthorize){
-//        if (unAuthorize) {
-//            Log.d("AUTH", "Unauthorized access detected, navigating to StartScreen")
-//            navController.navigate(AuthenticationScreen.SignIn.name) {
-//                popUpTo(AuthenticationScreen.SignIn.name) { inclusive = true }
-//                launchSingleTop = true
-//            }
-//            AuthEventManager.resetUnauthorized() // Reset the event
-//        }
-//    }
+    LaunchedEffect(unAuthorize){
+        if (unAuthorize) {
+            Log.d("AUTH", "Unauthorized access detected, navigating to StartScreen")
+            navController.navigate(AuthenticationScreen.SignIn.name) {
+                popUpTo(AuthenticationScreen.SignIn.name) { inclusive = true }
+                launchSingleTop = true
+            }
+            AuthEventManager.resetUnauthorized() // Reset the event
+        }
+    }
     val coroutineScope = CoroutineScope(Job() + Dispatchers.IO)
     AnimatedNavHost(
         navController = navController,
@@ -238,7 +238,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewmodel: HomeScreenViewModel = viewModel(backStackEntry)
+                val viewmodel: HomeScreenViewModel = viewModel(backStackEntry, factory = HomeScreenViewModel.Factory)
                 HomeScreen(
                     onItemClicked = { item ->
                         navController.navigate("Details/${item.id}")
