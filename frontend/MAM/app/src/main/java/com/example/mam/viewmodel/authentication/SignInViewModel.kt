@@ -1,11 +1,21 @@
 package com.example.mam.viewmodel.authentication
 
+import android.app.Application
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
+import android.widget.Toast
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import androidx.navigation.NavController
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.authentication.SignInRequest
@@ -17,6 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+
 
 class SignInViewModel(
     // Nhận UserPreferencesRepository từ MAMApplication
@@ -37,39 +48,35 @@ class SignInViewModel(
         _signInState.update { state -> state.copy(password = it.trim()) }
     }
 
-    suspend fun SignIn(): Int{
-        return withContext(Dispatchers.IO) {
-            try {
-                val request = _signInState.value
-                Log.d("LOGIN", "CredentialID: ${request.credentialId}")
-                Log.d("LOGIN", "Password: ${request.password}")
-                if (refreshToken.first().isNotEmpty()) {
-                    Log.d("LOGIN", "Đã có refresh token, không cần đăng nhập lại")
-                    //Gọi service đăng nhập với refresh token
-                    return@withContext 1
-                }
-                
-                // Gọi service đăng nhập
-                val response = BaseService(accessToken = accessToken.first()).authPublicService.login(request)
-                Log.d("LOGIN", "AccessToken: ${response.accessToken}")
-                Log.d("LOGIN", "RefreshToken: ${response.refreshToken}")
+    suspend fun SignIn(): Int {
+        try {
+            val request = _signInState.value
+            Log.d("LOGIN", "CredentialID: ${request.credentialId}")
+            Log.d("LOGIN", "Password: ${request.password}")
+
+            // Gọi service đăng nhập
+            val response = BaseService(userPreferencesRepository).authPublicService.login(request)
+            val statusCode = response.code()
+            Log.d("LOGIN", "Status Code: $statusCode")
+
+            if (response.isSuccessful) {
+                val token = response.body()
+                Log.d("LOGIN", "AccessToken: ${token?.accessToken}")
+                Log.d("LOGIN", "RefreshToken: ${token?.refreshToken}")
                 // Lưu access token và refresh token vào DataStore
-                userPreferencesRepository.saveAccessToken(response.accessToken, response.refreshToken)
+                userPreferencesRepository.saveAccessToken(token?.accessToken ?: "", token?.refreshToken ?:"")
                 Log.d("LOGIN", "DSAccessToken: ${accessToken.first()}")
                 Log.d("LOGIN", "DSRefreshToken: ${refreshToken.first()}")
-                return@withContext if (response.accessToken.isEmpty()) 0 else 1
-            } catch (e: Exception) {
-                Log.e("LOGIN", "Lỗi khi đăng nhập: ${e.message}")
-                0
+                return 1
             }
-            finally {
-                Log.d("LOGIN", "Kết thúc đăng nhập")
+            else{
+                Log.e("LOGIN", "Đăng nhập thất bại với mã lỗi: ${response.errorBody()?.string()}")
+                return 0
             }
+        } catch (e: Exception) {
+            Log.e("LOGIN", "Lỗi khi đăng nhập: ${e.message}")
+            return 0
         }
-    }
-
-    fun notifySignInFalse(){
-
     }
 
     // Factory để khởi tạo ViewModel với tham số là UserPreferencesRepository

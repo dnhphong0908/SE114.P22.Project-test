@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -181,7 +182,7 @@ fun MapScreen(
                 .size(50.dp)
         ) {
             Icon(
-                imageVector = Icons.Default.,
+                imageVector = Icons.Default.MyLocation,
                 contentDescription = "Dịa chỉ hien tai",
                 tint = BrownDefault
             )
