@@ -2,7 +2,6 @@ package com.example.mam.services
 
 import com.example.mam.dto.authentication.SendOTPRequest
 import com.example.mam.dto.authentication.SignInRequest
-import com.example.mam.dto.authentication.SignInResponse
 import com.example.mam.dto.authentication.VerifyOTPRequest
 import com.example.mam.dto.authentication.AuthResponse
 import com.example.mam.dto.authentication.RefreshTokenRequest
