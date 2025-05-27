@@ -39,6 +39,7 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public AuthResponseDTO login(LoginRequestDTO loginRequestDTO) {
+
     UsernamePasswordAuthenticationToken authenticationToken =
         new UsernamePasswordAuthenticationToken(
             loginRequestDTO.getCredentialId(), loginRequestDTO.getPassword());
