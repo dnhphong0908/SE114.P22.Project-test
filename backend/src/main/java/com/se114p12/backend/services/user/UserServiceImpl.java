@@ -78,6 +78,12 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserResponseDTO register(RegisterRequestDTO registerRequestDTO) {
+    if (userRepository.existsByUsername(registerRequestDTO.getUsername())) {
+      throw new DataConflictException("Username already exists");
+    }
+    if (userRepository.existsByEmail(registerRequestDTO.getEmail())) {
+      throw new DataConflictException("Email already exists");
+    }
     User user = new User();
     user.setFullname(registerRequestDTO.getFullname());
     user.setUsername(registerRequestDTO.getUsername());
@@ -124,20 +130,6 @@ public class UserServiceImpl implements UserService {
     userRepository.deleteById(id);
   }
 
-  @Override
-  public void resetPassword(PasswordChangeDTO passwordChangeDTO) {
-    Long userId = jwtUtil.getCurrentUserId();
-    User currentUser =
-        userRepository
-            .findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-    if (!passwordEncoder.matches(
-        passwordChangeDTO.getCurrentPassword(), currentUser.getPassword())) {
-      throw new BadRequestException("Password doesn't match");
-    }
-    currentUser.setPassword(passwordEncoder.encode(passwordChangeDTO.getNewPassword()));
-  }
-
   // Register or get user from Google
   @Override
   public UserResponseDTO getOrRegisterGoogleUser(GoogleIdToken.Payload payload) {
@@ -156,16 +148,6 @@ public class UserServiceImpl implements UserService {
             .findByName("USER")
             .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
     return userMapper.entityToResponse(user);
-  }
-
-  @Override
-  public void verifyEmail(String code) {
-    Verification verification =
-        verificationService.verifyVerificationCode(code, VerificationType.ACTIVATION);
-    User user = verification.getUser();
-    user.setStatus(UserStatus.ACTIVE);
-    userRepository.save(user);
-    verificationService.deleteVerification(verification);
   }
 
   @Override
