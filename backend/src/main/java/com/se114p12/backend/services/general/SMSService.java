@@ -1,8 +1,8 @@
 package com.se114p12.backend.services.general;
 
-import com.se114p12.backend.exception.ResourceNotFoundException;
-import com.se114p12.backend.exception.SMSException;
-import com.se114p12.backend.repository.authentication.UserRepository;
+import com.se114p12.backend.exceptions.ResourceNotFoundException;
+import com.se114p12.backend.exceptions.SMSException;
+import com.se114p12.backend.repositories.authentication.UserRepository;
 import com.twilio.Twilio;
 import com.twilio.rest.lookups.v2.PhoneNumber;
 import com.twilio.rest.verify.v2.service.Verification;

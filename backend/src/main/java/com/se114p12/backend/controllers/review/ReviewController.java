@@ -1,7 +1,7 @@
 //package com.se114p12.backend.controller;
 //
-//import com.se114p12.backend.dto.request.review.ReviewRequest;
-//import com.se114p12.backend.dto.response.review.ReviewResponse;
+//import com.se114p12.backend.dtos.request.review.ReviewRequest;
+//import com.se114p12.backend.dtos.response.review.ReviewResponse;
 //import com.se114p12.backend.service.ReviewService;
 //import com.se114p12.backend.vo.PageVO;
 //import lombok.RequiredArgsConstructor;

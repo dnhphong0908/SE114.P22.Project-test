@@ -1,7 +1,7 @@
 package com.se114p12.backend.services.product;
 
-import com.se114p12.backend.dto.product.CategoryRequestDTO;
-import com.se114p12.backend.dto.product.CategoryResponseDTO;
+import com.se114p12.backend.dtos.product.CategoryRequestDTO;
+import com.se114p12.backend.dtos.product.CategoryResponseDTO;
 import com.se114p12.backend.entities.product.ProductCategory;
 import com.se114p12.backend.vo.PageVO;
 import org.springframework.data.domain.Pageable;

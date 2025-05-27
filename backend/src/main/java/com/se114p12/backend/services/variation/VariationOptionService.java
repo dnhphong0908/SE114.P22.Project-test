@@ -1,55 +1,14 @@
 package com.se114p12.backend.services.variation;
 
-import com.se114p12.backend.entities.variation.Variation;
-import com.se114p12.backend.entities.variation.VariationOption;
-import com.se114p12.backend.exception.DataConflictException;
-import com.se114p12.backend.repository.variation.VariationOptionRepository;
-import com.se114p12.backend.repository.variation.VariationRepository;
-import jakarta.validation.constraints.NotNull;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import com.se114p12.backend.dtos.variation.VariationOptionRequestDTO;
+import com.se114p12.backend.dtos.variation.VariationOptionResponseDTO;
 
-@Service
-@RequiredArgsConstructor
-public class VariationOptionService {
-    private final VariationOptionRepository variationOptionRepository;
-    private final VariationRepository variationRepository;
+import java.util.List;
 
-    public VariationOption create(VariationOption option) {
-        Long variationId = option.getVariation() != null ? option.getVariation().getId() : null;
-        if (variationId == null) {
-            throw new DataConflictException("Variation ID is required.");
-        }
+public interface VariationOptionService {
+    List<VariationOptionResponseDTO> getByVariationId(Long variationId);
 
-        Variation variation = variationRepository.findById(variationId)
-                .orElseThrow(() -> new DataConflictException("Variation with ID " + variationId + " not found."));
-
-        option.setVariation(variation);
-        return variationOptionRepository.save(option);
-    }
-
-    public VariationOption update(Long id, @NotNull VariationOption variationOption) {
-        VariationOption existingOption = variationOptionRepository.findById(id)
-                .orElseThrow(() -> new DataConflictException("Variation option with ID " + id + " does not exist."));
-
-        if (!existingOption.getValue().equals(variationOption.getValue())) {
-            validateUniqueValueWithinVariation(variationOption.getValue(), variationOption.getVariation().getId());
-            existingOption.setValue(variationOption.getValue());
-        }
-
-        return variationOptionRepository.save(existingOption);
-    }
-
-    public void delete(Long id) {
-        VariationOption variationOption = variationOptionRepository.findById(id)
-                .orElseThrow(() -> new DataConflictException("Variation option with ID " + id + " does not exist."));
-
-        variationOptionRepository.delete(variationOption);
-    }
-
-    private void validateUniqueValueWithinVariation(String value, Long variationId) {
-        if (variationOptionRepository.existsByValueAndVariationId(value, variationId)) {
-            throw new DataConflictException("Value '" + value + "' already exists within variation ID " + variationId + ".");
-        }
-    }
+    VariationOptionResponseDTO create(VariationOptionRequestDTO dto);
+    VariationOptionResponseDTO update(Long id, VariationOptionRequestDTO dto);
+    void delete(Long id);
 }

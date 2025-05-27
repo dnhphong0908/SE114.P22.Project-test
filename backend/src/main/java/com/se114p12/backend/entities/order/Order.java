@@ -11,7 +11,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,7 +25,7 @@ public class Order extends BaseEntity {
     @NotNull
     private String shippingAddress;
 
-    private Long totalPrice;
+    private BigDecimal totalPrice;
 
     private String note;
 
