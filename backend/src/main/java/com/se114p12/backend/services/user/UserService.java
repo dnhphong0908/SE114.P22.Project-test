@@ -18,17 +18,13 @@ public interface UserService {
 
   UserResponseDTO findByPhone(String phone);
 
-  UserResponseDTO register(RegisterRequestDTO registerRequestDTO);
-
   UserResponseDTO getOrRegisterGoogleUser(GoogleIdToken.Payload payload);
+
+  UserResponseDTO register(RegisterRequestDTO userRequestDTO);
 
   UserResponseDTO update(Long id, UserRequestDTO userRequestDTO);
 
   void delete(Long id);
-
-  void resetPassword(PasswordChangeDTO passwordChangeDTO);
-
-  void verifyEmail(String code);
 
   void assignRoleToUser(Long userId, Long roleId);
 

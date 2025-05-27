@@ -19,7 +19,7 @@ public class GlobalExceptionHandler {
         .body(
             ErrorVO.builder()
                 .type(ErrorType.RESOURCE_CONFLICT_ERROR)
-                .details(e.getMessage())
+                .details(Map.of("message", e.getMessage()))
                 .build());
   }
 
@@ -29,7 +29,7 @@ public class GlobalExceptionHandler {
         .body(
             ErrorVO.builder()
                 .type(ErrorType.RESOURCE_NOT_FOUND_ERROR)
-                .details(e.getMessage())
+                .details(Map.of("message", e.getMessage()))
                 .build());
   }
 
@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
   public ResponseEntity<?> handleMethodArgumentNotValidException(
       MethodArgumentNotValidException e) {
     var errors = e.getBindingResult().getFieldErrors();
-    Map<String, String> errorMap = new HashMap<>();
+    Map<String, Object> errorMap = new HashMap<>();
     for (var error : errors) {
       errorMap.put(error.getField(), error.getDefaultMessage());
     }
