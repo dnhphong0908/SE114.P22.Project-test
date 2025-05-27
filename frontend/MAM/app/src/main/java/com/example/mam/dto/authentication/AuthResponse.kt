@@ -1,6 +1,6 @@
 package com.example.mam.dto.authentication
 
-data class SignInResponse (
+data class AuthResponse (
     val accessToken: String,
     val refreshToken: String
 )
