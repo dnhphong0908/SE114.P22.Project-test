@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -79,6 +80,7 @@ fun HomeScreen(
 ){
     viewmodel.loadListCategory()
     viewmodel.loadListProduct()
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val categories: List<ProductCategory> = viewmodel.getListCategory()
 
@@ -181,12 +183,14 @@ fun HomeScreen(
                     )
                     .fillMaxWidth()
                     .height(LocalConfiguration.current.screenHeightDp.dp)
-                    .clip(shape = RoundedCornerShape(
-                        topStart = 50.dp,
-                        topEnd = 50.dp,
-                        bottomStart = 0.dp,
-                        bottomEnd = 0.dp
-                    ))
+                    .clip(
+                        shape = RoundedCornerShape(
+                            topStart = 50.dp,
+                            topEnd = 50.dp,
+                            bottomStart = 0.dp,
+                            bottomEnd = 0.dp
+                        )
+                    )
             )
             {
 
@@ -210,7 +214,10 @@ fun HomeScreen(
                     }
                 }
                 stickyHeader{
-                    Spacer(Modifier.height(10.dp).background(OrangeLighter).fillMaxWidth())
+                    Spacer(Modifier
+                        .height(10.dp)
+                        .background(OrangeLighter)
+                        .fillMaxWidth())
                     LazyRow(
                         state = rowListState,
                         modifier = Modifier
@@ -294,7 +301,9 @@ fun HomeScreen(
                     backgroundColor = OrangeLight,
                     foregroundColor = OrangeDefault,
                     icon = Icons.Filled.Person,
-                    onClick = onProfileClicked,
+                    onClick = { scope.launch {
+                        viewmodel.loadUser()
+                    } },
                     modifier = Modifier
                 )
             }

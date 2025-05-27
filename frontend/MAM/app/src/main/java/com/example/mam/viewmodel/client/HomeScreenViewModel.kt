@@ -1,18 +1,33 @@
 package com.example.mam.viewmodel.client
 
+import android.util.Log
 import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
 import com.example.mam.R
+import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.user.UserResponse
 import com.example.mam.entity.Product
 import com.example.mam.entity.ProductCategory
+import com.example.mam.services.BaseService
+import com.example.mam.viewmodel.authentication.StartViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
-class HomeScreenViewModel(): ViewModel() {
+class HomeScreenViewModel(private val userPreferencesRepository: UserPreferencesRepository
+): ViewModel() {
+    private val accessToken = userPreferencesRepository.accessToken.map { it }
+    private val refreshToken = userPreferencesRepository.refreshToken.map { it }
+
     private val _listCategory = MutableStateFlow<MutableList<ProductCategory>>(mutableListOf())
     private val _listProduct = MutableStateFlow<MutableList<Product>>(mutableListOf())
-
+    private val _user = MutableStateFlow<UserResponse>(UserResponse())
     fun getListCategory(): List<ProductCategory> {
         return _listCategory.value.toList()
     }
@@ -59,5 +74,23 @@ class HomeScreenViewModel(): ViewModel() {
 
     fun clearListProduct(){
         _listProduct.value.clear()
+    }
+
+    suspend fun loadUser() {
+        try {
+            _user.value = BaseService(userPreferencesRepository).authPrivateService.getUserInfo().body() ?: UserResponse()
+            Log.d("USER", "User loaded: ${_user.value.username}")
+        }
+        catch (e: Exception) {
+            Log.d("USER", "Error loading user: ${e.message}")
+        }
+    }
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                HomeScreenViewModel(application.userPreferencesRepository)
+            }
+        }
     }
 }

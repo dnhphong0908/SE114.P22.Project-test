@@ -15,9 +15,16 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.MyLocation
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
@@ -68,6 +75,7 @@ fun MapScreen(
         val defaultLocation by remember { mutableStateOf(Point.fromLngLat(106.803017, 10.870483)) }
         var currentLocation by remember { mutableStateOf(defaultLocation) }
         var address by remember { mutableStateOf("") }
+        var tempAddress by remember { mutableStateOf("") }
         var relaunch by remember {
             mutableStateOf(false)
         }
@@ -107,6 +115,7 @@ fun MapScreen(
                     location?.let {
                         currentLocation = Point.fromLngLat(it.longitude, it.latitude)
                         address  = getAddressFromCoordinates(context, currentLocation.latitude(), currentLocation.longitude())
+                        tempAddress = address
                     } ?: run {
                         // Handle case where location is null
                     }
@@ -131,6 +140,52 @@ fun MapScreen(
                     }
                 }
             }
+        }
+        IconButton(
+            onClick = {
+                try {
+                    // Use Android's FusedLocationProviderClient for location retrieval
+                    val fusedLocationClient = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(context)
+                    fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                        location?.let {
+                            currentLocation = Point.fromLngLat(it.longitude, it.latitude)
+                            address  = getAddressFromCoordinates(context, currentLocation.latitude(), currentLocation.longitude())
+                            tempAddress = address
+                        } ?: run {
+                            // Handle case where location is null
+                        }
+                    }.addOnFailureListener {
+                        // Handle failure to retrieve location
+                    }
+                } catch (e: Exception) {
+                    when (e) {
+                        is SecurityException -> {
+                            permissionRequest.launch(
+                                arrayOf(
+                                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                                )
+                            )
+                        }
+                        else -> {
+                            Toast(context).apply {
+                                setText("Không thể lấy vị trí hiện tại")
+                                show()
+                            }
+                        }
+                    }
+                }
+            },
+            modifier = Modifier
+                .padding(top = 16.dp, end = 16.dp).align(Alignment.TopEnd)
+                .background(WhiteDefault, shape = RoundedCornerShape(50))
+                .size(50.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.MyLocation,
+                contentDescription = "Dịa chỉ hien tai",
+                tint = BrownDefault
+            )
         }
         Column(
             verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -175,16 +230,10 @@ fun MapScreen(
                     .fillMaxWidth(0.9f)
             )
             OutlinedTextField(
-                value = address,
+                value = tempAddress,
                 onValueChange = { newAddress ->
-                    address = newAddress
-                    coroutine.launch{
-                        var geocoder = Geocoder(context, Locale("vi", "VN"));
-                        geocoder.getFromLocationName(address, 1)?.firstOrNull()?.let { location ->
-                            currentLocation =
-                                Point.fromLngLat(location.longitude, location.latitude)
-                        }
-                    }
+                    tempAddress = newAddress
+
                 },
                 textStyle = TextStyle(fontSize = 20.sp, color = BrownDefault),
                 colors = TextFieldDefaults.colors(
@@ -196,6 +245,30 @@ fun MapScreen(
                     unfocusedTextColor = BrownDefault,      // Màu chữ khi không focus
                     cursorColor = BrownDefault             // Màu con trỏ nhập liệu
                 ),
+                trailingIcon = {
+                    if (address.isNotEmpty()) {
+                        IconButton(
+                            onClick = {
+                                address = tempAddress
+                                coroutine.launch{
+                                    val geocoder = Geocoder(context, Locale("vi", "VN"));
+                                    geocoder.getFromLocationName(address, 1)?.firstOrNull()?.let { location ->
+                                        currentLocation =
+                                            Point.fromLngLat(location.longitude, location.latitude)
+                                    }
+                                }
+                            },
+                            modifier = Modifier.padding(end = 8.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Tim địa chỉ",
+                                tint = BrownDefault
+                            )
+                        }
+
+                    }
+                },
                 shape = RoundedCornerShape(10.dp),
                 singleLine = true,
                 modifier = Modifier

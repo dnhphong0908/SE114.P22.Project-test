@@ -1,25 +1,33 @@
 package com.example.mam.navigation
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.lifecycle.coroutineScope
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.mam.gui.screen.authorization.ForgetPasswordScreen
-import com.example.mam.gui.screen.authorization.OTPScreen
-import com.example.mam.gui.screen.authorization.SignInScreen
-import com.example.mam.gui.screen.authorization.SignUpScreen
-import com.example.mam.gui.screen.authorization.StartScreen
+import com.example.mam.gui.screen.authentication.ForgetPasswordScreen
+import com.example.mam.gui.screen.authentication.OTPScreen
+import com.example.mam.gui.screen.authentication.SignInScreen
+import com.example.mam.gui.screen.authentication.SignUpScreen
+import com.example.mam.gui.screen.authentication.StartScreen
 import com.example.mam.gui.screen.client.CartScreen
 import com.example.mam.gui.screen.client.CheckOutScreen
 import com.example.mam.gui.screen.client.HomeScreen
@@ -29,7 +37,6 @@ import com.example.mam.gui.screen.client.OrderScreen
 import com.example.mam.gui.screen.client.ProfileScreen
 import com.example.mam.gui.screen.client.SearchScreen
 import com.example.mam.gui.screen.management.DashboardScreen
-import com.example.mam.gui.screen.management.DashboardScreenPreview
 import com.example.mam.gui.screen.management.ListCategoryScreen
 import com.example.mam.gui.screen.management.ListNotificationScreen
 import com.example.mam.gui.screen.management.ListOrderScreen
@@ -44,10 +51,11 @@ import com.example.mam.gui.screen.management.ManageProductScreen
 import com.example.mam.gui.screen.management.ManagePromotionScreen
 import com.example.mam.gui.screen.management.ManageShipperScreen
 import com.example.mam.gui.screen.management.ManageUserScreen
-import com.example.mam.viewmodel.authorization.ForgetPasswordViewModel
-import com.example.mam.viewmodel.authorization.NotificationViewModel
-import com.example.mam.viewmodel.authorization.SignInViewModel
-import com.example.mam.viewmodel.authorization.SignUpViewModel
+import com.example.mam.viewmodel.authentication.ForgetPasswordViewModel
+import com.example.mam.viewmodel.authentication.NotificationViewModel
+import com.example.mam.viewmodel.authentication.SignInViewModel
+import com.example.mam.viewmodel.authentication.SignUpViewModel
+import com.example.mam.viewmodel.authentication.StartViewModel
 import com.example.mam.viewmodel.client.CartViewModel
 import com.example.mam.viewmodel.client.CheckOutViewModel
 import com.example.mam.viewmodel.client.HomeScreenViewModel
@@ -71,10 +79,13 @@ import com.example.mam.viewmodel.management.ManagePromotionViewModel
 import com.example.mam.viewmodel.management.ManageShipperViewModel
 import com.example.mam.viewmodel.management.ManageUserViewModel
 import com.google.accompanist.navigation.animation.AnimatedNavHost
-import com.mapbox.maps.extension.style.layers.generated.backgroundLayer
 import com.yourapp.ui.notifications.NotificationScreen
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 @OptIn(ExperimentalAnimationApi::class)
@@ -82,104 +93,73 @@ import kotlinx.coroutines.launch
 fun MainNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: String = "Authorization",
+    startDestination: String = "Authentication",
 ) {
+    val unAuthorize by AuthEventManager.unauthorizedEvent.collectAsStateWithLifecycle()
+    LaunchedEffect(unAuthorize){
+        if (unAuthorize) {
+            Log.d("AUTH", "Unauthorized access detected, navigating to StartScreen")
+            navController.navigate(AuthenticationScreen.SignIn.name) {
+                popUpTo(AuthenticationScreen.SignIn.name) { inclusive = true }
+                launchSingleTop = true
+            }
+            AuthEventManager.resetUnauthorized() // Reset the event
+        }
+    }
+    val coroutineScope = CoroutineScope(Job() + Dispatchers.IO)
     AnimatedNavHost(
         navController = navController,
         startDestination = startDestination,
         modifier = modifier
     ) {
         navigation(
-            startDestination = AuthorizationScreen.Start.name,
-            route = "Authorization"
+            startDestination = AuthenticationScreen.Start.name,
+            route = "Authentication"
         ) {
             composable(
-                route = AuthorizationScreen.Start.name,
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000),
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f) },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                route = AuthenticationScreen.Start.name,
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
+                val startVM: StartViewModel = viewModel(backStackEntry, factory = StartViewModel.Factory)
                 StartScreen(
+                    viewModel = startVM,
                     onSignInClicked = {
-                        navController.navigate(AuthorizationScreen.SignIn.name)
+                        navController.navigate(AuthenticationScreen.SignIn.name)
+                    },
+                    onAutoSignIn = {
+                        navController.navigate(route = "Home") {
+                            popUpTo("Authorization") { inclusive = true }
+                        }
                     },
                     onSignUpClicked = {
-                        navController.navigate(AuthorizationScreen.SignUp.name)
+                        navController.navigate(AuthenticationScreen.SignUp.name)
                     },
                     onTermsClicked = {
-                        navController.navigate(AuthorizationScreen.Terms.name)
+                        navController.navigate(AuthenticationScreen.Terms.name)
                     }
                 )
             }
 
             composable(
-                route = AuthorizationScreen.SignIn.name,
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                route = AuthenticationScreen.SignIn.name,
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val signInVM: SignInViewModel = viewModel(backStackEntry)
+                val signInVM: SignInViewModel = viewModel(backStackEntry, factory = SignInViewModel.Factory)
                 SignInScreen(
+                    viewModel = signInVM,
                     onSignInClicked = {
-                        if (signInVM.signInState.value.username == "1" || signInVM.signInState.value.password == "1") {
-                            navController.navigate(route = "Home") {
-                                popUpTo("Authorization") { inclusive = true }
-                            }
-                        }
-                        else if (signInVM.signInState.value.username == "2" || signInVM.signInState.value.password == "2") {
-                        navController.navigate(route = "Dashboard") {
+                        navController.navigate(route = "Home") {
                             popUpTo("Authorization") { inclusive = true }
                         }
-                    }
-
-//                        CoroutineScope(backStackEntry.lifecycle.coroutineScope.coroutineContext).launch {
-//                            val result = signInVM.SignIn()
-//                            when (result) {
-//                                0 -> signInVM.notifySignInFalse()
-//                                1 -> {} // Thành công, xử lý logic ở đây
-//                            }
-//                        }
                     },
                     onForgotClicked = {
-                        navController.navigate(AuthorizationScreen.ForgetPW.name)
+                        navController.navigate(AuthenticationScreen.ForgetPW.name)
                     },
                     onBackClicked = {
                         navController.popBackStack()
@@ -188,43 +168,24 @@ fun MainNavHost(
             }
 
             composable(
-                route = AuthorizationScreen.SignUp.name,
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                route = AuthenticationScreen.SignUp.name,
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val signUpVM: SignUpViewModel = viewModel(backStackEntry)
                 SignUpScreen(
                     onSignUpClicked = {
-                        CoroutineScope(backStackEntry.lifecycle.coroutineScope.coroutineContext).launch {
+                        coroutineScope.launch {
                             when (signUpVM.SignUp()) {
                                 0 -> signUpVM.notifySignUpFalse()
-                                1 -> navController.navigate(AuthorizationScreen.SignIn.name)
+                                1 -> navController.navigate(AuthenticationScreen.SignIn.name)
                             }
                         }
                     },
                     onSignInClicked = {
-                        navController.navigate(AuthorizationScreen.SignIn.name)
+                        navController.navigate(AuthenticationScreen.SignIn.name)
                     },
                     onBackClicked = {
                         navController.popBackStack()
@@ -233,30 +194,11 @@ fun MainNavHost(
             }
 
             composable(
-                route = AuthorizationScreen.ForgetPW.name,
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                route = AuthenticationScreen.ForgetPW.name,
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val forgetPasswordVM: ForgetPasswordViewModel = viewModel(backStackEntry)
                 ForgetPasswordScreen(
@@ -269,30 +211,11 @@ fun MainNavHost(
                 )
             }
             composable(
-                route = AuthorizationScreen.OTP.name,
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                route = AuthenticationScreen.OTP.name,
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) {
             OTPScreen(
                 onVerifyClicked = {
@@ -310,31 +233,12 @@ fun MainNavHost(
         ){
             composable(
                 route = HomeScreen.HomeSreen.name,
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewmodel: HomeScreenViewModel = viewModel(backStackEntry)
+                val viewmodel: HomeScreenViewModel = viewModel(backStackEntry, factory = HomeScreenViewModel.Factory)
                 HomeScreen(
                     onItemClicked = { item ->
                         navController.navigate("Details/${item.id}")
@@ -349,29 +253,10 @@ fun MainNavHost(
             }
             composable(
                 route = "Notification",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: NotificationViewModel = viewModel(backStackEntry)
                 NotificationScreen(
@@ -381,29 +266,10 @@ fun MainNavHost(
             }
             composable(
                 route = "Profile",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ProfileViewModel = viewModel(backStackEntry)
                 ProfileScreen(
@@ -414,29 +280,10 @@ fun MainNavHost(
             }
             composable(
                 route = "Details/{itemId}",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) {backStackEntry ->
                 val viewModel: ItemViewModel = viewModel(backStackEntry)
                 ItemScreen(
@@ -450,29 +297,10 @@ fun MainNavHost(
             }
             composable(
                 route = HomeScreen.Search.name,
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) {backStackEntry ->
                 val viewModel: SearchViewModel = viewModel(backStackEntry)
                 SearchScreen(
@@ -485,29 +313,10 @@ fun MainNavHost(
             }
             composable(
                 route = "Cart",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: CartViewModel = viewModel(backStackEntry)
                 CartScreen(
@@ -521,29 +330,10 @@ fun MainNavHost(
             }
             composable(
                 route = "CheckOut",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: CheckOutViewModel = viewModel(backStackEntry)
                 CheckOutScreen(
@@ -565,29 +355,10 @@ fun MainNavHost(
             }
             composable(
                 route = "Address",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ){
                 MapScreen(
                     onBackClicked = {navController.popBackStack()},
@@ -599,28 +370,10 @@ fun MainNavHost(
             }
             composable(
                 route = "Order",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ){ backStackEntry ->
                 val viewModel: OrderViewModel = viewModel(backStackEntry)
                 OrderScreen(
@@ -631,28 +384,10 @@ fun MainNavHost(
             }
             composable(
                 route = "Dashboard",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ){ backStackEntry ->
                 val viewModel: DashboardViewModel = viewModel(backStackEntry)
                 DashboardScreen(
@@ -678,28 +413,10 @@ fun MainNavHost(
             }
             composable(
                 route = "ListCategory",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ListCategoryViewModel = viewModel(backStackEntry)
                 ListCategoryScreen(
@@ -721,28 +438,10 @@ fun MainNavHost(
             }
             composable(
                 route = "AddCategory",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ManageCategoryViewModel = viewModel()
                 ManageCategoryScreen(
@@ -755,28 +454,10 @@ fun MainNavHost(
             composable(
                 route = "EditCategory/{categoryId}",
                 arguments = listOf(navArgument("categoryId") { type = NavType.StringType }),
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ManageCategoryViewModel = viewModel(backStackEntry)
                 ManageCategoryScreen(
@@ -788,28 +469,10 @@ fun MainNavHost(
             }
             composable(
                 route = "ListProduct",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ListProductViewModel = viewModel()
                 ListProductScreen(
@@ -835,28 +498,10 @@ fun MainNavHost(
             composable(
                 route = "EditProduct/{productId}",
                 arguments = listOf(navArgument("productId") { type = NavType.StringType }),
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ManageProductViewModel = viewModel(backStackEntry)
                 ManageProductScreen(
@@ -869,28 +514,10 @@ fun MainNavHost(
             composable(
                 route = "DetailsProduct/{productId}",
                 arguments = listOf(navArgument("productId") { type = NavType.StringType }),
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ManageProductViewModel = viewModel(backStackEntry)
                 ManageProductScreen(
@@ -902,28 +529,10 @@ fun MainNavHost(
             }
             composable(
                 route = "AddProduct",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ManageProductViewModel = viewModel()
                 ManageProductScreen(
@@ -935,28 +544,10 @@ fun MainNavHost(
             }
             composable(
                 route = "ListOrder",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ListOrderViewModel = viewModel()
                 ListOrderScreen(
@@ -976,28 +567,10 @@ fun MainNavHost(
             composable(
                 route = "EditOrder/{orderId}",
                 arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) {
                 backStackEntry ->
                 val viewModel: ManageOrderViewModel = viewModel(backStackEntry)
@@ -1009,28 +582,10 @@ fun MainNavHost(
             }
             composable(
                 route = "ListNotification",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ListNotificationViewModel = viewModel()
                 ListNotificationScreen(
@@ -1049,28 +604,10 @@ fun MainNavHost(
             }
             composable(
                 route = "AddNotification",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ManageNotificationViewModel = viewModel()
                 ManageNotificationScreen(
@@ -1080,28 +617,10 @@ fun MainNavHost(
             }
             composable(
                 route = "ListPromotion",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ListPromotionViewModel = viewModel()
                 ListPromotionScreen(
@@ -1120,28 +639,10 @@ fun MainNavHost(
             }
             composable(
                 route = "AddPromotion",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ManagePromotionViewModel = viewModel()
                 ManagePromotionScreen(
@@ -1151,28 +652,10 @@ fun MainNavHost(
             }
             composable(
                 route = "ListShipper",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ListShipperViewModel = viewModel()
                 ListShipperScreen(
@@ -1194,28 +677,10 @@ fun MainNavHost(
             }
             composable(
                 route = "AddShipper",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ManageShipperViewModel = viewModel()
                 ManageShipperScreen(
@@ -1228,28 +693,10 @@ fun MainNavHost(
             composable(
                 route = "EditShipper/{shipperId}",
                 arguments = listOf(navArgument("shipperId") { type = NavType.StringType }),
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ManageShipperViewModel = viewModel(backStackEntry)
                 ManageShipperScreen(
@@ -1261,28 +708,10 @@ fun MainNavHost(
             }
             composable(
                 route = "ListUser",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ListUserViewModel = viewModel()
                 ListUserScreen(
@@ -1307,28 +736,10 @@ fun MainNavHost(
             }
             composable(
                 route = "AddUser",
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ManageUserViewModel = viewModel()
                 ManageUserScreen(
@@ -1341,28 +752,10 @@ fun MainNavHost(
             composable(
                 route = "EditUser/{userId}",
                 arguments = listOf(navArgument("userId") { type = NavType.StringType }),
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ManageUserViewModel = viewModel(backStackEntry)
                 ManageUserScreen(
@@ -1375,28 +768,10 @@ fun MainNavHost(
             composable(
                 route = "DetailsUser/{userId}",
                 arguments = listOf(navArgument("userId") { type = NavType.StringType }),
-                enterTransition = {
-                    slideIntoContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Up,
-                        tween(1000)
-                    )
-                },
-                exitTransition = {
-                    fadeOut(
-                        animationSpec = tween(1000),
-                        targetAlpha = 1f)
-                },
-                popEnterTransition = {
-                    fadeIn(
-                        animationSpec = tween(1000),
-                        initialAlpha = 1f)
-                },
-                popExitTransition = {
-                    slideOutOfContainer(
-                        AnimatedContentTransitionScope.SlideDirection.Down,
-                        tween(1000)
-                    )
-                }
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
                 val viewModel: ManageUserViewModel = viewModel(backStackEntry)
                 ManageUserScreen(
@@ -1407,6 +782,32 @@ fun MainNavHost(
                 )
             }
         }
-
     }
+}
+fun defaultTransitions(): AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition? = {
+    slideIntoContainer(
+        AnimatedContentTransitionScope.SlideDirection.Up,
+        tween(500)
+    )
+}
+
+fun defaultExitTransitions(): AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition? = {
+    fadeOut(
+        animationSpec = tween(500),
+        targetAlpha = 1f
+    )
+}
+
+fun defaultPopEnterTransitions(): AnimatedContentTransitionScope<NavBackStackEntry>.() -> EnterTransition? = {
+    fadeIn(
+        animationSpec = tween(500),
+        initialAlpha = 1f
+    )
+}
+
+fun defaultPopExitTransitions(): AnimatedContentTransitionScope<NavBackStackEntry>.() -> ExitTransition? = {
+    slideOutOfContainer(
+        AnimatedContentTransitionScope.SlideDirection.Down,
+        tween(500)
+    )
 }

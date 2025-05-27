@@ -1,7 +1,9 @@
 package com.example.mam.gui.screen.management
 
 import android.app.Activity
+import android.content.Context
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -68,6 +70,10 @@ import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.viewmodel.management.ManageCategoryViewModel
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import java.io.File
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -394,6 +400,7 @@ fun ManageCategoryScreen(
             }
         }
     }
+
 
 @Preview
 @Composable
