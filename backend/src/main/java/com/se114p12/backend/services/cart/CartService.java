@@ -1,9 +1,9 @@
 package com.se114p12.backend.services.cart;
 
 import com.se114p12.backend.entities.cart.Cart;
-import com.se114p12.backend.exception.DataConflictException;
-import com.se114p12.backend.exception.ResourceNotFoundException;
-import com.se114p12.backend.repository.cart.CartRepository;
+import com.se114p12.backend.exceptions.DataConflictException;
+import com.se114p12.backend.exceptions.ResourceNotFoundException;
+import com.se114p12.backend.repositories.cart.CartRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

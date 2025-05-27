@@ -1,11 +1,14 @@
 package com.example.mam.viewmodel.management
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DoneAll
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mam.entity.Notification
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import java.time.Instant
 
 class ListNotificationViewModel(): ViewModel() {
     private val _isLoading = MutableStateFlow(false)
@@ -66,6 +69,30 @@ class ListNotificationViewModel(): ViewModel() {
             try {
                 _isLoading.value = true
                 // Simulate network call
+                _notiList.value = mutableListOf(
+                    Notification(
+                        id = "1",
+                        title = "Test Notification",
+                        content = "This is a test notification",
+                        timestamp = Instant.now(),
+                        isRead = false,
+                        icon = Icons.Default.DoneAll,
+                        createAt = Instant.now(),
+                        updateAt = Instant.now(),
+                        type = "ORDER_DELIVERING"
+                    ),
+                    Notification(
+                        id = "2",
+                        title = "Test Notification 2",
+                        content = "This is a test notification 2",
+                        timestamp = Instant.now(),
+                        isRead = false,
+                        icon = Icons.Default.DoneAll,
+                        createAt = Instant.now(),
+                        updateAt = Instant.now(),
+                        type = "ORDER_DELIVERING"
+                    )
+                )
             } catch (e: Exception) {
                 // Handle error
             } finally {

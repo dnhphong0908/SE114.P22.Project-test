@@ -6,7 +6,9 @@ import com.se114p12.backend.entities.product.Product;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @Entity
 @Table(name = "variations")
@@ -20,5 +22,5 @@ public class Variation extends BaseEntity {
     @NotBlank
     private String name;
 
-    private boolean isMultipleChoice;
+    private Boolean isMultipleChoice;
 }

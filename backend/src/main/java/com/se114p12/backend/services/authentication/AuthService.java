@@ -1,12 +1,12 @@
 package com.se114p12.backend.services.authentication;
 
-import com.se114p12.backend.dto.authentication.AuthResponseDTO;
-import com.se114p12.backend.dto.authentication.ForgotPasswordRequestDTO;
-import com.se114p12.backend.dto.authentication.LoginRequestDTO;
-import com.se114p12.backend.dto.authentication.PasswordChangeDTO;
-import com.se114p12.backend.dto.authentication.RefreshTokenRequestDTO;
-import com.se114p12.backend.dto.authentication.SendOTPRequestDTO;
-import com.se114p12.backend.dto.authentication.VerifyOTPRequestDTO;
+import com.se114p12.backend.dtos.authentication.AuthResponseDTO;
+import com.se114p12.backend.dtos.authentication.ForgotPasswordRequestDTO;
+import com.se114p12.backend.dtos.authentication.LoginRequestDTO;
+import com.se114p12.backend.dtos.authentication.PasswordChangeDTO;
+import com.se114p12.backend.dtos.authentication.RefreshTokenRequestDTO;
+import com.se114p12.backend.dtos.authentication.SendOTPRequestDTO;
+import com.se114p12.backend.dtos.authentication.VerifyOTPRequestDTO;
 
 public interface AuthService {
 

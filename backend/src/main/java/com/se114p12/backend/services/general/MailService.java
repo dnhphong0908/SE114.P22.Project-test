@@ -1,6 +1,6 @@
 package com.se114p12.backend.services.general;
 
-import com.se114p12.backend.exception.BadRequestException;
+import com.se114p12.backend.exceptions.BadRequestException;
 import jakarta.mail.internet.MimeMessage;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;

@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowDropUp
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
@@ -49,6 +50,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mam.gui.component.CircleIconButton
@@ -74,9 +76,8 @@ fun CheckOutScreen(
     modifier: Modifier = Modifier
 ) {
     val items = viewModel.orderItems.collectAsStateWithLifecycle()
-
-    val promoCodeState = viewModel.promoCode.collectAsStateWithLifecycle()
-    val discount = viewModel.discount.collectAsStateWithLifecycle()
+    val discount = viewModel.discount.collectAsStateWithLifecycle().value
+    val discountList = viewModel.discountList.collectAsStateWithLifecycle().value
     val isScreenActive = rememberUpdatedState(newValue = true)
 
     val note = viewModel.note.collectAsStateWithLifecycle()
@@ -209,39 +210,64 @@ fun CheckOutScreen(
                             .padding(start = 10.dp)
 
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .wrapContentHeight()
-                            .fillMaxWidth(0.9f)
-                            .background(OrangeLight)
-                            .align(Alignment.CenterHorizontally)
+                    Box(Modifier
+                        .zIndex(1f)
+                        .padding(8.dp)
+                        .fillMaxWidth()
                     ) {
-                        OutlinedTextField(
-                            value = promoCodeState.value,
-                            onValueChange = { viewModel.setDiscount(it) },
-                            textStyle = TextStyle(fontSize = 18.sp, color = BrownDefault),
-                            colors = TextFieldDefaults.colors(
-                                focusedContainerColor = WhiteDefault,  // Màu nền khi focus
-                                unfocusedContainerColor = WhiteDefault, // Màu nền khi không focus
-                                focusedIndicatorColor = BrownDefault,  // Màu viền khi focus
-                                unfocusedIndicatorColor = BrownDefault,  // Màu viền khi không focus
-                                focusedTextColor = BrownDefault,       // Màu chữ khi focus
-                                unfocusedTextColor = BrownDefault,      // Màu chữ khi không focus
-                                cursorColor = BrownDefault             // Màu con trỏ nhập liệu
+                        var discountExpanded by remember { mutableStateOf(false) }
+                        FilterChip(
+                            selected = discountExpanded,
+                            onClick = { discountExpanded = !discountExpanded },
+                            label = {
+                                Text(
+                                    text = discount.getValueToString(),
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier
+                                )
+                            },
+                            trailingIcon = {
+                                Icon(if (!discountExpanded) Icons.Default.ArrowDropDown else Icons.Default.ArrowDropUp , contentDescription = "Expand")
+                            },
+                            border = FilterChipDefaults.filterChipBorder(
+                                enabled = true,
+                                selected = discountExpanded,
+                                borderWidth = 1.dp,
+                                borderColor = OrangeDefault,
+                                selectedBorderColor = OrangeDefault
                             ),
-                            shape = RoundedCornerShape(10.dp),
-                            singleLine = true,
-                            modifier = Modifier.padding(2.dp).weight(1f)
-                        )
-                        OuterShadowFilledButton(
-                            text = "Áp dụng",
-                            fontSize = 18.sp,
-                            onClick = { viewModel.getDiscount() },
-                            modifier = Modifier.wrapContentWidth().padding(end = 10.dp)
+                            colors = FilterChipDefaults.filterChipColors(
+                                containerColor = OrangeDefault,
+                                labelColor = WhiteDefault,
+                                iconColor = WhiteDefault,
+                                selectedContainerColor = OrangeDefault,
+                                selectedLabelColor = WhiteDefault,
+                                selectedLeadingIconColor = WhiteDefault,
+                                selectedTrailingIconColor = WhiteDefault
+                            ),
+                            shape = RoundedCornerShape(50),
+                            modifier = Modifier.fillMaxWidth(0.9f).height(40.dp).align(Alignment.Center)
 
                         )
+                        DropdownMenu(
+                            expanded = discountExpanded,
+                            onDismissRequest = { discountExpanded = false },
+                            containerColor = WhiteDefault,
+                            modifier = Modifier
+                        ) {
+                            discountList.forEach { promotion ->
+                                DropdownMenuItem(
+                                    text = { Text(
+                                        text = promotion.code + " - " + promotion.getValueToString(),
+                                        color = BrownDefault) },
+                                    onClick = {
+                                        viewModel.setDiscount(promotion)
+                                        discountExpanded = false
+                                    },
+                                )
+                            }
+                        }
                     }
                     HorizontalDivider(
                         modifier = Modifier

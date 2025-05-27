@@ -49,6 +49,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -103,6 +104,10 @@ fun ListShipperScreen(
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
 
+    LaunchedEffect(Unit) {
+        viewModel.loadSortingOptions()
+        viewModel.loadData()
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -470,6 +475,7 @@ fun ShipperItem(
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                 )
+                Spacer(modifier = Modifier.size(8.dp))
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
@@ -515,9 +521,9 @@ fun ShipperScreenPreview() {
         onAddShipperClick = {},
         onEditShipperClick = {},
         mockData = listOf(
-            Shipper("Nguyễn Văn A", "0123456789", "29A-123.45", "1"),
-            Shipper("Trần Thị B", "0987654321", "30A-987.65", "2"),
-            Shipper("Lê Văn C", "0912345678", "31A-456.78", "3")
+            Shipper("Nguyễn Văn A", "0123456789", "59-A1 999.99", "1"),
+            Shipper("Trần Thị B", "0987654321", "59-A1 999.99", "2"),
+            Shipper("Lê Văn C", "0912345678", "59-A1 999.99", "3")
         )
     )
 }

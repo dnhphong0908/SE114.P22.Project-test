@@ -12,7 +12,7 @@ import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.se114p12.backend.exception.StorageException;
+import com.se114p12.backend.exceptions.StorageException;
 
 @Service
 public class StorageService {

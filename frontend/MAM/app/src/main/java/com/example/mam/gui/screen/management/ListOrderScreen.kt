@@ -1,6 +1,5 @@
 package com.example.mam.gui.screen.management
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,10 +21,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
@@ -46,6 +43,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,7 +55,6 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -70,9 +67,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import coil.compose.AsyncImagePainter.State.Empty.painter
 import com.example.mam.entity.Order
-import com.example.mam.entity.OrderItem
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
@@ -86,16 +81,13 @@ import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListOrderViewModel
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import kotlin.math.acos
 
 @Composable
 fun ListOrderScreen(
     viewModel: ListOrderViewModel,
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
-    onOrderClick: (String) -> Unit = {},
     onEditOrderClick: (String) -> Unit = {},
-    onDeleteOrderClick: (String) -> Unit = {},
     mockData: List<Order>? = null,
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
@@ -105,6 +97,10 @@ fun ListOrderScreen(
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
 
+    LaunchedEffect(Unit){
+        viewModel.loadSortingOptions()
+        viewModel.loadData()
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -326,9 +322,7 @@ fun ListOrderScreen(
                     items(mockData) { order ->
                         com.example.mam.gui.screen.management.OrderItem(
                             order = order,
-                            onClick = onOrderClick,
                             onEditClick = onEditOrderClick,
-                            onDeleteClick = onDeleteOrderClick
                         )
                     }
                 }
@@ -357,9 +351,7 @@ fun ListOrderScreen(
                             items(orderList) { order ->
                                 com.example.mam.gui.screen.management.OrderItem(
                                     order = order,
-                                    onClick = onOrderClick,
                                     onEditClick = onEditOrderClick,
-                                    onDeleteClick = onDeleteOrderClick
                                 )
                             }
 
@@ -375,14 +367,12 @@ fun ListOrderScreen(
 fun OrderItem(
     order: Order,
     isViewOnly: Boolean = false,
-    onClick: (String) -> Unit,
     onEditClick: (String) -> Unit,
-    onDeleteClick: (String) -> Unit,
 ) {
     val viewModel: ListOrderViewModel = ListOrderViewModel()
-    val owner = viewModel.loadOwnerOfOrder(order.usedId)
+    val owner = viewModel.loadOwnerOfOrder(order.userId)
     Card(
-        onClick = { onClick(order.id) },
+        onClick = { },
         colors = CardDefaults.cardColors(
             containerColor = WhiteDefault
         ),
@@ -412,6 +402,16 @@ fun OrderItem(
                     .weight(1f)
                     .padding(10.dp)
             ) {
+                Text(
+                    text = getStatusMessage(order.orderStatus),
+                    textAlign = TextAlign.Start,
+                    color = OrangeDefault,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.fillMaxWidth()
+                )
                 Text(
                     text = owner.fullName,
                     textAlign = TextAlign.Start,
@@ -446,23 +446,25 @@ fun OrderItem(
                 )
             }
             if (!isViewOnly) {
-                IconButton(onClick = { onEditClick(order.id) }) {
+                if (order.orderStatus<4)IconButton(onClick = { onEditClick(order.id) }) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
                 }
-                IconButton(onClick = { onDeleteClick(order.id) }) {
-                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
-                }
+//                IconButton(onClick = { onDeleteClick(order.id) }) {
+//                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
+//                }
             }
         }
     }
 }
+
+
 
 @Preview
 @Composable
 fun PreviewOrderItem() {
     val order = Order(
         id = "1",
-        usedId = "1",
+        userId = "1",
         orderDate = java.time.Instant.now(),
         paymentId = "1",
         shippingAddress = "123 Street",
@@ -476,9 +478,7 @@ fun PreviewOrderItem() {
     )
     OrderItem(
         order = order,
-        onClick = {},
         onEditClick = {},
-        onDeleteClick = {}
     )
 }
 
@@ -488,13 +488,25 @@ fun PreviewListOrderScreen() {
     ListOrderScreen(
         viewModel = ListOrderViewModel(),
         onBackClick = {},
-        onOrderClick = {},
         onEditOrderClick = {},
-        onDeleteOrderClick = {},
         mockData = listOf(
             Order(
                 id = "1",
-                usedId = "1",
+                userId = "1",
+                orderDate = java.time.Instant.now(),
+                paymentId = "1",
+                shippingAddress = "123 Street",
+                orderItems = mutableListOf(),
+                totalPrice = 100000,
+                note = "Note",
+                orderStatus = 4,
+                expectDeliveryTime = java.time.Instant.now(),
+                actualDeliveryTime = java.time.Instant.now(),
+                shipperId = "1"
+            ),
+            Order(
+                id = "1",
+                userId = "1",
                 orderDate = java.time.Instant.now(),
                 paymentId = "1",
                 shippingAddress = "123 Street",
@@ -508,21 +520,7 @@ fun PreviewListOrderScreen() {
             ),
             Order(
                 id = "1",
-                usedId = "1",
-                orderDate = java.time.Instant.now(),
-                paymentId = "1",
-                shippingAddress = "123 Street",
-                orderItems = mutableListOf(),
-                totalPrice = 100000,
-                note = "Note",
-                orderStatus = 1,
-                expectDeliveryTime = java.time.Instant.now(),
-                actualDeliveryTime = java.time.Instant.now(),
-                shipperId = "1"
-            ),
-            Order(
-                id = "1",
-                usedId = "1",
+                userId = "1",
                 orderDate = java.time.Instant.now(),
                 paymentId = "1",
                 shippingAddress = "123 Street",

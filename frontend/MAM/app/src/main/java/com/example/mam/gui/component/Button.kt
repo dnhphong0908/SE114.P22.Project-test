@@ -78,6 +78,7 @@ import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.Transparent
 import com.example.mam.ui.theme.WhiteDefault
 import kotlinx.coroutines.launch
+import coil.compose.AsyncImage
 
 @Composable
 fun UnderlinedClickableText(
@@ -251,7 +252,7 @@ fun OuterShadowFilledButton(
 @Composable
 fun NormalButtonWithIcon(
     text: String,
-    fontSize: TextUnit = 14.sp,
+    fontSize: TextUnit = 16.sp,
     isEnable: Boolean = true,
     color: Color = OrangeDefault,
     textColor: Color = WhiteDefault,
@@ -260,7 +261,8 @@ fun NormalButtonWithIcon(
     image: Int ?= null,
     onClick: () -> Unit,
     shape: RoundedCornerShape = RoundedCornerShape(8.dp),
-    modifier: Modifier
+    modifier: Modifier,
+    spacer: Boolean = true
 ){
     Button(
         colors = ButtonDefaults.buttonColors(containerColor = color),
@@ -270,15 +272,15 @@ fun NormalButtonWithIcon(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier.wrapContentWidth()
         ) {
             Text(
                 text = text,
                 fontSize = fontSize,
                 color = textColor,
             )
-
-            Spacer(modifier = Modifier.weight(1f)) // đẩy icon sang cuối
+            if(spacer == true)
+                Spacer(modifier = Modifier.weight(1f)) // đẩy icon sang cuối
 
             icon?.let {
                 Icon(
@@ -306,6 +308,7 @@ fun BasicOutlinedButton(
     foregroundColor: Color = BrownDefault,
     icon: ImageVector ?= null,
     image: Int ?= null,
+    url: String ?= null,
     isEnable: Boolean = true,
     onClick: () -> Unit,
     modifier: Modifier
@@ -339,6 +342,14 @@ fun BasicOutlinedButton(
                     .padding(end = 8.dp)
             )
         }
+        url?.let {
+            AsyncImage(
+            model = url ,
+            contentDescription = null,
+            modifier = Modifier
+                .size(30.dp)
+                .padding(end = 8.dp)
+        ) }
         Text(
             text = text,
             color = foregroundColor
@@ -487,8 +498,8 @@ fun ProductClientListItem(
             modifier = modifier
                 .fillMaxSize()
         ) {
-            Image(
-                painter = painterResource(item.img),
+            AsyncImage(
+                model = item.imageUrl, // Đây là URL từ API
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

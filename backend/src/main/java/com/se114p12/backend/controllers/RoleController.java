@@ -1,8 +1,8 @@
 package com.se114p12.backend.controllers;
 
 import com.se114p12.backend.annotations.ErrorResponse;
-import com.se114p12.backend.dto.role.RoleRequestDTO;
-import com.se114p12.backend.dto.role.RoleResponseDTO;
+import com.se114p12.backend.dtos.role.RoleRequestDTO;
+import com.se114p12.backend.dtos.role.RoleResponseDTO;
 import com.se114p12.backend.entities.authentication.Role;
 import com.se114p12.backend.services.role.RoleService;
 import com.se114p12.backend.vo.PageVO;
@@ -67,9 +67,7 @@ public class RoleController {
   @ApiResponse(
       responseCode = "201",
       description = "Successfully created role",
-      content =
-          @Content(
-              schema = @Schema(implementation = RoleResponseDTO.class)))
+      content = @Content(schema = @Schema(implementation = RoleResponseDTO.class)))
   @ErrorResponse
   @PreAuthorize("hasRole('ADMIN')")
   @PostMapping
@@ -84,9 +82,7 @@ public class RoleController {
   @ApiResponse(
       responseCode = "200",
       description = "Successfully updated role",
-      content =
-          @Content(
-              schema = @Schema(implementation = RoleResponseDTO.class)))
+      content = @Content(schema = @Schema(implementation = RoleResponseDTO.class)))
   @ErrorResponse
   @PreAuthorize("hasRole('ADMIN')")
   @PutMapping("/{id}")

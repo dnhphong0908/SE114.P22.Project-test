@@ -49,6 +49,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -96,7 +97,6 @@ fun ListNotificationScreen(
     viewModel: ListNotificationViewModel,
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
-    onNotificationClick: (String) -> Unit = {},
     onAddNotificationClick : () -> Unit = {},
     mockData: List<Notification> ?= null,
 ) {
@@ -107,6 +107,10 @@ fun ListNotificationScreen(
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
 
+    LaunchedEffect(Unit) {
+        viewModel.loadSortingOptions()
+        viewModel.loadData()
+    }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -328,7 +332,6 @@ fun ListNotificationScreen(
                     items(mockData) { noti ->
                         NotificationItem(
                             notification = noti,
-                            onClick = onNotificationClick,
                         )
                     }
                 }
@@ -359,7 +362,6 @@ fun ListNotificationScreen(
                             items(notiList) { noti ->
                                 NotificationItem(
                                     notification = noti,
-                                    onClick = onNotificationClick,
                                 )
                             }
                 }
@@ -388,7 +390,6 @@ fun ListNotificationScreen(
 @Composable
 fun NotificationItem(
     notification: Notification,
-    onClick: (String) -> Unit,
 ) {
     var expand by remember { mutableStateOf(false) }
     Surface(
@@ -397,7 +398,7 @@ fun NotificationItem(
         modifier = Modifier.padding(8.dp)
     ) {
         Card(
-            onClick = { onClick(notification.id) },
+            onClick = {  },
             colors = CardDefaults.cardColors(
                 containerColor = WhiteDefault
             ),
@@ -485,6 +486,7 @@ fun NotificationItem(
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                 )
+                Spacer(modifier = Modifier.size(8.dp))
                 notification.createAt.atZone(ZoneId.systemDefault())?.let {
                     Text(
                         text = buildAnnotatedString {
@@ -539,7 +541,6 @@ fun NotificationItemPreview() {
             type = "ORDER_DELIVERING"
 
         ),
-        onClick = {},
     )
 }
 
@@ -549,7 +550,6 @@ fun ListNotificationScreenPreview() {
     ListNotificationScreen(
         viewModel = ListNotificationViewModel(),
         onBackClick = {},
-        onNotificationClick = {},
         onAddNotificationClick = {},
         onHomeClick = {},
         mockData = listOf(

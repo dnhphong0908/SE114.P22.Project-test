@@ -1,10 +1,10 @@
 package com.se114p12.backend.services.authentication;
 
 import com.se114p12.backend.entities.authentication.RefreshToken;
-import com.se114p12.backend.exception.RefreshTokenException;
-import com.se114p12.backend.exception.ResourceNotFoundException;
-import com.se114p12.backend.repository.authentication.RefreshTokenRepository;
-import com.se114p12.backend.repository.authentication.UserRepository;
+import com.se114p12.backend.exceptions.RefreshTokenException;
+import com.se114p12.backend.exceptions.ResourceNotFoundException;
+import com.se114p12.backend.repositories.authentication.RefreshTokenRepository;
+import com.se114p12.backend.repositories.authentication.UserRepository;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

@@ -73,5 +73,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-location:21.0.1")
     implementation ("com.google.accompanist:accompanist-permissions:0.37.3")
     implementation("io.coil-kt:coil-compose:2.4.0")
+    implementation("co.yml:ycharts:2.1.0")
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
 }

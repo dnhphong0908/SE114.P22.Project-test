@@ -69,13 +69,18 @@ class OrderViewModel(): ViewModel() {
         _note.value = "Lấy thêm tương ớt"
         _items.value =mutableListOf(
             OrderItem(
-                product = Product("P003", "Pizza truyền thống", "", "", 120000, true, "PC001", R.drawable.bacon_and_cheese_heaven),
+                name = "Pizza hải sản",
+                image = "",
+                id = "P001",
                 quantity = 2,
                 options = "25cm, Hành tây",
                 price = 120000 * 2 + 10000 + 5000
             ),
             OrderItem(
-                product = Product("P006", "Hotdog truyền thống", "", "", 80000, true, "PC003", R.drawable.bacon_and_cheese_heaven),
+                name = "Pizza hải sản",
+                image = "",
+                id = "P001",
+
                 quantity = 1,
                 options = "30cm",
                 price = 80000 + 15000

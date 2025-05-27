@@ -26,4 +26,6 @@ public class Shipper extends BaseEntity {
 
     @OneToMany(mappedBy = "shipper")
     private List<Order> orders;
+
+    private Boolean isAvailable = true;
 }

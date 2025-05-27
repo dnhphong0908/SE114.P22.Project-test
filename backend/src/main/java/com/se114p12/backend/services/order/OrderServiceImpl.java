@@ -1,21 +1,23 @@
 package com.se114p12.backend.services.order;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.se114p12.backend.entities.cart.Cart;
 import com.se114p12.backend.entities.cart.CartItem;
 import com.se114p12.backend.entities.order.Order;
 import com.se114p12.backend.entities.order.OrderDetail;
 import com.se114p12.backend.entities.product.Product;
-import com.se114p12.backend.dto.order.OrderRequestDTO;
-import com.se114p12.backend.dto.order.OrderResponseDTO;
+import com.se114p12.backend.dtos.order.OrderRequestDTO;
+import com.se114p12.backend.dtos.order.OrderResponseDTO;
 import com.se114p12.backend.enums.OrderStatus;
 import com.se114p12.backend.enums.PaymentStatus;
-import com.se114p12.backend.exception.BadRequestException;
-import com.se114p12.backend.exception.ResourceNotFoundException;
-import com.se114p12.backend.mapper.order.OrderMapper;
-import com.se114p12.backend.repository.authentication.UserRepository;
-import com.se114p12.backend.repository.cart.CartItemRepository;
-import com.se114p12.backend.repository.cart.CartRepository;
-import com.se114p12.backend.repository.order.OrderRepository;
+import com.se114p12.backend.exceptions.BadRequestException;
+import com.se114p12.backend.exceptions.ResourceNotFoundException;
+import com.se114p12.backend.mappers.order.OrderMapper;
+import com.se114p12.backend.repositories.authentication.UserRepository;
+import com.se114p12.backend.repositories.cart.CartItemRepository;
+import com.se114p12.backend.repositories.cart.CartRepository;
+import com.se114p12.backend.repositories.order.OrderRepository;
 import com.se114p12.backend.util.JwtUtil;
 import com.se114p12.backend.vo.PageVO;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +28,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +65,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderResponseDTO create(OrderRequestDTO orderRequestDTO) {
         Long currentUserId = jwtUtil.getCurrentUserId();
         Cart cart = cartRepository.findByUserId(currentUserId).orElseThrow(() -> new ResourceNotFoundException("Cart not found"));
+
         Order order = new Order();
         order.setShippingAddress(orderRequestDTO.getShippingAddress());
         order.setNote(orderRequestDTO.getNote());
@@ -69,8 +73,10 @@ public class OrderServiceImpl implements OrderService {
         order.setPaymentMethod(orderRequestDTO.getPaymentMethod());
         order.setOrderStatus(OrderStatus.PENDING);
         order.setPaymentStatus(PaymentStatus.PENDING);
+        order.setOrderDetails(new ArrayList<>());
         BigDecimal totalPrice = BigDecimal.ZERO;
         List<OrderDetail> orderDetails;
+
         for (CartItem cartItem : cart.getCartItems()) {
             Product product = cartItem.getProduct();
             OrderDetail orderDetail = new OrderDetail();
@@ -88,17 +94,29 @@ public class OrderServiceImpl implements OrderService {
             cartItemRepository.delete(cartItem);
         }
 
-        order.setTotalPrice(totalPrice.longValue());
+        order.setTotalPrice(totalPrice);
         return orderMapper.entityToResponseDTO(orderRepository.save(order));
     }
 
     @Override
     public OrderResponseDTO update(Long id, OrderRequestDTO orderRequestDTO) {
-        throw new NotImplementedException();
+        Order order = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (orderRequestDTO.getShippingAddress() != null) {
+            order.setShippingAddress(orderRequestDTO.getShippingAddress());
+        }
+        if (orderRequestDTO.getNote() != null) {
+            order.setNote(orderRequestDTO.getNote());
+        }
+        if (orderRequestDTO.getPaymentMethod() != null) {
+            order.setPaymentMethod(orderRequestDTO.getPaymentMethod());
+        }
+
+        return orderMapper.entityToResponseDTO(orderRepository.save(order));
     }
 
     @Override
-    public void OrderCancel(Long id) {
+    public void cancelOrder(Long id) {
         Order order = orderRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Order not found"));
         if (order.getOrderStatus().getCode() > 1) {
             throw new BadRequestException("Can't cancel order because order is confirm");
@@ -114,13 +132,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private String extractVariationInfo(CartItem cartItem) {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.append("[");
-        cartItem.getVariationOptions()
-                .forEach(variationOption -> {
-                    var info = Map.<String, String>of(variationOption.getVariation().getName(), variationOption.getValue());
-                    stringBuilder.append(info.toString()).append(", ");
-                });
-        return stringBuilder.append("]").toString();
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String, String>> variations = cartItem.getVariationOptions().stream()
+                .map(variationOption -> Map.of(variationOption.getVariation().getName(), variationOption.getValue()))
+                .toList();
+        try {
+            return objectMapper.writeValueAsString(variations);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Error serializing variation info", e);
+        }
     }
 }
