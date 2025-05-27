@@ -1,8 +1,8 @@
 package com.se114p12.backend.services.cart;
 
 import com.se114p12.backend.entities.cart.CartItem;
-import com.se114p12.backend.exception.DataConflictException;
-import com.se114p12.backend.repository.cart.CartItemRepository;
+import com.se114p12.backend.exceptions.DataConflictException;
+import com.se114p12.backend.repositories.cart.CartItemRepository;
 import com.se114p12.backend.vo.PageVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;

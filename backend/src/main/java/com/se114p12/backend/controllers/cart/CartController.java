@@ -1,7 +1,7 @@
 package com.se114p12.backend.controllers.cart;
 
 import com.se114p12.backend.entities.cart.Cart;
-import com.se114p12.backend.repository.cart.CartRepository;
+import com.se114p12.backend.repositories.cart.CartRepository;
 import com.se114p12.backend.services.cart.CartService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;

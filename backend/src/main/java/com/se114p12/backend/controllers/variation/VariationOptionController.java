@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.variation;
 
-import com.se114p12.backend.entities.variation.VariationOption;
+import com.se114p12.backend.dtos.variation.VariationOptionRequestDTO;
+import com.se114p12.backend.dtos.variation.VariationOptionResponseDTO;
 import com.se114p12.backend.services.variation.VariationOptionService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -9,31 +10,41 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Tag(name = "Variation Option Module")
 @RestController
 @RequestMapping("/api/v1/variation-options")
 @RequiredArgsConstructor
 public class VariationOptionController {
+
     private final VariationOptionService variationOptionService;
 
-    @PreAuthorize("hasRole('ADMIN')") 
+    @GetMapping
+    public ResponseEntity<List<VariationOptionResponseDTO>> getByVariationId(
+            @RequestParam Long variationId
+    ) {
+        return ResponseEntity.ok(variationOptionService.getByVariationId(variationId));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<VariationOption> createVariationOption(@Valid @RequestBody VariationOption variationOption) {
-        return ResponseEntity.ok(variationOptionService.create(variationOption));
+    public ResponseEntity<VariationOptionResponseDTO> create(@Valid @RequestBody VariationOptionRequestDTO dto) {
+        return ResponseEntity.ok(variationOptionService.create(dto));
     }
 
-    @PreAuthorize("hasRole('ADMIN')") 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<VariationOption> updateVariationOption(
-            @PathVariable("id") Long id,
-            @Valid @RequestBody VariationOption variationOption) {
-        return ResponseEntity.ok(variationOptionService.update(id, variationOption));
+    public ResponseEntity<VariationOptionResponseDTO> update(
+            @PathVariable Long id,
+            @Valid @RequestBody VariationOptionRequestDTO dto) {
+        return ResponseEntity.ok(variationOptionService.update(id, dto));
     }
 
-    @PreAuthorize("hasRole('ADMIN')") 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteVariationOption(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         variationOptionService.delete(id);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 }

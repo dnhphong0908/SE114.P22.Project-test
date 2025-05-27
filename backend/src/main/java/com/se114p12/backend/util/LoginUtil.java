@@ -2,8 +2,8 @@ package com.se114p12.backend.util;
 
 import com.se114p12.backend.entities.user.User;
 import com.se114p12.backend.enums.LoginType;
-import com.se114p12.backend.exception.ResourceNotFoundException;
-import com.se114p12.backend.repository.authentication.UserRepository;
+import com.se114p12.backend.exceptions.ResourceNotFoundException;
+import com.se114p12.backend.repositories.authentication.UserRepository;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
