@@ -14,4 +14,6 @@ public interface OrderService {
     OrderResponseDTO update(Long id, OrderRequestDTO orderRequestDTO);
     void cancelOrder(Long id);
     void delete(Long id);
+
+    void markOrderAsDelivered(Long orderId);
 }

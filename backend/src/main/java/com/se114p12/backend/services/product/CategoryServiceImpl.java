@@ -84,10 +84,18 @@ public class CategoryServiceImpl implements CategoryService {
         return categoryMapper.entityToResponse(existingProductCategory);
     }
 
+    @Override
     public void delete(Long id) {
-        if (!productCategoryRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Product category not found");
+        ProductCategory category = productCategoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product category not found"));
+
+        // Nếu có hình thì xóa luôn file ảnh
+        if (category.getImageUrl() != null && !category.getImageUrl().isEmpty()) {
+            String filename = category.getImageUrl().substring(category.getImageUrl().lastIndexOf("/") + 1);
+            storageService.delete(filename, "categories");
         }
+
         productCategoryRepository.deleteById(id);
     }
+
 }
