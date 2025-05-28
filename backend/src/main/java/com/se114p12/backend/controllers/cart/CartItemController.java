@@ -1,9 +1,11 @@
 package com.se114p12.backend.controllers.cart;
 
-import com.se114p12.backend.entities.cart.CartItem;
+import com.se114p12.backend.dtos.cart.CartItemRequestDTO;
+import com.se114p12.backend.dtos.cart.CartItemResponseDTO;
 import com.se114p12.backend.services.cart.CartItemService;
 import com.se114p12.backend.vo.PageVO;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -18,18 +20,20 @@ public class CartItemController {
     private final CartItemService cartItemService;
 
     @GetMapping
-    public ResponseEntity<PageVO<CartItem>> getProductsByCategory(Pageable pageable) {
+    public ResponseEntity<PageVO<CartItemResponseDTO>> getAllCartItems(Pageable pageable) {
         return ResponseEntity.ok(cartItemService.getAllCartItems(pageable));
     }
 
     @PostMapping
-    public ResponseEntity<CartItem> createCartItem(@RequestBody CartItem cartItem) {
-        return ResponseEntity.ok(cartItemService.createCartItem(cartItem));
+    public ResponseEntity<CartItemResponseDTO> createCartItem(@Valid @RequestBody CartItemRequestDTO dto) {
+        return ResponseEntity.ok(cartItemService.createCartItem(dto));
     }
 
-    @PutMapping
-    public ResponseEntity<CartItem> updateCartItem(@RequestBody CartItem cartItem) {
-        return ResponseEntity.ok(cartItemService.updateCartItem(cartItem));
+    @PutMapping("/{id}")
+    public ResponseEntity<CartItemResponseDTO> updateCartItem(
+            @PathVariable Long id,
+            @Valid @RequestBody CartItemRequestDTO dto) {
+        return ResponseEntity.ok(cartItemService.updateCartItem(id, dto));
     }
 
     @DeleteMapping("/{id}")
