@@ -1,3 +1,5 @@
 package com.se114p12.backend.services.stats;
 
-public interface StatsService {}
+public interface StatsService {
+
+}
