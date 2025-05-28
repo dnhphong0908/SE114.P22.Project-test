@@ -3,6 +3,7 @@ package com.se114p12.backend.configs;
 import com.se114p12.backend.entities.authentication.Role;
 import com.se114p12.backend.entities.user.User;
 import com.se114p12.backend.enums.LoginProvider;
+import com.se114p12.backend.enums.UserStatus;
 import com.se114p12.backend.repositories.authentication.RoleRepository;
 import com.se114p12.backend.repositories.authentication.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -37,6 +38,7 @@ public class DataInitializer implements ApplicationRunner {
         admin.setPassword(passwordEncoder.encode("Admin123"));
         admin.setPhone("0123456789");
         admin.setRole(adminRole);
+        admin.setStatus(UserStatus.ACTIVE);
         userRepository.save(admin);
       }
     }
