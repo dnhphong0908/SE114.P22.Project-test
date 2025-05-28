@@ -1,19 +1,33 @@
 package com.example.mam.viewmodel.management
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
 import com.example.mam.R
+import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.entity.ProductCategory
+import com.example.mam.services.BaseService
+import com.example.mam.viewmodel.authentication.SignInViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ListCategoryViewModel(): ViewModel() {
+class ListCategoryViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository
+): ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _category = MutableStateFlow<MutableList<ProductCategory>>(mutableListOf())
-    val category: StateFlow<List<ProductCategory>> = _category
+    private val _categories = MutableStateFlow<MutableList<CategoryResponse>>(mutableListOf())
+    val categories: StateFlow<List<CategoryResponse>> = _categories
 
     private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf())
     val sortingOptions: StateFlow<List<String>> = _sortingOptions
@@ -41,7 +55,7 @@ class ListCategoryViewModel(): ViewModel() {
 
     fun searchCategory() {
         //search and save history
-        _category.value = _category.value.filter {
+        _categories.value = _categories.value.filter {
             it.name.contains(searchQuery.value, ignoreCase = true)
         }.toMutableList()
         setSearchHistory(searchQuery.value)
@@ -65,29 +79,46 @@ class ListCategoryViewModel(): ViewModel() {
     }
 
     fun loadData() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate network call
-                _category.value = mutableListOf(
-                    ProductCategory(
-                        id = "1",
-                        name = "Hamburger",
-                    ),
-                    ProductCategory(
-                        id = "2",
-                        name = "Pizza",
-                    ),
-                    ProductCategory(
-                        id = "3",
-                        name = "Chicken",
+        var isContinue: Boolean = true
+        while (isContinue) {
+            viewModelScope.launch {
+                try {
+                    _isLoading.value = true
+                    // Simulate network call
+                    Log.d("Category", "Bắt đầu lấy Danh mục")
+                    Log.d(
+                        "Category",
+                        "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
                     )
-                )
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
-
+                    val response =
+                        BaseService(userPreferencesRepository).productCategoryService.getCategories(
+                            specification = ""
+                        )
+                    Log.d("Category", "Status code: ${response.code()}")
+                    if (response.isSuccessful) {
+                        val page = response.body()
+                        page?.let {
+                            _categories.value = (_categories.value + page.content).toMutableList()
+                            isContinue = (page.page != (page.totalPages - 1))
+                        }
+                    } else {
+                        Log.d("Category", "Lấy Danh mục thất bại: ${response.errorBody()}")
+                        isContinue = false
+                    }
+                } catch (e: Exception) {
+                    Log.d("Category", "Không thể lấy Danh mục: ${e.message}")
+                } finally {
+                    _isLoading.value = false
+                    Log.d("Category", "Kết thúc lấy Danh mục")
+                }
+            }
+        }
+    }
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                ListCategoryViewModel(application.userPreferencesRepository)
             }
         }
     }

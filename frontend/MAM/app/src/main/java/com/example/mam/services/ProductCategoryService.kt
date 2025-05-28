@@ -18,8 +18,8 @@ interface ProductCategoryService {
 
  @GET("product-categories")
  suspend fun getCategories(
-     @Query("page") page: Int,
-     @Query("size") size: Int,
+     @Query("page") page: Int = 0,
+     @Query("size") size: Int = 20,
      @Query("sort") sort: List<String>? = null,
      @Query("specification") specification: String
  ): Response<PageVO<CategoryResponse>>

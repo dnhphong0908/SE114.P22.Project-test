@@ -418,7 +418,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ListCategoryViewModel = viewModel(backStackEntry)
+                val viewModel: ListCategoryViewModel = viewModel(backStackEntry, factory = ListCategoryViewModel.Factory)
                 ListCategoryScreen(
                     onBackClick = {navController.popBackStack()},
                     onAddCategoryClick = {
@@ -453,7 +453,7 @@ fun MainNavHost(
             }
             composable(
                 route = "EditCategory/{categoryId}",
-                arguments = listOf(navArgument("categoryId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("categoryId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),

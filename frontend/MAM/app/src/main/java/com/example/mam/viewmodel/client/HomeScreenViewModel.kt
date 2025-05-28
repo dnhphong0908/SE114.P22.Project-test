@@ -33,7 +33,7 @@ class HomeScreenViewModel(private val userPreferencesRepository: UserPreferences
     }
 
     fun getListProduct(idCategory: String): List<Product> {
-        var listProduct: MutableList<Product> = mutableListOf()
+        val listProduct: MutableList<Product> = mutableListOf()
         for(product in _listProduct.value.toList()){
             if (product.idCategory.equals(idCategory)) listProduct.add(product)
         }

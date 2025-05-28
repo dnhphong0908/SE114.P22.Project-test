@@ -80,8 +80,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.mam.R
+import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.entity.ProductCategory
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.outerShadow
@@ -102,15 +104,14 @@ fun ListCategoryScreen(
     viewModel: ListCategoryViewModel,
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
-
     onAddCategoryClick: () -> Unit = {},
-    onEditCategoryClick: (String) -> Unit = {},
-    mockData: List<ProductCategory> ?= null
+    onEditCategoryClick: (Long) -> Unit = {},
+    mockData: List<CategoryResponse> ?= null
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
     val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
-    val categoryList = viewModel.category.collectAsStateWithLifecycle().value
+    val categoryList = viewModel.categories.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
 
@@ -335,8 +336,8 @@ fun ListCategoryScreen(
                         }
                     }
                 }
-                if (mockData != null) {
-                    items(mockData) { category ->
+                categoryList.let {
+                    items(categoryList) { category ->
                         CategoryItem(
                             category = category,
                             onEditClick = onEditCategoryClick,
@@ -344,7 +345,7 @@ fun ListCategoryScreen(
                         )
                     }
                 }
-                else if (isLoading.value) {
+                if (isLoading.value) {
                     item {
                         CircularProgressIndicator(
                             color = OrangeDefault,
@@ -365,14 +366,6 @@ fun ListCategoryScreen(
                         )
                     }
                 }
-                else items(categoryList) { category ->
-                    CategoryItem(
-                        category = category,
-                        onEditClick = onEditCategoryClick,
-                        onDeleteClick = { }
-                    )
-                }
-
             }
         }
         IconButton(
@@ -394,9 +387,9 @@ fun ListCategoryScreen(
 
 @Composable
 fun CategoryItem(
-    category: ProductCategory,
-    onEditClick: (String) -> Unit,
-    onDeleteClick: (String) -> Unit,
+    category: CategoryResponse,
+    onEditClick: (Long) -> Unit,
+    onDeleteClick: (Long) -> Unit,
 ) {
     var expand by remember { mutableStateOf(false) }
     Surface(
@@ -417,7 +410,7 @@ fun CategoryItem(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 AsyncImage(
-                    model = category.iconUrl,
+                    model = category.imageUrl,
                     contentDescription = null,
                     modifier = Modifier.size(40.dp).padding(end = 8.dp)
                 )
@@ -520,43 +513,39 @@ fun CategoryItem(
     }
 }
 
-@Preview
-@Composable
-fun CategoryItemPreview() {
-    MaterialTheme {
-        CategoryItem(
-            category = ProductCategory(
-                id = "1",
-                name = "Hamburger",
-                description = "Món ăn nhanh",
-            ),
-            onEditClick = {},
-            onDeleteClick = {}
-        )
-    }
-}
-
-@Preview
-@Composable
-fun CategoryScreenPreview() {
-    ListCategoryScreen(
-        viewModel = ListCategoryViewModel(),
-        onBackClick = {},
-        onAddCategoryClick = {},
-        onEditCategoryClick = {},
-        mockData = listOf(
-            ProductCategory(
-                id = "1",
-                name = "Hamburger",
-            ),
-            ProductCategory(
-                id = "2",
-                name = "Pizza",
-            ),
-            ProductCategory(
-                id = "3",
-                name = "Chicken",
-            )
-        )
-    )
-}
+//@Preview
+//@Composable
+//fun CategoryItemPreview() {
+//    MaterialTheme {
+//        CategoryItem(
+//            category = ,
+//            onEditClick = {},
+//            onDeleteClick = {}
+//        )
+//    }
+//}
+//
+//@Preview
+//@Composable
+//fun CategoryScreenPreview() {
+//    ListCategoryScreen(
+//        viewModel = viewModel(factory = ListCategoryViewModel.Factory),
+//        onBackClick = {},
+//        onAddCategoryClick = {},
+//        onEditCategoryClick = {},
+//        mockData = listOf(
+//            ProductCategory(
+//                id = "1",
+//                name = "Hamburger",
+//            ),
+//            ProductCategory(
+//                id = "2",
+//                name = "Pizza",
+//            ),
+//            ProductCategory(
+//                id = "3",
+//                name = "Chicken",
+//            )
+//        )
+//    )
+//}
