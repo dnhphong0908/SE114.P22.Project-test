@@ -134,6 +134,11 @@ fun MainNavHost(
                             popUpTo("Authorization") { inclusive = true }
                         }
                     },
+                    onSignInManager = {
+                        navController.navigate(route = "Dashboard") {
+                            popUpTo("Authorization") { inclusive = true }
+                        }
+                    },
                     onSignUpClicked = {
                         navController.navigate(AuthenticationScreen.SignUp.name)
                     },
@@ -155,6 +160,11 @@ fun MainNavHost(
                     viewModel = signInVM,
                     onSignInClicked = {
                         navController.navigate(route = "Home") {
+                            popUpTo("Authorization") { inclusive = true }
+                        }
+                    },
+                    onSignInManager = {
+                        navController.navigate(route = "Dashboard") {
                             popUpTo("Authorization") { inclusive = true }
                         }
                     },

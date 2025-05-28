@@ -57,6 +57,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun SignInScreen(
     onSignInClicked: () -> Unit = {},
+    onSignInManager: () -> Unit = {},
     onForgotClicked: () -> Unit = {},
     onBackClicked: () -> Unit ={},
     viewModel: SignInViewModel = viewModel(),
@@ -164,7 +165,14 @@ fun SignInScreen(
                                 "Đăng nhập thành công",
                                 Toast.LENGTH_SHORT
                             ).show()
-                        } else {
+                        } else if (viewModel.SignIn() == 2) {
+                            onSignInManager()
+                            Toast.makeText(
+                                context,
+                                "Đăng nhập thành công",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }else {
                             Toast.makeText(
                                 context,
                                 "Đăng nhập thất bại",

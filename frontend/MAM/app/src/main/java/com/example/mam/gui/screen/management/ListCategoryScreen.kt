@@ -1,6 +1,8 @@
 package com.example.mam.gui.screen.management
 
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -56,6 +58,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +67,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -86,6 +90,7 @@ import com.example.mam.R
 import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.entity.ProductCategory
 import com.example.mam.gui.component.CircleIconButton
+import com.example.mam.gui.component.CustomDialog
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyDark
@@ -96,6 +101,8 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListCategoryViewModel
+import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -112,13 +119,19 @@ fun ListCategoryScreen(
     val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
     val categoryList = viewModel.categories.collectAsStateWithLifecycle().value
-    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
+    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
+    val isDeleting = viewModel.isDeleting.collectAsStateWithLifecycle().value
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
 
-    LaunchedEffect(Unit) {
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    LaunchedEffect(key1 = categoryList) {
         viewModel.loadSortingOptions()
         viewModel.loadData()
     }
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -338,14 +351,49 @@ fun ListCategoryScreen(
                 }
                 categoryList.let {
                     items(categoryList) { category ->
+                        var isShowDialog by remember { mutableStateOf(false) }
+                        if (isShowDialog){
+                            CustomDialog(
+                                title = "Xác nhận xóa",
+                                message = "Bạn có chắc muốn xóa Danh mục ${category.name}",
+                                onDismiss = {isShowDialog = false},
+                                onConfirm = {
+                                    scope.launch {
+                                        val result = viewModel.deleteCategory(category.id)
+                                        Toast.makeText(
+                                            context,
+                                            when(result){
+                                                -1 -> "Không thể kết nối Server"
+                                                1 -> "Xóa thành công"
+                                                else -> "Xóa thất bại"
+                                            },
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        isShowDialog = false
+                                    }
+                                }
+
+                            )
+                        }
+                        if (isDeleting)
+                            CircularProgressIndicator(
+                                color = OrangeDefault,
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .size(40.dp)
+                            )
+                        else
                         CategoryItem(
                             category = category,
                             onEditClick = onEditCategoryClick,
-                            onDeleteClick = { }
+                            onDeleteClick = {
+                                isShowDialog = true
+                                Log.d("Category", "${category.id}, ${category.createdAt}, ${category.updatedAt}")
+                            }
                         )
                     }
                 }
-                if (isLoading.value) {
+                if (isLoading) {
                     item {
                         CircularProgressIndicator(
                             color = OrangeDefault,
@@ -444,7 +492,9 @@ fun CategoryItem(
                 IconButton(onClick = { onEditClick(category.id) }) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
                 }
-                IconButton(onClick = { onDeleteClick(category.id) }) {
+                IconButton(onClick = {
+                    onDeleteClick(category.id)
+                }) {
                     Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
                 }
                 IconButton(onClick = { expand = !expand }) {
@@ -475,7 +525,7 @@ fun CategoryItem(
                         .fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                category.createAt.atZone(ZoneId.systemDefault())?.let {
+                Instant.parse(category.createdAt).atZone(ZoneId.systemDefault())?.let {
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -492,7 +542,7 @@ fun CategoryItem(
                     )
                 }
 
-                category.updateAt.atZone(ZoneId.systemDefault())?.let {
+                Instant.parse(category.updatedAt).atZone(ZoneId.systemDefault())?.let {
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {

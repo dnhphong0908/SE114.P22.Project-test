@@ -26,6 +26,9 @@ class ListCategoryViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
+    private val _isDeleting = MutableStateFlow(false)
+    val isDeleting: StateFlow<Boolean> = _isDeleting
+
     private val _categories = MutableStateFlow<MutableList<CategoryResponse>>(mutableListOf())
     val categories: StateFlow<List<CategoryResponse>> = _categories
 
@@ -78,40 +81,74 @@ class ListCategoryViewModel(
         }
     }
 
-    fun loadData() {
-        var isContinue: Boolean = true
-        while (isContinue) {
-            viewModelScope.launch {
-                try {
-                    _isLoading.value = true
-                    // Simulate network call
-                    Log.d("Category", "Bắt đầu lấy Danh mục")
-                    Log.d(
-                        "Category",
-                        "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
-                    )
-                    val response =
-                        BaseService(userPreferencesRepository).productCategoryService.getCategories(
-                            specification = ""
-                        )
-                    Log.d("Category", "Status code: ${response.code()}")
-                    if (response.isSuccessful) {
-                        val page = response.body()
-                        page?.let {
-                            _categories.value = (_categories.value + page.content).toMutableList()
-                            isContinue = (page.page != (page.totalPages - 1))
+    suspend fun loadData() {
+        _isLoading.value = true
+        var currentPage = 0
+        val allCategories = mutableListOf<CategoryResponse>()
+
+        try {
+            Log.d("Category", "Bắt đầu lấy Danh mục")
+            Log.d("Category", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
+
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .productCategoryService.getCategories(specification = "", page = currentPage)
+
+                Log.d("Category", "Status code: ${response.code()}")
+
+                if (response.isSuccessful) {
+                    val page = response.body()
+                    if (page != null){
+                        allCategories.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
                         }
-                    } else {
-                        Log.d("Category", "Lấy Danh mục thất bại: ${response.errorBody()}")
-                        isContinue = false
+                        currentPage++ // Move to the next page
+                        Log.d("Category", "Lấy trang ${page.page}")
+                        _categories.value = allCategories.toMutableList()
+
                     }
-                } catch (e: Exception) {
-                    Log.d("Category", "Không thể lấy Danh mục: ${e.message}")
-                } finally {
-                    _isLoading.value = false
-                    Log.d("Category", "Kết thúc lấy Danh mục")
+                    else break
+                } else {
+                    Log.d("Category", "Lấy Danh mục thất bại: ${response.errorBody()}")
+                    break // Stop loop on failure
                 }
             }
+
+            _categories.value = allCategories.toMutableList() // Update UI with all categories
+
+        } catch (e: Exception) {
+            Log.d("Category", "Không thể lấy Danh mục: ${e.message}")
+        } finally {
+            _isLoading.value = false
+            Log.d("Category", "Kết thúc lấy Danh mục")
+        }
+    }
+    suspend fun deleteCategory(id: Long): Int{
+
+        _isDeleting.value = true
+        try {
+            Log.d("Category", "Bắt đầu xóa Danh mục")
+            Log.d(
+                "Category",
+                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+            )
+            val response =
+                BaseService(userPreferencesRepository).productCategoryService.deleteCategory(id)
+            Log.d("Category", "Status code: ${response.code()}")
+            if (response.isSuccessful) {
+                _categories.value = _categories.value.filterNot { it.id == id }.toMutableList()
+                return 1
+            } else {
+                Log.d("Category", "Xóa Danh mục thất bại: ${response.errorBody()}")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.d("Category", "Không thể xóa Danh mục: ${e.message}")
+            return -1
+        } finally {
+            _isDeleting.value = false
+            Log.d("Category", "Kết thúc xóa Danh mục")
         }
     }
     companion object {

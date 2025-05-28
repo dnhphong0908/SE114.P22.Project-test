@@ -106,8 +106,8 @@ class ManageCategoryViewModel(
                     if (category != null) {
                         _categoryName.value = category.name
                         _categoryDescription.value = category.description
-                        _createdAt.value = category.createAt
-                        _updatedAt.value = category.updateAt
+                        _createdAt.value = Instant.parse(category.createdAt)
+                        _updatedAt.value = Instant.parse(category.updatedAt)
                         _categoryImage.value = category.imageUrl
                     }
 
