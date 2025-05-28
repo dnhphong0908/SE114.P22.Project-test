@@ -1,9 +1,9 @@
 package com.se114p12.backend.configs;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import com.se114p12.backend.services.authentication.InMemoryLoginAttemptService;
+import com.se114p12.backend.services.authentication.LoginAttemptService;
+import com.se114p12.backend.services.authentication.RedisLoginAttemptService;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.cache.CacheManager;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -26,12 +26,17 @@ public class RedisConfig {
     return template;
   }
 
-  // Fallback khi Redis không có: dùng in-memory cache
   @Bean
-  @ConditionalOnMissingBean(RedisConnectionFactory.class)
-  public CacheManager fallbackCacheManager() {
-    System.out.println(
-        "⚠️ Redis not available. Using ConcurrentMapCacheManager (in-memory cache).");
-    return new ConcurrentMapCacheManager("default");
+  @ConditionalOnProperty(name = "redis.enabled", havingValue = "true", matchIfMissing = true)
+  public LoginAttemptService redisLoginAttemptService(RedisTemplate<String, Object> template) {
+    return new RedisLoginAttemptService(template);
+  }
+
+  @Bean
+  @ConditionalOnProperty(name = "redis.enabled", havingValue = "false")
+  public LoginAttemptService inMemoryLoginAttemptService() {
+    System.out.println("Using in-memory login attempt service as Redis is not configured.");
+    System.out.println("Replace redis with ben-manes/caffeine-cache for better performance.");
+    return new InMemoryLoginAttemptService();
   }
 }
