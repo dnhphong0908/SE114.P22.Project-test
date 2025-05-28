@@ -51,4 +51,10 @@ public class OrderController {
         orderService.cancelOrder(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{orderId}/delivered")
+    public ResponseEntity<String> markOrderAsDelivered(@PathVariable Long orderId) {
+        orderService.markOrderAsDelivered(orderId);
+        return ResponseEntity.ok("Order marked as delivered.");
+    }
 }

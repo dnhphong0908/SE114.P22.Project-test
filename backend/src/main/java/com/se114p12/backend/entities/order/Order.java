@@ -6,6 +6,7 @@ import com.se114p12.backend.enums.OrderStatus;
 import com.se114p12.backend.entities.BaseEntity;
 import com.se114p12.backend.enums.PaymentMethod;
 import com.se114p12.backend.enums.PaymentStatus;
+import jakarta.annotation.Nullable;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -32,7 +33,7 @@ public class Order extends BaseEntity {
     @NotNull
     private Instant expectedDeliveryTime;
 
-    @NotNull
+    @Nullable
     private Instant actualDeliveryTime;
 
     @Enumerated(EnumType.STRING)
@@ -41,6 +42,7 @@ public class Order extends BaseEntity {
     @NotNull
     private PaymentMethod paymentMethod;
 
+    @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
 
     @ManyToOne
