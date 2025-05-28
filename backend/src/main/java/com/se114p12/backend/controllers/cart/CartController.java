@@ -2,7 +2,7 @@ package com.se114p12.backend.controllers.cart;
 
 import com.se114p12.backend.entities.cart.Cart;
 import com.se114p12.backend.repositories.cart.CartRepository;
-import com.se114p12.backend.services.cart.CartServiceImpl;
+import com.se114p12.backend.services.cart.CartService;
 import com.se114p12.backend.util.JwtUtil;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CartController {
     private final CartRepository cartRepository;
-    private final CartServiceImpl cartService;
+    private final CartService cartService;
     private final JwtUtil jwtUtil;
 
     //Use this method to test APIs
