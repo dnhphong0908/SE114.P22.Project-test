@@ -58,7 +58,7 @@ public class CategoryServiceImpl implements CategoryService {
 
         if (categoryRequestDTO.getImage() != null && !categoryRequestDTO.getImage().isEmpty()) {
             String filename = storageService.store(categoryRequestDTO.getImage(), "categories");
-            productCategory.setImageUrl("/images/categories/" + filename);
+            productCategory.setImageUrl("categories/" + filename);
         }
 
         productCategory = productCategoryRepository.save(productCategory);
@@ -77,17 +77,25 @@ public class CategoryServiceImpl implements CategoryService {
 
         if (categoryRequestDTO.getImage() != null && !categoryRequestDTO.getImage().isEmpty()) {
             String filename = storageService.store(categoryRequestDTO.getImage(), "categories");
-            existingProductCategory.setImageUrl("/images/categories/" + filename);
+            existingProductCategory.setImageUrl("categories/" + filename);
         }
 
         existingProductCategory = productCategoryRepository.save(existingProductCategory);
         return categoryMapper.entityToResponse(existingProductCategory);
     }
 
+    @Override
     public void delete(Long id) {
-        if (!productCategoryRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Product category not found");
+        ProductCategory category = productCategoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product category not found"));
+
+        // Nếu có hình thì xóa luôn file ảnh
+        if (category.getImageUrl() != null && !category.getImageUrl().isEmpty()) {
+            String filename = category.getImageUrl().substring(category.getImageUrl().lastIndexOf("/") + 1);
+            storageService.delete(filename, "categories");
         }
+
         productCategoryRepository.deleteById(id);
     }
+
 }
