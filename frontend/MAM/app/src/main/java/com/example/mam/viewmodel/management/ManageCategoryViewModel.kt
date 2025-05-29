@@ -13,6 +13,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.product.CategoryRequest
 import com.example.mam.services.BaseService
 import com.example.mam.viewmodel.ImageViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -89,65 +90,132 @@ class ManageCategoryViewModel(
         _categoryImageFile.value = imageViewModel.getMultipartFromUri(context, uri)
     }
 
-    fun loadData() {
-        viewModelScope.launch {
-            _isLoading.value = true
-            try {
-                Log.d("Category", "Bắt đầu lấy Danh mục")
-                Log.d(
-                    "Category",
-                    "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
-                )
-                val response =
-                    BaseService(userPreferencesRepository).productCategoryService.getCategory(_categoryID.value)
-                Log.d("Category", "Status code: ${response.code()}")
-                if (response.isSuccessful) {
-                    val category = response.body()
-                    if (category != null) {
-                        _categoryName.value = category.name
-                        _categoryDescription.value = category.description
-                        _createdAt.value = Instant.parse(category.createdAt)
-                        _updatedAt.value = Instant.parse(category.updatedAt)
-                        _categoryImage.value = category.imageUrl
-                    }
-
-                } else {
-                    Log.d("Category", "Lấy Danh mục thất bại: ${response.errorBody()}")
+    suspend fun loadData() {
+        _isLoading.value = true
+        try {
+            Log.d("Category", "Bắt đầu lấy Danh mục")
+            Log.d(
+                "Category",
+                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+            )
+            val response =
+                BaseService(userPreferencesRepository).productCategoryService.getCategory(_categoryID.value)
+            Log.d("Category", "Status code: ${response.code()}")
+            if (response.isSuccessful) {
+                val category = response.body()
+                if (category != null) {
+                    _categoryName.value = category.name
+                    _categoryDescription.value = category.description
+                    _createdAt.value = Instant.parse(category.createdAt)
+                    _updatedAt.value = Instant.parse(category.updatedAt)
+                    _categoryImage.value = category.imageUrl
                 }
-            } catch (e: Exception) {
-                Log.d("Category", "Không thể lấy Danh mục: ${e.message}")
-            } finally {
-                _isLoading.value = false
-                Log.d("Category", "Kết thúc lấy Danh mục")
+
+            } else {
+                Log.d("Category", "Lấy Danh mục thất bại: ${response.errorBody()}")
             }
+        } catch (e: Exception) {
+            Log.d("Category", "Không thể lấy Danh mục: ${e.message}")
+        } finally {
+            _isLoading.value = false
+            Log.d("Category", "Kết thúc lấy Danh mục")
+        }
+
+    }
+
+    suspend fun updateCategory(): Int {
+        _isLoading.value = true
+        try {
+            Log.d("Category", "Bắt đầu cap nhat Danh mục")
+            Log.d(
+                "Category",
+                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+            )
+            val updatedCategory = _categoryImageFile.value?.let {
+                CategoryRequest(
+                    _categoryName.value,
+                    _categoryDescription.value,
+                    it
+                )
+            }
+            val response =
+                updatedCategory?.let {
+                    BaseService(userPreferencesRepository).productCategoryService.updateCategory(_categoryID.value,
+                        it
+                    )
+                }
+            if (response == null){
+                return 0
+            }
+            Log.d("Category", "Status code: ${response.code()}")
+            if (response.isSuccessful) {
+                val category = response.body()
+                if (category != null) {
+                    _categoryName.value = category.name
+                    _categoryDescription.value = category.description
+                    _createdAt.value = Instant.parse(category.createdAt)
+                    _updatedAt.value = Instant.parse(category.updatedAt)
+                    _categoryImage.value = category.imageUrl
+                }
+                return 1
+            } else {
+                Log.d("Category", "Cap nhat Danh mục thất bại: ${response.errorBody()}")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.d("Category", "Không thể cap nhat Danh mục: ${e.message}")
+            return 0
+        } finally {
+            _isLoading.value = false
+            Log.d("Category", "Kết thúc cap nhat Danh mục")
         }
     }
 
-    fun updateCategory() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate network call
-                // Update category in repository or database
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
+    suspend fun createCategory(): Int {
+        _isLoading.value = true
+        try {
+            Log.d("Category", "Bắt đầu them Danh mục")
+            Log.d(
+                "Category",
+                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+            )
+            val updatedCategory = _categoryImageFile.value?.let {
+                CategoryRequest(
+                    _categoryName.value,
+                    _categoryDescription.value,
+                    it
+                )
             }
-        }
-    }
-
-    fun createCategory() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate network call
-                // Add category to repository or database
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
+            val response =
+                updatedCategory?.let {
+                    BaseService(userPreferencesRepository).productCategoryService.createCategory(
+                        it
+                    )
+                }
+            if (response == null){
+                return 0
             }
+            Log.d("Category", "Status code: ${response.code()}")
+            if (response.isSuccessful) {
+                val category = response.body()
+                if (category != null) {
+                    _categoryName.value = category.name
+                    _categoryDescription.value = category.description
+                    _createdAt.value = Instant.parse(category.createdAt)
+                    _updatedAt.value = Instant.parse(category.updatedAt)
+                    _categoryImage.value = category.imageUrl
+                }
+                return 1
+            } else {
+                Log.d("Category", "Them Danh mục thất bại: ${response.errorBody()}")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.d("Category", "Không thể them Danh mục: ${e.message}")
+            return 0
+        } finally {
+            _isLoading.value = false
+            Log.d("Category", "Kết thúc them Danh mục")
         }
     }
 
