@@ -156,7 +156,14 @@ fun StartScreen(
             UnderlinedClickableText(
                 text = "Nếu tiếp tục, bạn đã đồng ý với\n",
                 link = "Điều khoản và Chính sách",
-                onClick = onTermsClicked,
+                onClick =
+                {
+                    Toast.makeText(
+                        context,
+                        "Điều khoản và Chính sách",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                },
                 modifier = Modifier
             )
             Spacer(Modifier.height(10.dp))
