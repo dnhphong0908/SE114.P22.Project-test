@@ -42,6 +42,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                         "/api/v1/auth/send-otp",
                         "/api/v1/auth/verify-otp",
                         "/api/v1/auth/verify-email",
+                        "/api/v1/storage/**",
                         "/api/v1/metadata/**",
                             "/api/v1/storage/**",
                         "/v3/api-docs/**",
