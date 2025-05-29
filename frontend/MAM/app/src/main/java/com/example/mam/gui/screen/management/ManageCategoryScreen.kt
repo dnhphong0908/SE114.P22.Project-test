@@ -153,7 +153,7 @@ fun ManageCategoryScreen(
                         viewModel.updateCategory()
                         onBackClick()
                     } else if (isAdd) {
-                        viewModel.addCategory()
+                        viewModel.createCategory()
                         onBackClick()
                     }
 
@@ -259,7 +259,7 @@ fun ManageCategoryScreen(
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append("ID: ")
                             }
-                            append(categoryId)
+                            append(categoryId.toString())
                         },
                         textAlign = TextAlign.Start,
                         color = GreyDefault,
@@ -400,17 +400,4 @@ fun ManageCategoryScreen(
             }
         }
     }
-
-
-@Preview
-@Composable
-fun ManageCategoryScreenPreview() {
-    ManageCategoryScreen(
-        viewModel = ManageCategoryViewModel(savedStateHandle = SavedStateHandle(mapOf("categoryId" to "1"))),
-        onBackClick = {},
-        isPreview = true,
-        isEdit = true,
-        isAdd = false
-    )
-}
 

@@ -47,6 +47,7 @@ fun StartScreen(
     viewModel: StartViewModel = viewModel(),
     onSignInClicked: () -> Unit = {},
     onAutoSignIn: () -> Unit = {},
+    onSignInManager: () -> Unit = {},
     onSignUpClicked: () -> Unit = {},
     onGGSignUpClicked: () -> Unit = {},
     onTermsClicked: () -> Unit = {},
@@ -58,6 +59,14 @@ fun StartScreen(
     LaunchedEffect(Unit) {
         scope.launch {
             if (viewModel.getAccessToken() == 1) {
+                onSignInManager()
+                Toast.makeText(
+                    context,
+                    "Đăng nhập thành công",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            else if (viewModel.getAccessToken() == 2) {
                 onAutoSignIn()
                 Toast.makeText(
                     context,

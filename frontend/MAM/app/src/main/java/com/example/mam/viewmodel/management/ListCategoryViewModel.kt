@@ -1,25 +1,48 @@
 package com.example.mam.viewmodel.management
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
 import com.example.mam.R
+import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.entity.ProductCategory
+import com.example.mam.services.BaseService
+import com.example.mam.viewmodel.authentication.SignInViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class ListCategoryViewModel(): ViewModel() {
+class ListCategoryViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository
+): ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _category = MutableStateFlow<MutableList<ProductCategory>>(mutableListOf())
-    val category: StateFlow<List<ProductCategory>> = _category
+    private val _isDeleting = MutableStateFlow(false)
+    val isDeleting: StateFlow<Boolean> = _isDeleting
 
-    private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf())
+    private val _categories = MutableStateFlow<MutableList<CategoryResponse>>(mutableListOf())
+    val categories: StateFlow<List<CategoryResponse>> = _categories
+
+    private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf(
+        "Tất cả",
+        "ID",
+        "Tên",
+    ))
     val sortingOptions: StateFlow<List<String>> = _sortingOptions
 
-    private val _selectedSortingOption = MutableStateFlow<String>("")
+    private val _selectedSortingOption = MutableStateFlow<String>(_sortingOptions.value[0])
     val selectedSortingOption: StateFlow<String> = _selectedSortingOption
+
+    private val _sortingOption = MutableStateFlow("")
 
     private val _searchQuery = MutableStateFlow<String>("")
     val searchQuery: StateFlow<String> = _searchQuery
@@ -39,55 +62,184 @@ class ListCategoryViewModel(): ViewModel() {
         _searchQuery.value = query
     }
 
-    fun searchCategory() {
+    suspend fun searchCategory() {
         //search and save history
-        _category.value = _category.value.filter {
-            it.name.contains(searchQuery.value, ignoreCase = true)
-        }.toMutableList()
-        setSearchHistory(searchQuery.value)
-    }
+        _isLoading.value = true
+        var currentPage = 0
+        val allCategories = mutableListOf<CategoryResponse>()
 
-    fun setSelectedSortingOption(option: String) {
-        _selectedSortingOption.value = option
-    }
+        try {
+            Log.d("Category", "Bắt đầu tim kiem Danh mục")
+            Log.d("Category", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
 
-    fun loadSortingOptions() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate network call
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .productCategoryService.getCategories(filter = "name ~~ '*${_searchQuery.value}*' or description ~~ '*${_searchQuery.value}*'", page = currentPage)
+
+                Log.d("Category", "Status code: ${response.code()}")
+
+                if (response.isSuccessful) {
+                    setSearchHistory(_searchQuery.value)
+                    val page = response.body()
+                    if (page != null){
+                        allCategories.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        Log.d("Category", "Lấy trang ${page.page}")
+                        _categories.value = allCategories.toMutableList()
+
+                    }
+                    else break
+                } else {
+                    Log.d("Category", "Tim Danh mục thất bại: ${response.errorBody()}")
+                    break // Stop loop on failure
+                }
             }
+
+            _categories.value = allCategories.toMutableList() // Update UI with all categories
+
+        } catch (e: Exception) {
+            Log.d("Category", "Không thể tim kiem Danh mục: ${e.message}")
+        } finally {
+            _isLoading.value = false
+            Log.d("Category", "Kết thúc tim kiem Danh mục")
         }
     }
 
-    fun loadData() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate network call
-                _category.value = mutableListOf(
-                    ProductCategory(
-                        id = "1",
-                        name = "Hamburger",
-                    ),
-                    ProductCategory(
-                        id = "2",
-                        name = "Pizza",
-                    ),
-                    ProductCategory(
-                        id = "3",
-                        name = "Chicken",
-                    )
-                )
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
+    suspend fun sortCategory(){
+        _isLoading.value = true
+        var currentPage = 0
+        val allCategories = mutableListOf<CategoryResponse>()
 
+        try {
+            Log.d("Category", "Bắt đầu sort Danh mục")
+            Log.d("Category", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
+
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .productCategoryService.getCategories(
+                        filter = "",
+                        page = currentPage,
+                        sort = listOf(_sortingOption.value))
+
+                Log.d("Category", "Status code: ${response.code()}")
+
+                if (response.isSuccessful) {
+                    val page = response.body()
+                    if (page != null){
+                        allCategories.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        Log.d("Category", "Lấy trang ${page.page}")
+                        _categories.value = allCategories.toMutableList()
+
+                    }
+                    else break
+                } else {
+                    Log.d("Category", "Sort Danh mục thất bại: ${response.errorBody()}")
+                    break // Stop loop on failure
+                }
+            }
+
+            _categories.value = allCategories.toMutableList() // Update UI with all categories
+
+        } catch (e: Exception) {
+            Log.d("Category", "Không thể tim kiem Danh mục: ${e.message}")
+        } finally {
+            _isLoading.value = false
+            Log.d("Category", "Kết thúc tim kiem Danh mục")
+        }
+    }
+
+    fun setSelectedSortingOption(option: String, asc: Boolean) {
+        _selectedSortingOption.value = option
+        _sortingOption.value = when(option){
+            "ID" -> "id" + if(asc) ",asc" else ",desc"
+            "Tên" -> "name"  + if(asc) ",asc" else ",desc"
+            else -> ""
+        }
+    }
+
+    suspend fun loadData() {
+        _isLoading.value = true
+        var currentPage = 0
+        val allCategories = mutableListOf<CategoryResponse>()
+
+        try {
+            Log.d("Category", "Bắt đầu lấy Danh mục")
+            Log.d("Category", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
+
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .productCategoryService.getCategories(filter = "", page = currentPage)
+
+                Log.d("Category", "Status code: ${response.code()}")
+
+                if (response.isSuccessful) {
+                    val page = response.body()
+                    if (page != null){
+                        allCategories.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        Log.d("Category", "Lấy trang ${page.page}")
+                        _categories.value = allCategories.toMutableList()
+
+                    }
+                    else break
+                } else {
+                    Log.d("Category", "Lấy Danh mục thất bại: ${response.errorBody()}")
+                    break // Stop loop on failure
+                }
+            }
+
+            _categories.value = allCategories.toMutableList() // Update UI with all categories
+
+        } catch (e: Exception) {
+            Log.d("Category", "Không thể lấy Danh mục: ${e.message}")
+        } finally {
+            _isLoading.value = false
+            Log.d("Category", "Kết thúc lấy Danh mục")
+        }
+    }
+
+    suspend fun deleteCategory(id: Long): Int{
+
+        _isDeleting.value = true
+        try {
+            Log.d("Category", "Bắt đầu xóa Danh mục")
+            Log.d(
+                "Category",
+                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+            )
+            val response =
+                BaseService(userPreferencesRepository).productCategoryService.deleteCategory(id)
+            Log.d("Category", "Status code: ${response.code()}")
+            if (response.isSuccessful) {
+                _categories.value = _categories.value.filterNot { it.id == id }.toMutableList()
+                return 1
+            } else {
+                Log.d("Category", "Xóa Danh mục thất bại: ${response.errorBody()}")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.d("Category", "Không thể xóa Danh mục: ${e.message}")
+            return -1
+        } finally {
+            _isDeleting.value = false
+            Log.d("Category", "Kết thúc xóa Danh mục")
+        }
+    }
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                ListCategoryViewModel(application.userPreferencesRepository)
             }
         }
     }

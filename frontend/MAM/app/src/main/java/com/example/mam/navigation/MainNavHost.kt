@@ -134,6 +134,11 @@ fun MainNavHost(
                             popUpTo("Authorization") { inclusive = true }
                         }
                     },
+                    onSignInManager = {
+                        navController.navigate(route = "Dashboard") {
+                            popUpTo("Authorization") { inclusive = true }
+                        }
+                    },
                     onSignUpClicked = {
                         navController.navigate(AuthenticationScreen.SignUp.name)
                     },
@@ -155,6 +160,11 @@ fun MainNavHost(
                     viewModel = signInVM,
                     onSignInClicked = {
                         navController.navigate(route = "Home") {
+                            popUpTo("Authorization") { inclusive = true }
+                        }
+                    },
+                    onSignInManager = {
+                        navController.navigate(route = "Dashboard") {
                             popUpTo("Authorization") { inclusive = true }
                         }
                     },
@@ -418,7 +428,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ListCategoryViewModel = viewModel(backStackEntry)
+                val viewModel: ListCategoryViewModel = viewModel(backStackEntry, factory = ListCategoryViewModel.Factory)
                 ListCategoryScreen(
                     onBackClick = {navController.popBackStack()},
                     onAddCategoryClick = {
@@ -453,7 +463,7 @@ fun MainNavHost(
             }
             composable(
                 route = "EditCategory/{categoryId}",
-                arguments = listOf(navArgument("categoryId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("categoryId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
