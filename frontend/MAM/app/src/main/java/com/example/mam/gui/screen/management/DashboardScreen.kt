@@ -189,8 +189,7 @@ fun DashboardScreen(
                 ) {
                     Card(
                         modifier = Modifier
-                            .padding(16.dp)
-                            .weight(1f),
+                            .padding(16.dp),
                         colors = CardDefaults.cardColors(containerColor = WhiteDefault),
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 4.dp,
@@ -218,8 +217,7 @@ fun DashboardScreen(
                     }
                     Card(
                         modifier = Modifier
-                            .padding(16.dp)
-                            .weight(1f),
+                            .padding(16.dp),
                         colors = CardDefaults.cardColors(containerColor = WhiteDefault),
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 4.dp,
@@ -231,6 +229,7 @@ fun DashboardScreen(
                             text = "Đơn chưa tiếp nhận",
                             color = BrownDefault,
                             fontSize = 16.sp,
+                            maxLines = 1,
                             textAlign = TextAlign.Start,
                             modifier = Modifier
                                 .padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 5.dp)
@@ -286,7 +285,7 @@ fun DashboardScreen(
                                 ),
                                 shape = RoundedCornerShape(20.dp),
                                 modifier = Modifier
-                                    .size(100.dp)
+                                    .size(90.dp)
                             ) {
                                 Column(
                                     verticalArrangement = Arrangement.Center,
@@ -300,12 +299,12 @@ fun DashboardScreen(
                                         contentDescription = "Item ${it.label}",
                                         //tint = WhiteDefault,
                                         modifier = Modifier
-                                            .size(60.dp)
+                                            .size(50.dp)
                                             .padding(8.dp)
                                     )
                                     Text(
                                         text = it.label,
-                                        fontSize = 16.sp,
+                                        fontSize = 14.sp,
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier
                                             .padding(
