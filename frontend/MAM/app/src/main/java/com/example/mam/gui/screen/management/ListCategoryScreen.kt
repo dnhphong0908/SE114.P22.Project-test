@@ -27,7 +27,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -126,8 +128,7 @@ fun ListCategoryScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
-    LaunchedEffect(key1 = categoryList) {
-        viewModel.loadSortingOptions()
+    LaunchedEffect(key1 = isDeleting) {
         viewModel.loadData()
     }
 
@@ -265,7 +266,7 @@ fun ListCategoryScreen(
                                             disabledContainerColor = WhiteDefault
                                         ),
                                         onClick = {
-                                            viewModel.searchCategory()
+                                            scope.launch { viewModel.searchCategory() }
                                             focusManager.clearFocus()
                                         }) {
                                         Icon(Icons.Default.Search, contentDescription = "Search")
@@ -308,6 +309,7 @@ fun ListCategoryScreen(
                     Box(Modifier
                         .fillMaxWidth(0.9f)
                         .padding(start = 8.dp)) {
+                        var asc by remember {mutableStateOf(true)}
                         var sortExpanded by remember { mutableStateOf(false) }
                         FilterChip(
                             selected = sortExpanded,
@@ -338,11 +340,16 @@ fun ListCategoryScreen(
                             modifier = Modifier
                         ) {
                             sortOptions.forEach { option ->
+
                                 DropdownMenuItem(
-                                    text = { Text(option, color = BrownDefault) },
+                                    text = {
+                                         
                                     onClick = {
-                                        viewModel.setSelectedSortingOption(option)
                                         sortExpanded = false
+                                        scope.launch {
+                                            viewModel.setSelectedSortingOption(option, asc)
+                                            viewModel.sortCategory()
+                                        }
                                     }
                                 )
                             }
@@ -388,7 +395,7 @@ fun ListCategoryScreen(
                             onEditClick = onEditCategoryClick,
                             onDeleteClick = {
                                 isShowDialog = true
-                                Log.d("Category", "${category.id}, ${category.createdAt}, ${category.updatedAt}")
+                                Log.d("Category", "${category.id}, ${category.createdAt}, ${category.updatedAt}, ${category.imageUrl}")
                             }
                         )
                     }
