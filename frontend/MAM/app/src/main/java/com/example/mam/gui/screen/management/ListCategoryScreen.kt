@@ -118,7 +118,8 @@ fun ListCategoryScreen(
     mockData: List<CategoryResponse> ?= null
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
-    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
+    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle().value
+    val asc = viewModel.asc.collectAsStateWithLifecycle().value
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
     val categoryList = viewModel.categories.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
@@ -306,53 +307,73 @@ fun ListCategoryScreen(
                     }
                 }
                 item {
-                    Box(Modifier
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
                         .fillMaxWidth(0.9f)
                         .padding(start = 8.dp)) {
-                        var asc by remember {mutableStateOf(true)}
-                        var sortExpanded by remember { mutableStateOf(false) }
-                        FilterChip(
-                            selected = sortExpanded,
-                            onClick = { sortExpanded = !sortExpanded },
-                            label = { selectedSortingOption.value },
-                            leadingIcon = {
-                                Icon(Icons.Default.Sort, contentDescription = "Sort")
-                            },
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
+                        Box() {
+                            var sortExpanded by remember { mutableStateOf(false) }
+                            FilterChip(
+                                selected = sortExpanded,
+                                onClick = { sortExpanded = !sortExpanded },
+                                label = { Text(selectedSortingOption) },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Sort, contentDescription = "Sort")
+                                },
+                                trailingIcon = {
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = WhiteDefault,
+                                    labelColor = BrownDefault,
+                                    iconColor = BrownDefault,
+                                    selectedContainerColor = OrangeDefault,
+                                    selectedLabelColor = WhiteDefault,
+                                    selectedLeadingIconColor = WhiteDefault,
+                                    selectedTrailingIconColor = WhiteDefault
+                                ),
+                                modifier = Modifier
+                            )
+                            DropdownMenu(
+                                expanded = sortExpanded,
+                                onDismissRequest = { sortExpanded = false },
                                 containerColor = WhiteDefault,
-                                labelColor = BrownDefault,
-                                iconColor = BrownDefault,
-                                selectedContainerColor = OrangeDefault,
-                                selectedLabelColor = WhiteDefault,
-                                selectedLeadingIconColor = WhiteDefault,
-                                selectedTrailingIconColor = WhiteDefault
-                            ),
-                            modifier = Modifier
-                        )
-
-                        DropdownMenu(
-                            expanded = sortExpanded,
-                            onDismissRequest = { sortExpanded = false },
-                            containerColor = WhiteDefault,
-                            modifier = Modifier
-                        ) {
-                            sortOptions.forEach { option ->
-
-                                DropdownMenuItem(
-                                    text = {
-                                         
-                                    onClick = {
-                                        sortExpanded = false
-                                        scope.launch {
-                                            viewModel.setSelectedSortingOption(option, asc)
-                                            viewModel.sortCategory()
+                                modifier = Modifier
+                            ) {
+                                sortOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(option, color = BrownDefault)
+                                        },
+                                        onClick = {
+                                            sortExpanded = false
+                                            scope.launch {
+                                                viewModel.setSelectedSortingOption(option)
+                                                viewModel.sortCategory()
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
                             }
+                        }
+                        IconButton(
+                            colors = IconButtonColors(
+                                containerColor = WhiteDefault,
+                                contentColor = BrownDefault,
+                                disabledContentColor = BrownDefault,
+                                disabledContainerColor = WhiteDefault
+                            ),
+                            onClick = {
+                                scope.launch {
+                                    viewModel.setASC()
+                                    viewModel.sortCategory()
+                                }
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(if(asc)Icons.Default.ArrowUpward else Icons.Default.ArrowDownward, contentDescription = "ASC/DESC")
                         }
                     }
                 }

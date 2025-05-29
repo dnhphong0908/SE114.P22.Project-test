@@ -16,6 +16,7 @@ import com.example.mam.services.BaseService
 import com.example.mam.viewmodel.authentication.SignInViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -34,7 +35,6 @@ class ListCategoryViewModel(
 
     private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf(
         "Tất cả",
-        "ID",
         "Tên",
     ))
     val sortingOptions: StateFlow<List<String>> = _sortingOptions
@@ -42,7 +42,8 @@ class ListCategoryViewModel(
     private val _selectedSortingOption = MutableStateFlow<String>(_sortingOptions.value[0])
     val selectedSortingOption: StateFlow<String> = _selectedSortingOption
 
-    private val _sortingOption = MutableStateFlow("")
+    private val _asc = MutableStateFlow(true)
+    val asc = _asc.asStateFlow()
 
     private val _searchQuery = MutableStateFlow<String>("")
     val searchQuery: StateFlow<String> = _searchQuery
@@ -112,7 +113,10 @@ class ListCategoryViewModel(
         _isLoading.value = true
         var currentPage = 0
         val allCategories = mutableListOf<CategoryResponse>()
-
+        val sortOption = when(_selectedSortingOption.value){
+            "Tên" -> "name"
+            else -> "id"
+        }
         try {
             Log.d("Category", "Bắt đầu sort Danh mục")
             Log.d("Category", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
@@ -122,7 +126,7 @@ class ListCategoryViewModel(
                     .productCategoryService.getCategories(
                         filter = "",
                         page = currentPage,
-                        sort = listOf(_sortingOption.value))
+                        sort = listOf("${sortOption}," + if (_asc.value) "asc" else "desc"))
 
                 Log.d("Category", "Status code: ${response.code()}")
 
@@ -155,13 +159,11 @@ class ListCategoryViewModel(
         }
     }
 
-    fun setSelectedSortingOption(option: String, asc: Boolean) {
+    fun setSelectedSortingOption(option: String) {
         _selectedSortingOption.value = option
-        _sortingOption.value = when(option){
-            "ID" -> "id" + if(asc) ",asc" else ",desc"
-            "Tên" -> "name"  + if(asc) ",asc" else ",desc"
-            else -> ""
-        }
+    }
+    fun setASC(){
+        _asc.value = !_asc.value
     }
 
     suspend fun loadData() {
