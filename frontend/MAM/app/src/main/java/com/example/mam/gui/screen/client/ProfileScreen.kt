@@ -38,9 +38,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.example.mam.data.Constant.BASE_AVT
 import com.example.mam.entity.User
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.NormalButtonWithIcon
@@ -71,49 +74,36 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.client.ProfileViewModel
+import kotlinx.coroutines.launch
 
 @SuppressLint("ContextCastToActivity")
 @Composable
 fun ProfileScreen(
     onChangePasswordClicked: () -> Unit = {},
-    onEditInfoClicked: () -> Unit = {},
     onLogoutClicked: () -> Unit = {},
     onBackClicked: () -> Unit = {},
-    onSettingClicked: () -> Unit = {},
-    onTermsClicked: () -> Unit = {},
     onHistoryClicked: () -> Unit = {},
-    viewModel: ProfileViewModel? = null
+    viewModel: ProfileViewModel
     ) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val isPreview = LocalInspectionMode.current
     val activity = context as? Activity
-
-    val userState = viewModel?.user?.collectAsState()
-    val previewUser = remember {
-        mutableStateOf(
-            User(
-                id = "1",
-                fullName = "Nguyễn Văn A",
-                phoneNumber = "0123456789",
-                email = "a@example.com",
-                username = "nguyenvana",
-                password = "",
-                avatarUrl = "",
-                address = "245 Nguyễn Sinh Cung, Vỹ Dạ, Phú Nhuận, Thành phố Huế"
-            )
-        )
-    }
-    val user = userState?.value ?: if (isPreview) previewUser.value else  previewUser.value
-    val isEditingState = viewModel?.isEditing?.collectAsStateWithLifecycle()
-    val previewIsEditing = remember { mutableStateOf(false) }
-    val isEditing = isEditingState?.value ?: if (isPreview) previewIsEditing.value else false
+    val user = viewModel.user.collectAsStateWithLifecycle().value
+    val isEditingState = viewModel.isEditing.collectAsStateWithLifecycle()
+    val isEditing = isEditingState.value
     val imagePicker = if (!isPreview) {
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                viewModel?.uploadAvatar(context, it)
+                viewModel.setUserAvatar(uri.toString())
+                viewModel.setUserAvatarFile(context,uri)
             }
         }
     } else null
+
+    LaunchedEffect(key1 = isEditing) {
+        viewModel.fetchUser()
+    }
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -174,7 +164,7 @@ fun ProfileScreen(
                         .align(Alignment.CenterHorizontally)
                 ) {
                     AsyncImage(
-                        model = user?.avatarUrl?.takeIf { it.isNotEmpty() },
+                        model = user.avatarUrl ?: BASE_AVT,
                         contentDescription = "Avatar",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -195,6 +185,7 @@ fun ProfileScreen(
                                 imagePicker?.launch("image/*")
                             }
                         },
+                        enabled = isEditing,
                         modifier = Modifier
                             .size(30.dp)
                             .align(Alignment.BottomEnd)
@@ -216,73 +207,60 @@ fun ProfileScreen(
                     }
                 }
                 ProfileInput(
-                            label = "Họ tên",
-                            value = user.fullName,
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Next
-                            ),
-                            onValueChange = {
-                                if (viewModel != null) viewModel.setFullName(it)
-                                else previewUser.value = previewUser.value.copy(fullName = it)
-                            },
-                            enabled = isEditing,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        ProfileInput(
-                            label = "Số điện thoại",
-                            value = user.phoneNumber,
-                            backgroundColor = WhiteDefault,
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Next
-                            ),
-                            onValueChange = {
-                                if (isPreview) {
-                                    previewUser.value = previewUser.value.copy(phoneNumber = it)
-                                } else {
-                                    viewModel?.setFullName(it)
-                                }
-                            },
-                            enabled = isEditing,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        ProfileInput(
-                            label = "Email",
-                            value = user.email,
-                            backgroundColor = WhiteDefault,
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Next
-                            ),
-                            onValueChange = {
-                                if (isPreview) {
-                                    previewUser.value = previewUser.value.copy(email = it)
-                                } else {
-                                    viewModel?.setFullName(it)
-                                }
-                            },
-                            enabled = isEditing,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        ProfileInput(
-                            label = "Địa chỉ",
-                            value = user.address,
-                            backgroundColor = WhiteDefault,
-                            keyboardOptions = KeyboardOptions.Default.copy(
-                                keyboardType = KeyboardType.Text,
-                                imeAction = ImeAction.Next
-                            ),
-                            onValueChange = {
-                                if (isPreview) {
-                                    previewUser.value = previewUser.value.copy(address = it)
-                                } else {
-                                    viewModel?.setFullName(it)
-                                }
-                            },
-                            enabled = isEditing,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                    label = "Tên người dùng",
+                    value = user.username,
+                    backgroundColor = WhiteDefault,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
+                    ),
+                    onValueChange = {
+                        viewModel.setUserName(it)
+                    },
+                    enabled = isEditing,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                ProfileInput(
+                    label = "Họ tên",
+                    value = user.fullname,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
+                    ),
+                    onValueChange = {viewModel.setFullName(it)
+                    },
+                    enabled = isEditing,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                ProfileInput(
+                    label = "Số điện thoại",
+                    value = user.phone,
+                    backgroundColor = WhiteDefault,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
+                    ),
+                    onValueChange = {
+                            viewModel.setPhoneNumber(it)
+                    },
+                    enabled = isEditing,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                ProfileInput(
+                    label = "Email",
+                    value = user.email,
+                    backgroundColor = WhiteDefault,
+                    keyboardOptions = KeyboardOptions.Default.copy(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
+                    ),
+                    onValueChange = {
+                            viewModel.setEmail(it)
+                    },
+                    enabled = isEditing,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
                 NormalButtonWithIcon(
                     text = "Lịch sử đơn hàng",
                     onClick = onHistoryClicked,
@@ -306,8 +284,20 @@ fun ProfileScreen(
                     )
                     OuterShadowFilledButton(
                         onClick = {
-                            if (viewModel != null) viewModel.setEditing(!isEditing)
-                            else previewIsEditing.value = !previewIsEditing.value
+                            if(isEditing){
+                                scope.launch {
+                                    val result = viewModel.updateUser()
+                                    Toast.makeText(
+                                        context,
+                                        when(result){
+                                            1 -> "Chỉnh sửa thành công"
+                                            else -> "Chỉnh sửa thất bại"
+                                        },
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                            viewModel.setEditing(!isEditing)
                         },
                         text = if (isEditing) "Lưu" else "Chỉnh sửa",
                         modifier = Modifier
@@ -317,7 +307,24 @@ fun ProfileScreen(
                 }
                 OuterShadowFilledButton(
                     text = "Đăng xuất",
-                    onClick = onLogoutClicked,
+                    onClick = {
+                        scope.launch {
+                            val result = viewModel.logOut()
+                            if (result == 1) {
+                                Toast.makeText(
+                                    context,
+                                    "Đăng xuất thành công",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                onLogoutClicked()
+                            }
+                            else Toast.makeText(
+                                context,
+                                "Đăng xuất thất bại",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally)
                         .width(182.dp)
@@ -340,10 +347,4 @@ fun ProfileScreen(
             }
         }
     }
-}
-@Preview(showBackground = true)
-@Composable
-fun ProfileScreenPreview() {
-    val viewModel = ProfileViewModel()
-    ProfileScreen(viewModel = viewModel)
 }

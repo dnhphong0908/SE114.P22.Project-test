@@ -104,6 +104,7 @@ fun ManageCategoryScreen(
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
                 viewModel.setCategoryImage(it.toString())
+                viewModel.setCategoryImageFile(context,uri)
             }
         }
     } else null

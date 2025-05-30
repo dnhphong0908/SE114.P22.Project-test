@@ -141,10 +141,10 @@ class DashboardViewModel(
 
     suspend fun logOut(): Int{
         try {
-            val respone = BaseService(userPreferencesRepository).authPrivateService.logOut(
+            val response = BaseService(userPreferencesRepository).authPrivateService.logOut(
                 RefreshTokenRequest(userPreferencesRepository.refreshToken.map { it }.first())
             )
-            if (respone.isSuccessful){
+            if (response.isSuccessful){
                 userPreferencesRepository.saveAccessToken("","")
                 userPreferencesRepository.saveAddress("")
                 return 1

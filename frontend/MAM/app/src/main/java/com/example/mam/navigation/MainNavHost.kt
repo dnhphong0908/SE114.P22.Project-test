@@ -270,9 +270,13 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ProfileViewModel = viewModel(backStackEntry)
+                val viewModel: ProfileViewModel = viewModel(backStackEntry, factory = ProfileViewModel.Factory)
                 ProfileScreen(
                     onBackClicked = {navController.popBackStack()},
+                    onLogoutClicked = {
+                        navController.navigate(route = AuthenticationScreen.Start.name) {
+                        popUpTo("Profile") { inclusive = true }
+                    }},
                     onChangePasswordClicked = { },
                     viewModel = viewModel
                 )

@@ -225,7 +225,7 @@ fun SignUpScreen(
                                 else {
                                     Toast.makeText(
                                         context,
-                                        "Đăng ký thành công",
+                                        "Đăng ký thất bại",
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }

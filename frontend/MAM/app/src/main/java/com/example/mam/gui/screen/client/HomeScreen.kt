@@ -309,9 +309,7 @@ fun HomeScreen(
                     backgroundColor = OrangeLight,
                     foregroundColor = OrangeDefault,
                     icon = Icons.Filled.Person,
-                    onClick = { scope.launch {
-                        viewmodel.loadUser()
-                    } },
+                    onClick = onProfileClicked,
                     modifier = Modifier
                 )
             }
