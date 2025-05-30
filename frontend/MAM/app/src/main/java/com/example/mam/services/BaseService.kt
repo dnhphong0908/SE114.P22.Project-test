@@ -19,4 +19,8 @@ class BaseService(userPreferencesRepository: UserPreferencesRepository) {
     val productCategoryService: ProductCategoryService by lazy {
         privateRetrofit.create(ProductCategoryService::class.java)
     }
+
+    val productService: ProductService by lazy {
+        privateRetrofit.create(ProductService::class.java)
+    }
 }

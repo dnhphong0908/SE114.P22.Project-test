@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -285,7 +286,9 @@ fun ProfileScreen(
                 NormalButtonWithIcon(
                     text = "Lịch sử đơn hàng",
                     onClick = onHistoryClicked,
-                    modifier = Modifier.fillMaxWidth().height(39.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(39.dp),
                     icon = Icons.Outlined.ArrowForwardIos,
                     color = OrangeLight,
                     textColor = BrownDefault,
@@ -322,7 +325,13 @@ fun ProfileScreen(
                 )
                 UnderlinedClickableText(
                     link = "Chính sách và điều khoản",
-                    onClick = onTermsClicked,
+                    onClick = {
+                        Toast.makeText(
+                            context,
+                            "Điều khoản và chính sách",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    },
                     modifier = Modifier
                         .align(Alignment.CenterHorizontally),
                     color = BrownDefault
