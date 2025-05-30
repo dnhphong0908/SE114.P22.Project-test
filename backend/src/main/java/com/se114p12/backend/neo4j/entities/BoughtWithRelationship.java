@@ -1,4 +1,4 @@
-package com.se114p12.backend.neo4j;
+package com.se114p12.backend.neo4j.entities;
 
 import lombok.Getter;
 import lombok.Setter;

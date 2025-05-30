@@ -1,4 +1,5 @@
-package com.se114p12.backend.neo4j;
+package com.se114p12.backend.neo4j.entities;
+
 
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -8,7 +9,7 @@ import org.springframework.data.neo4j.core.schema.Node;
 
 @Getter
 @Setter
-@Node("User")
-public class User {
+@Node("Category")
+public class Category {
   @Id @GeneratedValue private Long id;
 }
