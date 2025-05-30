@@ -1,7 +1,7 @@
 package com.se114p12.backend.services.user;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.se114p12.backend.dtos.authentication.PasswordChangeDTO;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.authentication.RegisterRequestDTO;
 import com.se114p12.backend.dtos.user.UserRequestDTO;
 import com.se114p12.backend.dtos.user.UserResponseDTO;
@@ -11,7 +11,6 @@ import com.se114p12.backend.entities.cart.Cart;
 import com.se114p12.backend.entities.user.User;
 import com.se114p12.backend.enums.LoginProvider;
 import com.se114p12.backend.enums.UserStatus;
-import com.se114p12.backend.enums.VerificationType;
 import com.se114p12.backend.exceptions.BadRequestException;
 import com.se114p12.backend.exceptions.DataConflictException;
 import com.se114p12.backend.exceptions.ResourceNotFoundException;
@@ -22,6 +21,7 @@ import com.se114p12.backend.repositories.cart.CartRepository;
 import com.se114p12.backend.services.authentication.VerificationService;
 import com.se114p12.backend.services.general.MailService;
 import com.se114p12.backend.services.general.SMSService;
+import com.se114p12.backend.services.general.StorageService;
 import com.se114p12.backend.util.JwtUtil;
 import com.se114p12.backend.vo.PageVO;
 import java.util.List;
@@ -46,6 +46,7 @@ public class UserServiceImpl implements UserService {
   private final VerificationService verificationService;
   private final MailService mailService;
   private final SMSService smsService;
+  private final StorageService storageService;
 
   @Override
   public PageVO<UserResponseDTO> getAllUsers(Specification<User> specification, Pageable pageable) {
@@ -118,16 +119,21 @@ public class UserServiceImpl implements UserService {
     User user = findUserById(id);
     validateUserUniqueness(userRequestDTO, user);
     userMapper.partialUpdate(userRequestDTO, user);
+    if (userRequestDTO.getAvatar() != null && !userRequestDTO.getAvatar().isEmpty()) {
+      String fileUri = storageService.store(userRequestDTO.getAvatar(), AppConstant.USER_FOLDER);
+      user.setAvatarUrl(fileUri);
+    }
     user = userRepository.save(user);
     return userMapper.entityToResponse(user);
   }
 
   @Override
   public void delete(Long id) {
-    if (!userRepository.existsById(id)) {
-      throw new ResourceNotFoundException("User not found");
+    User user = findUserById(id);
+    userRepository.delete(user);
+    if (user.getAvatarUrl() != null && user.getAvatarUrl() != "") {
+      storageService.delete(user.getAvatarUrl());
     }
-    userRepository.deleteById(id);
   }
 
   // Register or get user from Google
