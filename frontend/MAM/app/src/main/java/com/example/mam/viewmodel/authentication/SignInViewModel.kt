@@ -67,7 +67,9 @@ class SignInViewModel(
                 userPreferencesRepository.saveAccessToken(token?.accessToken ?: "", token?.refreshToken ?:"")
                 Log.d("LOGIN", "DSAccessToken: ${accessToken.first()}")
                 Log.d("LOGIN", "DSRefreshToken: ${refreshToken.first()}")
-                return 1
+                val me = BaseService(userPreferencesRepository).authPrivateService.getUserInfo().body()!!
+                return if (me.role.id.toInt() == 1) 1
+                else 2
             }
             else{
                 Log.e("LOGIN", "Đăng nhập thất bại với mã lỗi: ${response.errorBody()?.string()}")

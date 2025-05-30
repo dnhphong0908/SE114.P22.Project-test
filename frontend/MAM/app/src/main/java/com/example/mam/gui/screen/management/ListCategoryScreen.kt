@@ -1,6 +1,8 @@
 package com.example.mam.gui.screen.management
 
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,7 +27,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -56,6 +60,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -64,6 +69,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
@@ -80,10 +86,13 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.example.mam.R
+import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.entity.ProductCategory
 import com.example.mam.gui.component.CircleIconButton
+import com.example.mam.gui.component.CustomDialog
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyDark
@@ -94,6 +103,8 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListCategoryViewModel
+import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -102,22 +113,27 @@ fun ListCategoryScreen(
     viewModel: ListCategoryViewModel,
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
-
     onAddCategoryClick: () -> Unit = {},
-    onEditCategoryClick: (String) -> Unit = {},
-    mockData: List<ProductCategory> ?= null
+    onEditCategoryClick: (Long) -> Unit = {},
+    mockData: List<CategoryResponse> ?= null
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
-    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
+    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle().value
+    val asc = viewModel.asc.collectAsStateWithLifecycle().value
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
-    val categoryList = viewModel.category.collectAsStateWithLifecycle().value
-    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
+    val categoryList = viewModel.categories.collectAsStateWithLifecycle().value
+    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
+    val isDeleting = viewModel.isDeleting.collectAsStateWithLifecycle().value
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
 
-    LaunchedEffect(Unit) {
-        viewModel.loadSortingOptions()
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+
+    LaunchedEffect(key1 = isDeleting) {
         viewModel.loadData()
     }
+
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -251,7 +267,7 @@ fun ListCategoryScreen(
                                             disabledContainerColor = WhiteDefault
                                         ),
                                         onClick = {
-                                            viewModel.searchCategory()
+                                            scope.launch { viewModel.searchCategory() }
                                             focusManager.clearFocus()
                                         }) {
                                         Icon(Icons.Default.Search, contentDescription = "Search")
@@ -291,60 +307,121 @@ fun ListCategoryScreen(
                     }
                 }
                 item {
-                    Box(Modifier
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
                         .fillMaxWidth(0.9f)
                         .padding(start = 8.dp)) {
-                        var sortExpanded by remember { mutableStateOf(false) }
-                        FilterChip(
-                            selected = sortExpanded,
-                            onClick = { sortExpanded = !sortExpanded },
-                            label = { selectedSortingOption.value },
-                            leadingIcon = {
-                                Icon(Icons.Default.Sort, contentDescription = "Sort")
-                            },
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
+                        Box() {
+                            var sortExpanded by remember { mutableStateOf(false) }
+                            FilterChip(
+                                selected = sortExpanded,
+                                onClick = { sortExpanded = !sortExpanded },
+                                label = { Text(selectedSortingOption) },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Sort, contentDescription = "Sort")
+                                },
+                                trailingIcon = {
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = WhiteDefault,
+                                    labelColor = BrownDefault,
+                                    iconColor = BrownDefault,
+                                    selectedContainerColor = OrangeDefault,
+                                    selectedLabelColor = WhiteDefault,
+                                    selectedLeadingIconColor = WhiteDefault,
+                                    selectedTrailingIconColor = WhiteDefault
+                                ),
+                                modifier = Modifier
+                            )
+                            DropdownMenu(
+                                expanded = sortExpanded,
+                                onDismissRequest = { sortExpanded = false },
                                 containerColor = WhiteDefault,
-                                labelColor = BrownDefault,
-                                iconColor = BrownDefault,
-                                selectedContainerColor = OrangeDefault,
-                                selectedLabelColor = WhiteDefault,
-                                selectedLeadingIconColor = WhiteDefault,
-                                selectedTrailingIconColor = WhiteDefault
-                            ),
-                            modifier = Modifier
-                        )
-
-                        DropdownMenu(
-                            expanded = sortExpanded,
-                            onDismissRequest = { sortExpanded = false },
-                            containerColor = WhiteDefault,
-                            modifier = Modifier
-                        ) {
-                            sortOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option, color = BrownDefault) },
-                                    onClick = {
-                                        viewModel.setSelectedSortingOption(option)
-                                        sortExpanded = false
-                                    }
-                                )
+                                modifier = Modifier
+                            ) {
+                                sortOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(option, color = BrownDefault)
+                                        },
+                                        onClick = {
+                                            sortExpanded = false
+                                            scope.launch {
+                                                viewModel.setSelectedSortingOption(option)
+                                                viewModel.sortCategory()
+                                            }
+                                        }
+                                    )
+                                }
                             }
+                        }
+                        IconButton(
+                            colors = IconButtonColors(
+                                containerColor = WhiteDefault,
+                                contentColor = BrownDefault,
+                                disabledContentColor = BrownDefault,
+                                disabledContainerColor = WhiteDefault
+                            ),
+                            onClick = {
+                                scope.launch {
+                                    viewModel.setASC()
+                                    viewModel.sortCategory()
+                                }
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(if(asc)Icons.Default.ArrowUpward else Icons.Default.ArrowDownward, contentDescription = "ASC/DESC")
                         }
                     }
                 }
-                if (mockData != null) {
-                    items(mockData) { category ->
+                categoryList.let {
+                    items(categoryList) { category ->
+                        var isShowDialog by remember { mutableStateOf(false) }
+                        if (isShowDialog){
+                            CustomDialog(
+                                title = "Xác nhận xóa",
+                                message = "Bạn có chắc muốn xóa Danh mục ${category.name}",
+                                onDismiss = {isShowDialog = false},
+                                onConfirm = {
+                                    scope.launch {
+                                        val result = viewModel.deleteCategory(category.id)
+                                        Toast.makeText(
+                                            context,
+                                            when(result){
+                                                -1 -> "Không thể kết nối Server"
+                                                1 -> "Xóa thành công"
+                                                else -> "Xóa thất bại"
+                                            },
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        isShowDialog = false
+                                    }
+                                }
+
+                            )
+                        }
+                        if (isDeleting)
+                            CircularProgressIndicator(
+                                color = OrangeDefault,
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .size(40.dp)
+                            )
+                        else
                         CategoryItem(
                             category = category,
                             onEditClick = onEditCategoryClick,
-                            onDeleteClick = { }
+                            onDeleteClick = {
+                                isShowDialog = true
+                                Log.d("Category", "${category.id}, ${category.createdAt}, ${category.updatedAt}, ${category.imageUrl}")
+                            }
                         )
                     }
                 }
-                else if (isLoading.value) {
+                if (isLoading) {
                     item {
                         CircularProgressIndicator(
                             color = OrangeDefault,
@@ -365,14 +442,6 @@ fun ListCategoryScreen(
                         )
                     }
                 }
-                else items(categoryList) { category ->
-                    CategoryItem(
-                        category = category,
-                        onEditClick = onEditCategoryClick,
-                        onDeleteClick = { }
-                    )
-                }
-
             }
         }
         IconButton(
@@ -394,9 +463,9 @@ fun ListCategoryScreen(
 
 @Composable
 fun CategoryItem(
-    category: ProductCategory,
-    onEditClick: (String) -> Unit,
-    onDeleteClick: (String) -> Unit,
+    category: CategoryResponse,
+    onEditClick: (Long) -> Unit,
+    onDeleteClick: (Long) -> Unit,
 ) {
     var expand by remember { mutableStateOf(false) }
     Surface(
@@ -417,7 +486,7 @@ fun CategoryItem(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 AsyncImage(
-                    model = category.iconUrl,
+                    model = category.getRealURL(),
                     contentDescription = null,
                     modifier = Modifier.size(40.dp).padding(end = 8.dp)
                 )
@@ -451,7 +520,9 @@ fun CategoryItem(
                 IconButton(onClick = { onEditClick(category.id) }) {
                     Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
                 }
-                IconButton(onClick = { onDeleteClick(category.id) }) {
+                IconButton(onClick = {
+                    onDeleteClick(category.id)
+                }) {
                     Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
                 }
                 IconButton(onClick = { expand = !expand }) {
@@ -482,7 +553,7 @@ fun CategoryItem(
                         .fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                category.createAt.atZone(ZoneId.systemDefault())?.let {
+                Instant.parse(category.createdAt).atZone(ZoneId.systemDefault())?.let {
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -499,7 +570,7 @@ fun CategoryItem(
                     )
                 }
 
-                category.updateAt.atZone(ZoneId.systemDefault())?.let {
+                Instant.parse(category.updatedAt).atZone(ZoneId.systemDefault())?.let {
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -520,43 +591,39 @@ fun CategoryItem(
     }
 }
 
-@Preview
-@Composable
-fun CategoryItemPreview() {
-    MaterialTheme {
-        CategoryItem(
-            category = ProductCategory(
-                id = "1",
-                name = "Hamburger",
-                description = "Món ăn nhanh",
-            ),
-            onEditClick = {},
-            onDeleteClick = {}
-        )
-    }
-}
-
-@Preview
-@Composable
-fun CategoryScreenPreview() {
-    ListCategoryScreen(
-        viewModel = ListCategoryViewModel(),
-        onBackClick = {},
-        onAddCategoryClick = {},
-        onEditCategoryClick = {},
-        mockData = listOf(
-            ProductCategory(
-                id = "1",
-                name = "Hamburger",
-            ),
-            ProductCategory(
-                id = "2",
-                name = "Pizza",
-            ),
-            ProductCategory(
-                id = "3",
-                name = "Chicken",
-            )
-        )
-    )
-}
+//@Preview
+//@Composable
+//fun CategoryItemPreview() {
+//    MaterialTheme {
+//        CategoryItem(
+//            category = ,
+//            onEditClick = {},
+//            onDeleteClick = {}
+//        )
+//    }
+//}
+//
+//@Preview
+//@Composable
+//fun CategoryScreenPreview() {
+//    ListCategoryScreen(
+//        viewModel = viewModel(factory = ListCategoryViewModel.Factory),
+//        onBackClick = {},
+//        onAddCategoryClick = {},
+//        onEditCategoryClick = {},
+//        mockData = listOf(
+//            ProductCategory(
+//                id = "1",
+//                name = "Hamburger",
+//            ),
+//            ProductCategory(
+//                id = "2",
+//                name = "Pizza",
+//            ),
+//            ProductCategory(
+//                id = "3",
+//                name = "Chicken",
+//            )
+//        )
+//    )
+//}

@@ -481,37 +481,7 @@ fun ProductItemPreview() {
     )
 }
 
-@Preview
-@Composable
-fun ListProductScreenPreview() {
-    ListProductScreen(
-        viewModel = ListProductViewModel(),
-        onBackClick = {},
-        onProductClick = {},
-        onAddProductClick = {},
-        onEditProductClick = {},
-        mockData = listOf(
-            Product(
-                id = "1",
-                name = "Burger Bacon & Cheese",
-                shortDescription = "Short description",
-                longDescription = "Long description",
-                originalPrice = 100000,
-                isAvailable = true,
-                idCategory = "1",
-            ),
-            Product(
-                id = "2",
-                name = "Burger Bacon & Cheese",
-                shortDescription = "Short description",
-                longDescription = "Long description",
-                originalPrice = 100000,
-                isAvailable = true,
-                idCategory = "1",
-            )
-        )
-    )
-}
+
 
 
 

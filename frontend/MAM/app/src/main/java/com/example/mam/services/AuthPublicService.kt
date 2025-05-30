@@ -1,6 +1,8 @@
 package com.example.mam.services
 
+import com.example.mam.dto.authentication.SendOTPRequest
 import com.example.mam.dto.authentication.SignInRequest
+import com.example.mam.dto.authentication.VerifyOTPRequest
 import com.example.mam.dto.authentication.AuthResponse
 import com.example.mam.dto.authentication.RefreshTokenRequest
 import retrofit2.Response
@@ -12,6 +14,10 @@ interface AuthPublicService {
     suspend fun login(@Body request: SignInRequest): Response<AuthResponse>
     @POST("auth/register")
     suspend fun signUp(@Body request: SignInRequest)
+    @POST("auth/send-otp")
+    suspend fun sendOtp(@Body request: SendOTPRequest)
+    @POST("auth/verify-otp")
+    suspend fun verifyOtp(@Body request: VerifyOTPRequest)
     @POST("auth/refresh")
     suspend fun refreshToken(@Body request: RefreshTokenRequest): Response<AuthResponse>
 }

@@ -42,7 +42,9 @@ class StartViewModel(
                     )
                     Log.d("REFRESH", "DSAccessToken: ${accessToken.first()}")
                     Log.d("REFRESH", "DSRefreshToken: ${refreshToken.first()}")
-                    return 1
+                    val me = BaseService(userPreferencesRepository).authPrivateService.getUserInfo().body()!!
+                    return if (me.role.id.toInt() == 1) 1
+                    else 2
                 } else {
                     Log.d("REFRESH", "Status Code: $statusCode")
                     return 0
