@@ -6,7 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.Objects;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -33,6 +32,9 @@ public class StorageService {
     }
   }
 
+  /**
+   * @return file URI from root path
+   */
   public String store(MultipartFile file, String folder) {
     if (file.isEmpty()) throw new StorageException("Failed to store empty file");
     if (!Files.exists(rootLocation.resolve(folder))) {
@@ -42,19 +44,14 @@ public class StorageService {
         throw new StorageException("Could not create directory", e);
       }
     }
-    if (Files.exists(
-        rootLocation.resolve(folder).resolve(Objects.requireNonNull(file.getOriginalFilename()))))
-      throw new StorageException("File already exists");
     String filename = System.currentTimeMillis() + "-" + file.getOriginalFilename();
+    Path fileUri = rootLocation.resolve(folder).resolve(filename);
     try {
-      Files.copy(
-          file.getInputStream(),
-          rootLocation.resolve(folder).resolve(filename),
-          StandardCopyOption.REPLACE_EXISTING);
+      Files.copy(file.getInputStream(), fileUri, StandardCopyOption.REPLACE_EXISTING);
+      return fileUri.relativize(rootLocation).toString();
     } catch (IOException e) {
       throw new StorageException("Failed to store file", e);
     }
-    return filename;
   }
 
   public Path loadPath(String filename, String folder) {

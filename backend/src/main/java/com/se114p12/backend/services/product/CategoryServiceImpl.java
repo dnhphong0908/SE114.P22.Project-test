@@ -58,9 +58,9 @@ public class CategoryServiceImpl implements CategoryService {
     ProductCategory productCategory = categoryMapper.requestToEntity(categoryRequestDTO);
 
     if (categoryRequestDTO.getImage() != null && !categoryRequestDTO.getImage().isEmpty()) {
-      String filename = storageService.store(categoryRequestDTO.getImage(), "categories");
-      productCategory.setImageUrl(
-          AppConstant.BACKEND_URL + "/storage/images?url=categories/" + filename);
+      String fileUri =
+          storageService.store(categoryRequestDTO.getImage(), AppConstant.CATEGORY_FOLDER);
+      productCategory.setImageUrl("/storage/images?url=" + fileUri);
     }
 
     productCategory = productCategoryRepository.save(productCategory);
@@ -79,9 +79,9 @@ public class CategoryServiceImpl implements CategoryService {
     categoryMapper.partialUpdate(categoryRequestDTO, existingProductCategory);
 
     if (categoryRequestDTO.getImage() != null && !categoryRequestDTO.getImage().isEmpty()) {
-      String filename = storageService.store(categoryRequestDTO.getImage(), "categories");
-      existingProductCategory.setImageUrl(
-          AppConstant.BACKEND_URL + "/storage/images?url=categories/" + filename);
+      String fileUri =
+          storageService.store(categoryRequestDTO.getImage(), AppConstant.CATEGORY_FOLDER);
+      existingProductCategory.setImageUrl("/storage/images?url=" + fileUri);
     }
 
     existingProductCategory = productCategoryRepository.save(existingProductCategory);
