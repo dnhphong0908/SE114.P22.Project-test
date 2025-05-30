@@ -1,0 +1,60 @@
+package com.se114p12.backend.controllers.order;
+
+import com.se114p12.backend.entities.order.Order;
+import com.se114p12.backend.dtos.order.OrderRequestDTO;
+import com.se114p12.backend.dtos.order.OrderResponseDTO;
+import com.se114p12.backend.services.order.OrderService;
+import com.se114p12.backend.vo.PageVO;
+import com.turkraft.springfilter.boot.Filter;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequiredArgsConstructor
+@RequestMapping("/api/v1/orders")
+public class OrderController {
+
+    private final OrderService orderService;
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderResponseDTO> findById(@PathVariable("id") Long id) {
+        return ResponseEntity.ok(orderService.getById(id));
+    }
+
+    @GetMapping
+    public ResponseEntity<PageVO<OrderResponseDTO>> getAllOrders(Pageable pageable, @Filter Specification<Order> specification) {
+        return ResponseEntity.ok(orderService.getAll(specification, pageable));
+    }
+
+    @PostMapping("/create")
+    public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO orderRequestDTO) {
+        return ResponseEntity.ok(orderService.create(orderRequestDTO));
+    }
+
+    @PutMapping("/update/{id}")
+    public ResponseEntity<OrderResponseDTO> updateOrder(@PathVariable("id") Long id, @Valid @RequestBody OrderRequestDTO orderRequestDTO) {
+        return ResponseEntity.ok(orderService.update(id, orderRequestDTO));
+    }
+
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<Void> deleteOrder(@PathVariable("id") Long id) {
+        orderService.delete(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/cancel/{id}")
+    public ResponseEntity<Void> cancelOrder(@PathVariable("id") Long id) {
+        orderService.cancelOrder(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{orderId}/delivered")
+    public ResponseEntity<String> markOrderAsDelivered(@PathVariable Long orderId) {
+        orderService.markOrderAsDelivered(orderId);
+        return ResponseEntity.ok("Order marked as delivered.");
+    }
+}
