@@ -20,7 +20,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import java.time.Instant
 
 class ManageCategoryViewModel(
@@ -42,10 +46,10 @@ class ManageCategoryViewModel(
     private val _categoryDescription = MutableStateFlow<String>("")
     val categoryDescription: StateFlow<String> = _categoryDescription
 
-    private val _categoryImage = MutableStateFlow<String>("")
+    private val _categoryImage = MutableStateFlow<String>("https://static.vecteezy.com/system/resources/previews/056/202/171/non_2x/add-image-or-photo-icon-vector.jpg")
     val categoryImage: StateFlow<String> = _categoryImage
 
-    private val _categoryImageFile = MutableStateFlow<MultipartBody.Part?>(null) // Lưu ảnh dạng Multipart
+    private val _categoryImageFile = MutableStateFlow<File?>(null) // Lưu ảnh dạng Multipart
 
     private val _createdAt = MutableStateFlow<Instant>(Instant.now())
     val createdAt: StateFlow<Instant> = _createdAt
@@ -87,7 +91,11 @@ class ManageCategoryViewModel(
     }
 
     fun setCategoryImageFile(context: Context, uri: Uri) {
-        _categoryImageFile.value = imageViewModel.getMultipartFromUri(context, uri)
+        val file = imageViewModel.uriToFile(context, uri)
+        _categoryImageFile.value = file
+        Log.d("Category", "File path: ${file?.absolutePath}")
+        Log.d("Category", "File exists: ${file?.exists()}")
+        Log.d("Category", "File size: ${file?.length()}")
     }
 
     suspend fun loadData() {
@@ -112,7 +120,7 @@ class ManageCategoryViewModel(
                 }
 
             } else {
-                Log.d("Category", "Lấy Danh mục thất bại: ${response.errorBody()}")
+                Log.d("Category", "Lấy Danh mục thất bại: ${response.errorBody().toString()}")
             }
         } catch (e: Exception) {
             Log.d("Category", "Không thể lấy Danh mục: ${e.message}")
@@ -138,12 +146,12 @@ class ManageCategoryViewModel(
                     it
                 )
             }
-            val response =
-                updatedCategory?.let {
-                    BaseService(userPreferencesRepository).productCategoryService.updateCategory(_categoryID.value,
-                        it
-                    )
-                }
+
+            val response = updatedCategory?.let {
+                BaseService(userPreferencesRepository)
+                    .productCategoryService.updateCategory(_categoryID.value, it)
+            }
+            Log.d("Category", "${_categoryName.value}, ${_categoryDescription.value}, ${_categoryImageFile.value}")
             if (response == null){
                 return 0
             }
@@ -159,7 +167,8 @@ class ManageCategoryViewModel(
                 }
                 return 1
             } else {
-                Log.d("Category", "Cap nhat Danh mục thất bại: ${response.errorBody()}")
+
+                Log.d("Category", "Cap nhat Danh mục thất bại: ${response.errorBody().toString()}")
                 return 0
             }
         } catch (e: Exception) {
@@ -179,19 +188,17 @@ class ManageCategoryViewModel(
                 "Category",
                 "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
             )
-            val updatedCategory = _categoryImageFile.value?.let {
-                CategoryRequest(
-                    _categoryName.value,
-                    _categoryDescription.value,
-                    it
-                )
-            }
-            val response =
-                updatedCategory?.let {
-                    BaseService(userPreferencesRepository).productCategoryService.createCategory(
-                        it
-                    )
-                }
+            val namePart = _categoryName.value.toRequestBody("text/plain".toMediaType())
+            val descriptionPart = _categoryDescription.value.toRequestBody("text/plain".toMediaType())
+
+            val imageFile = _categoryImageFile.value
+            val requestFile = imageFile!!.asRequestBody("image/*".toMediaType())
+            val imagePart = MultipartBody.Part.createFormData("image", imageFile.name, requestFile)
+
+            val response = BaseService(userPreferencesRepository)
+                .productCategoryService
+                .createCategory(namePart, descriptionPart, imagePart)
+
             if (response == null){
                 return 0
             }
@@ -207,7 +214,7 @@ class ManageCategoryViewModel(
                 }
                 return 1
             } else {
-                Log.d("Category", "Them Danh mục thất bại: ${response.errorBody()}")
+                Log.d("Category", "Them Danh mục thất bại: ${response.errorBody()?.toString()}")
                 return 0
             }
         } catch (e: Exception) {
