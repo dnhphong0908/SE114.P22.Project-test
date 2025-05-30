@@ -28,8 +28,8 @@ interface ProductService {
     @GET("products/category/{id}")
     suspend fun getProductsByCategory(
         @Path("id") id: Long,
-        @Query("page") page: Int,
-        @Query("size") size: Int,
+        @Query("page") page: Int ,
+        @Query("size") size: Int?=null,
         @Query("sort") sort: List<String>? = null,
         @Query("specification") specification: String): Response<PageVO<ProductResponse>>
 }

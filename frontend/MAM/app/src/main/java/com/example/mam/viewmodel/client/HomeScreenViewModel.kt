@@ -5,73 +5,125 @@ import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.R
 import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.product.CategoryResponse
+import com.example.mam.dto.product.ProductResponse
 import com.example.mam.dto.user.UserResponse
 import com.example.mam.entity.Product
 import com.example.mam.entity.ProductCategory
 import com.example.mam.services.BaseService
 import com.example.mam.viewmodel.authentication.StartViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 
-class HomeScreenViewModel(private val userPreferencesRepository: UserPreferencesRepository
+class HomeScreenViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository
 ): ViewModel() {
     private val accessToken = userPreferencesRepository.accessToken.map { it }
     private val refreshToken = userPreferencesRepository.refreshToken.map { it }
 
-    private val _listCategory = MutableStateFlow<MutableList<ProductCategory>>(mutableListOf())
-    private val _listProduct = MutableStateFlow<MutableList<Product>>(mutableListOf())
+    private val _listCategory = MutableStateFlow<MutableList<CategoryResponse>>(mutableListOf())
+    private val _listProduct = MutableStateFlow<MutableList<ProductResponse>>(mutableListOf())
     private val _user = MutableStateFlow<UserResponse>(UserResponse())
-    fun getListCategory(): List<ProductCategory> {
+
+    private val _productMap = MutableStateFlow<Map<Long, List<ProductResponse>>>(emptyMap())
+    val productMap: StateFlow<Map<Long, List<ProductResponse>>> = _productMap
+    fun getListCategory(): List<CategoryResponse> {
         return _listCategory.value.toList()
     }
 
-    fun getListProduct(idCategory: String): List<Product> {
-        val listProduct: MutableList<Product> = mutableListOf()
+    fun getListProduct(categoryId: Long): List<ProductResponse> {
+        val listProduct: MutableList<ProductResponse> = mutableListOf()
         for(product in _listProduct.value.toList()){
-            if (product.idCategory.equals(idCategory)) listProduct.add(product)
+            if (product.categoryId.equals(categoryId)) listProduct.add(product)
         }
         return listProduct
     }
 
-    fun loadListCategory(){
-        _listCategory.value = mutableListOf(
-            ProductCategory("PC000", "Đề xuất", "", "R.drawable.ic_glowing_star"),
-            ProductCategory("PC001", "Pizza", "", "R.drawable.ic_pizza"),
-            ProductCategory("PC002", "Burger", "", "R.drawable.ic_hamburger"),
-            ProductCategory("PC003", "Hotdog", "", "R.drawable.ic_hotdog"),
-            ProductCategory("PC004", "Gà rán", "", "R.drawable.ic_chicken"),
-            ProductCategory("PC005", "Thịt", "", "R.drawable.ic_meat"),
-            ProductCategory("PC006", "Thức uống", "", "R.drawable.ic_drink"),
-            ProductCategory("PC007", "Khác", "", "R.drawable.ic_other")
-        )
+    suspend fun loadListCategory(){
+        var currentPage = 0
+        val allCategories = mutableListOf<CategoryResponse>()
+        try {
+            Log.d("Category", "Bắt đầu lấy Danh mục")
+
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .productCategoryService
+                    .getCategories(filter = "", page = currentPage)
+
+                Log.d("Category", "Status code: ${response.code()}")
+
+                if (response.isSuccessful) {
+                    val page = response.body()
+                    if (page != null){
+                        allCategories.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        Log.d("Category", "Lấy trang ${page.page}")
+                        _listCategory.value = allCategories.toMutableList()
+
+                    }
+                    else break
+                } else {
+                    Log.d("Category", "Lấy Danh mục thất bại: ${response.errorBody()}")
+                    break // Stop loop on failure
+                }
+            }
+
+            _listCategory.value = allCategories.toMutableList() // Update UI with all categories
+
+        } catch (e: Exception) {
+            Log.d("Category", "Không thể lấy Danh mục: ${e.message}")
+        }
     }
 
     fun clearListCategory(){
         _listCategory.value.clear()
     }
 
-    fun loadListProduct(){
-        _listProduct.value = mutableListOf(
-            Product("P000", "Burger thịt hun khói phô mai", "", "", 100000, true, "PC002", ""),
-            Product("P001", "Burger thịt hun khói phô mai", "", "", 100000, true, "PC002", ""),
-            Product("P002", "Burger thịt hun khói phô mai", "", "", 100000, true, "PC002", ""),
-            Product("P003", "Pizza truyền thống", "", "", 100000, true, "PC001", ""),
-            Product("P004", "Pizza truyền thống", "", "", 100000, true, "PC001", ""),
-            Product("P005", "Pizza truyền thống", "", "", 100000, true, "PC001", ""),
-            Product("P006", "Hotdog truyền thống", "", "", 100000, true, "PC003", ""),
-            Product("P007", "Hotdog truyền thống", "", "", 100000, false, "PC003", ""),
-            Product("P008", "Hotdog truyền thống", "", "", 100000, true, "PC003", ""),
-            Product("P009", "Gà rán", "", "", 100000, true, "PC004", "")
-        )
-    }
+    suspend fun loadListProduct(id: Long): List<ProductResponse>{
+        try {
+            Log.d("Category", "Bắt đầu lấy Danh mục")
+                val response = BaseService(userPreferencesRepository)
+                    .productService
+                    .getProductsByCategory(id,specification = "", page = 0)
+                Log.d("Category", "Status code: ${response.code()}")
 
+                if (response.isSuccessful) {
+                    val page = response.body()
+                    if (page != null){
+                        return page.content
+                    }
+                    else return listOf()
+                } else {
+                    Log.d("Category", "Lấy Danh mục thất bại: ${response.errorBody()}")
+                    return listOf()
+                }
+        } catch (e: Exception) {
+            Log.d("Product", "Không thể lấy Sản phẩm: ${e.message}")
+            return listOf()
+        }
+    }
+    suspend fun loadAllProductsFromCategories(categories: List<CategoryResponse>){
+        val result = mutableMapOf<Long, List<ProductResponse>>()
+        for(category in categories){
+            val products = loadListProduct(category.id)
+            result[category.id] = products
+        }
+        _productMap.value = result
+    }
     fun clearListProduct(){
         _listProduct.value.clear()
     }
