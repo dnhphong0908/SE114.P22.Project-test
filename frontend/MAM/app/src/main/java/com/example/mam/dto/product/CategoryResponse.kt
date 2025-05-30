@@ -10,6 +10,6 @@ data class CategoryResponse(
     val imageUrl: String,
 ): BaseResponse(){
     fun getRealURL(): String {
-        return BASE_URL + imageUrl
+        return BASE_URL + imageUrl.replace("\\", "/")
     }
 }

@@ -486,7 +486,7 @@ fun CategoryItem(
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
                 AsyncImage(
-                    model = category.imageUrl,
+                    model = category.getRealURL(),
                     contentDescription = null,
                     modifier = Modifier.size(40.dp).padding(end = 8.dp)
                 )

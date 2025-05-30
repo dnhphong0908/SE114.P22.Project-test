@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -71,6 +72,7 @@ import com.example.mam.ui.theme.GreyDefault
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
+import com.example.mam.viewmodel.ImageViewModel
 import com.example.mam.viewmodel.management.ManageCategoryViewModel
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -102,7 +104,6 @@ fun ManageCategoryScreen(
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
                 viewModel.setCategoryImage(it.toString())
-                viewModel.setCategoryImageFile(context, uri)
             }
         }
     } else null
@@ -113,6 +114,7 @@ fun ManageCategoryScreen(
         if (isPreview) {
             viewModel.mockData()
         }
+
     }
     Column(
         modifier = Modifier
@@ -241,7 +243,9 @@ fun ManageCategoryScreen(
                         placeholder = painterResource(R.drawable.upload_image),
                         error = null,
                         modifier = Modifier
-                            .fillMaxWidth(0.8f) // Set width to 80% of screen width
+                            .widthIn(max = 150.dp)
+                            .fillMaxWidth(0.8f)
+                            // Set width to 80% of screen width
                             .aspectRatio(1f)
                             .padding(8.dp)
                             .clip(RoundedCornerShape(50))

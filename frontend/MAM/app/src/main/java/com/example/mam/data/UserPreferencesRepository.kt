@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.preferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
@@ -18,11 +19,17 @@ class UserPreferencesRepository (
     private companion object {
         val ACCESS_TOKEN = stringPreferencesKey("access_token")
         val REFRESH_TOKEN = stringPreferencesKey("refresh_token")
+        val ADDRESS = stringPreferencesKey("address")
     }
     suspend fun saveAccessToken(accessToken: String, refreshToken: String) {
         dataStore.edit { preferences ->
             preferences[ACCESS_TOKEN] = accessToken
             preferences[REFRESH_TOKEN] = refreshToken
+        }
+    }
+    suspend fun saveAddress(address: String){
+        dataStore.edit{ preferences ->
+            preferences[ADDRESS] = address
         }
     }
     val accessToken: Flow<String> = dataStore.data
@@ -49,13 +56,16 @@ class UserPreferencesRepository (
         .map { preferences ->
             preferences[REFRESH_TOKEN] ?: ""
         }
-
-    // Lấy access token từ DataStore
-    suspend fun getAccessToken(): String? {
-        return dataStore.data.first()[ACCESS_TOKEN]
-    }
-    // Lấy refresh token từ DataStore
-    suspend fun getRefreshToken(): String? {
-        return dataStore.data.first()[REFRESH_TOKEN]
-    }
+    val address: Flow<String> = dataStore.data
+        .catch {
+            if(it is IOException) {
+                Log.e("DataStoreError", "Error reading preferences.", it)
+                emit(emptyPreferences())
+            } else {
+                throw it
+            }
+        }
+        .map { preferences ->
+            preferences[ADDRESS] ?: ""
+        }
 }

@@ -102,6 +102,7 @@ fun MapScreen(
                         currentLocation.latitude(),
                         currentLocation.longitude()
                     )
+                    tempAddress = address
                 }
             },
             modifier = Modifier

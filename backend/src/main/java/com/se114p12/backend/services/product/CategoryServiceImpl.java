@@ -60,7 +60,7 @@ public class CategoryServiceImpl implements CategoryService {
     if (categoryRequestDTO.getImage() != null && !categoryRequestDTO.getImage().isEmpty()) {
       String fileUri =
           storageService.store(categoryRequestDTO.getImage(), AppConstant.CATEGORY_FOLDER);
-      productCategory.setImageUrl("/storage/images?url=" + fileUri);
+      productCategory.setImageUrl("storage/images?url=" + fileUri);
     }
 
     productCategory = productCategoryRepository.save(productCategory);
@@ -81,7 +81,7 @@ public class CategoryServiceImpl implements CategoryService {
     if (categoryRequestDTO.getImage() != null && !categoryRequestDTO.getImage().isEmpty()) {
       String fileUri =
           storageService.store(categoryRequestDTO.getImage(), AppConstant.CATEGORY_FOLDER);
-      existingProductCategory.setImageUrl("/storage/images?url=" + fileUri);
+      existingProductCategory.setImageUrl("storage/images?url=" + fileUri);
     }
 
     existingProductCategory = productCategoryRepository.save(existingProductCategory);
