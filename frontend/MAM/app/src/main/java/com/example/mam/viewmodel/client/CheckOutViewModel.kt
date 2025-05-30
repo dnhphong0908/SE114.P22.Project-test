@@ -1,7 +1,17 @@
 package com.example.mam.viewmodel.client
 
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
 import com.example.mam.R
+import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.entity.Cart
 import com.example.mam.entity.CartItem
 import com.example.mam.entity.Order
@@ -11,12 +21,20 @@ import com.example.mam.entity.Product
 import com.example.mam.entity.Promotion
 import com.example.mam.entity.User
 import com.example.mam.entity.VarianceOption
+import com.example.mam.viewmodel.ImageViewModel
+import com.example.mam.viewmodel.management.ManageCategoryViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import okhttp3.internal.userAgent
 import java.text.DecimalFormat
 import java.time.Instant
 
-class CheckOutViewModel():  ViewModel(){
+class CheckOutViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository
+):  ViewModel(){
     private var _cart: Cart = Cart()
 
     private val _user = MutableStateFlow<User>(User())
@@ -25,7 +43,8 @@ class CheckOutViewModel():  ViewModel(){
     private val _orderItems = MutableStateFlow<MutableList<OrderItem>>(mutableListOf())
     val orderItems = _orderItems.asStateFlow()
 
-    var address: String = "Hàn Thuyên, khu phố 6 P, Thủ Đức, Hồ Chí Minh."
+    private val _address = MutableStateFlow("")
+    val address = _address.asStateFlow()
 
     private val _discount = MutableStateFlow(Promotion())
     var discount = _discount.asStateFlow()
@@ -61,12 +80,25 @@ class CheckOutViewModel():  ViewModel(){
         return getPriceToString(getTotalPrice())
     }
 
+    fun setAddress(address: String){
+        _address.value = address
+        viewModelScope.launch {
+            userPreferencesRepository.saveAddress(_address.value)
+        }
+    }
+
     fun setupPaymentOption(option: PaymentType): Unit{
         paymentOption = option
     }
 
     fun setNote(string: String){
         _note.value = string
+    }
+
+    fun loadAddress(){
+        viewModelScope.launch {
+            if(userPreferencesRepository.address.map { it }.first().isNotEmpty()) _address.value = userPreferencesRepository.address.map { it }.first()
+        }
     }
 
     fun loadUser() {
@@ -108,7 +140,18 @@ class CheckOutViewModel():  ViewModel(){
     }
 
     fun checkOut(){
-        val order: Order = Order("",user.value.id, Instant.now(),paymentOption.id,address, orderItems.value, getTotalPrice(),_note.value )
+        val order: Order = Order("",user.value.id, Instant.now(),paymentOption.id,address.value, orderItems.value, getTotalPrice(),_note.value )
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                CheckOutViewModel(
+                    userPreferencesRepository = application.userPreferencesRepository
+                )
+            }
+        }
     }
 
 }

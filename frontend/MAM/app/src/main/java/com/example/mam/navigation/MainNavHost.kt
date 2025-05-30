@@ -354,7 +354,7 @@ fun MainNavHost(
                         navController.previousBackStackEntry?.savedStateHandle?.getLiveData<String>("address")?.observe(
                             backStackEntry
                         ) { address ->
-                            viewModel.address = address
+                            viewModel.setAddress(address)
                         }
                     },
                     viewModel = viewModel
