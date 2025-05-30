@@ -58,9 +58,9 @@ public class UserController {
       description = "Successfully updated user",
       content = @Content(schema = @Schema(implementation = UserResponseDTO.class)))
   @ErrorResponse
-  @PutMapping("/{id}")
+  @PutMapping(value = "/{id}", consumes = "multipart/form-data")
   public ResponseEntity<UserResponseDTO> updateUser(
-      @PathVariable("id") Long id, @Valid @RequestBody UserRequestDTO userRequestDTO) {
+      @PathVariable("id") Long id, @Valid @ModelAttribute UserRequestDTO userRequestDTO) {
     return ResponseEntity.ok(userService.update(id, userRequestDTO));
   }
 
