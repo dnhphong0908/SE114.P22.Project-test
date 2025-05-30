@@ -116,7 +116,8 @@ class ManageCategoryViewModel(
                     _categoryDescription.value = category.description
                     _createdAt.value = Instant.parse(category.createdAt)
                     _updatedAt.value = Instant.parse(category.updatedAt)
-                    _categoryImage.value = category.imageUrl
+                    _categoryImage.value = category.getRealURL()
+
                 }
 
             } else {

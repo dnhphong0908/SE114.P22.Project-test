@@ -34,16 +34,14 @@ class ImageViewModel() {
         }
     }
     fun uriToFile(context: Context, uri: Uri): File? {
-        val contentResolver = context.contentResolver
-        val fileName = getFileNameFromUri(context, uri) ?: "temp_file"
+        val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+        val file = File(context.cacheDir, "converted_file.jpg")
 
-        val tempFile = File.createTempFile(fileName, null, context.cacheDir)
-        tempFile.outputStream().use { output ->
-            contentResolver.openInputStream(uri)?.use { input ->
-                input.copyTo(output)
-            } ?: return null
+        inputStream.use { input ->
+            file.outputStream().use { output -> input.copyTo(output) }
         }
-        return tempFile
+
+        return file
     }
     fun getFileNameFromUri(context: Context, uri: Uri): String? {
         var name: String? = null

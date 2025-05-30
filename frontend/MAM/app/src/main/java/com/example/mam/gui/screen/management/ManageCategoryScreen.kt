@@ -109,10 +109,12 @@ fun ManageCategoryScreen(
     LaunchedEffect(Unit) {
         if (isEdit) {
             viewModel.loadData()
+            viewModel.setCategoryImageFile(context, Uri.parse(categoryImage))
         }
         if (isPreview) {
             viewModel.mockData()
         }
+
     }
     Column(
         modifier = Modifier
