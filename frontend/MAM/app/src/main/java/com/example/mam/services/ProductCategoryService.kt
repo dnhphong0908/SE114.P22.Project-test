@@ -34,7 +34,7 @@ interface ProductCategoryService {
      @Path("id") id: Long,
      @Part("name") name: RequestBody,
      @Part("description") description: RequestBody?,
-     @Part image: MultipartBody.Part
+     @Part image: MultipartBody.Part?
  ): Response<CategoryResponse>
 
 @Multipart

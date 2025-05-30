@@ -117,7 +117,7 @@ class ManageCategoryViewModel(
                     _createdAt.value = Instant.parse(category.createdAt)
                     _updatedAt.value = Instant.parse(category.updatedAt)
                     _categoryImage.value = category.getRealURL()
-
+                    Log.d("Category", _categoryImage.value)
                 }
 
             } else {
@@ -144,8 +144,9 @@ class ManageCategoryViewModel(
             val descriptionPart = _categoryDescription.value.toRequestBody("text/plain".toMediaType())
 
             val imageFile = _categoryImageFile.value
-            val requestFile = imageFile!!.asRequestBody("image/*".toMediaType())
-            val imagePart = MultipartBody.Part.createFormData("image", imageFile.name, requestFile)
+            val requestFile = imageFile?.asRequestBody("image/*".toMediaType())
+            val imagePart =
+                requestFile?.let { MultipartBody.Part.createFormData("image", imageFile.name, it) }
 
             val response = BaseService(userPreferencesRepository).productCategoryService.updateCategory(_categoryID.value, namePart, descriptionPart, imagePart)
             Log.d("Category", "${_categoryName.value}, ${_categoryDescription.value}, ${_categoryImageFile.value}")
@@ -165,7 +166,7 @@ class ManageCategoryViewModel(
                 return 1
             } else {
 
-                Log.d("Category", "Cap nhat Danh mục thất bại: ${response.errorBody().toString()}")
+                Log.d("Category", "Cap nhat Danh mục thất bại: ${response.errorBody()?.string()}")
                 return 0
             }
         } catch (e: Exception) {
