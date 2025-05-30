@@ -139,18 +139,14 @@ class ManageCategoryViewModel(
                 "Category",
                 "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
             )
-            val updatedCategory = _categoryImageFile.value?.let {
-                CategoryRequest(
-                    _categoryName.value,
-                    _categoryDescription.value,
-                    it
-                )
-            }
+            val namePart = _categoryName.value.toRequestBody("text/plain".toMediaType())
+            val descriptionPart = _categoryDescription.value.toRequestBody("text/plain".toMediaType())
 
-            val response = updatedCategory?.let {
-                BaseService(userPreferencesRepository)
-                    .productCategoryService.updateCategory(_categoryID.value, it)
-            }
+            val imageFile = _categoryImageFile.value
+            val requestFile = imageFile!!.asRequestBody("image/*".toMediaType())
+            val imagePart = MultipartBody.Part.createFormData("image", imageFile.name, requestFile)
+
+            val response = BaseService(userPreferencesRepository).productCategoryService.updateCategory(_categoryID.value, namePart, descriptionPart, imagePart)
             Log.d("Category", "${_categoryName.value}, ${_categoryDescription.value}, ${_categoryImageFile.value}")
             if (response == null){
                 return 0
@@ -214,7 +210,7 @@ class ManageCategoryViewModel(
                 }
                 return 1
             } else {
-                Log.d("Category", "Them Danh mục thất bại: ${response.errorBody()?.toString()}")
+                Log.d("Category", "Them Danh mục thất bại: ${response.errorBody()?.string()}")
                 return 0
             }
         } catch (e: Exception) {

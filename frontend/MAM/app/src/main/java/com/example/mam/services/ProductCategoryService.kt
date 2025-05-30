@@ -32,11 +32,13 @@ interface ProductCategoryService {
  @PUT("product-categories/{id}")
  suspend fun updateCategory(
      @Path("id") id: Long,
-     @Part dto: CategoryRequest
+     @Part("name") name: RequestBody,
+     @Part("description") description: RequestBody?,
+     @Part image: MultipartBody.Part
  ): Response<CategoryResponse>
 
 @Multipart
-@POST("categories")
+@POST("product-categories")
 suspend fun createCategory(
     @Part("name") name: RequestBody,
     @Part("description") description: RequestBody?,
