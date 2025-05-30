@@ -181,16 +181,8 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val signUpVM: SignUpViewModel = viewModel(backStackEntry)
+                val signUpVM: SignUpViewModel = viewModel(backStackEntry, factory = SignUpViewModel.Factory)
                 SignUpScreen(
-                    onSignUpClicked = {
-                        coroutineScope.launch {
-                            when (signUpVM.SignUp()) {
-                                0 -> signUpVM.notifySignUpFalse()
-                                1 -> navController.navigate(AuthenticationScreen.SignIn.name)
-                            }
-                        }
-                    },
                     onSignInClicked = {
                         navController.navigate(AuthenticationScreen.SignIn.name)
                     },
@@ -396,10 +388,10 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ){ backStackEntry ->
-                val viewModel: DashboardViewModel = viewModel(backStackEntry)
+                val viewModel: DashboardViewModel = viewModel(backStackEntry, factory = DashboardViewModel.Factory)
                 DashboardScreen(
                     onBackClicked = {
-                        navController.navigate(route = "Authorization") {
+                        navController.navigate(route = AuthenticationScreen.Start.name) {
                         popUpTo("Dashboard") { inclusive = true }
                         }
                     },

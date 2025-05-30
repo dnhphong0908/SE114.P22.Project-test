@@ -1,14 +1,27 @@
 package com.example.mam.viewmodel.management
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import co.yml.charts.common.model.Point
+import com.example.mam.MAMApplication
+import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.authentication.RefreshTokenRequest
+import com.example.mam.services.BaseService
+import com.example.mam.viewmodel.authentication.SignInViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-class DashboardViewModel(): ViewModel() {
+class DashboardViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository
+): ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -122,6 +135,32 @@ class DashboardViewModel(): ViewModel() {
                 // Handle error
             } finally {
                 _isLoadingCategory.value = false
+            }
+        }
+    }
+
+    suspend fun logOut(): Int{
+        try {
+            val respone = BaseService(userPreferencesRepository).authPrivateService.logOut(
+                RefreshTokenRequest(userPreferencesRepository.refreshToken.map { it }.first())
+            )
+            if (respone.isSuccessful){
+                userPreferencesRepository.saveAccessToken("","")
+                userPreferencesRepository.saveAddress("")
+                return 1
+            }
+            else return 0
+        }
+        catch (e: Exception){
+            return 0
+        }
+
+    }
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                DashboardViewModel(application.userPreferencesRepository)
             }
         }
     }

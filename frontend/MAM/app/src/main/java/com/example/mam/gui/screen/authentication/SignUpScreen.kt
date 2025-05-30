@@ -1,6 +1,7 @@
 package com.example.mam.gui.screen.authentication
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,9 +26,11 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -49,6 +52,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.authentication.SignUpViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun SignUpScreen(
@@ -58,6 +62,8 @@ fun SignUpScreen(
     viewModel: SignUpViewModel = viewModel(),
     modifier: Modifier = Modifier
 ){
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     val signUpState: SignUpRequest by viewModel.signUpState.collectAsStateWithLifecycle()
     val repeatPassword: String by viewModel.repeatPassword.collectAsStateWithLifecycle()
     Column(
@@ -140,7 +146,7 @@ fun SignUpScreen(
                     EditFieldType1(
                         label = "Họ tên",
                         errorLabel = if (!viewModel.isFullNameValid()) "Họ tên không hợp lệ" else "",
-                        value = signUpState.fullName,
+                        value = signUpState.fullname,
                         backgroundColor = WhiteDefault,
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Text,
@@ -152,7 +158,7 @@ fun SignUpScreen(
                     EditFieldType1(
                         label = "Số điện thoại",
                         errorLabel = if (!viewModel.isPhoneNumberValid()) "Số điện thoại không hợp lệ" else "",
-                        value = signUpState.phoneNumber,
+                        value = signUpState.phone,
                         backgroundColor = WhiteDefault,
                         keyboardOptions = KeyboardOptions.Default.copy(
                             keyboardType = KeyboardType.Number,
@@ -206,7 +212,26 @@ fun SignUpScreen(
                     OuterShadowFilledButton(
                         text = "Đăng Ký",
                         isEnable = viewModel.isSignUpButtonEnable(),
-                        onClick = onSignUpClicked,
+                        onClick = {
+                            scope.launch{
+                                val result = viewModel.signUp()
+                                if (result == 1){
+                                    Toast.makeText(
+                                        context,
+                                        "Đăng ký thành công! Vui lòng xác thực qua mail để tiếp tục",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                                else {
+                                    Toast.makeText(
+                                        context,
+                                        "Đăng ký thành công",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                            onSignInClicked()
+                        },
                         modifier = Modifier
                             .width(182.dp)
                             .height(40.dp)
