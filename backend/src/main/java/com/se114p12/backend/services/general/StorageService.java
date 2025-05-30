@@ -48,7 +48,7 @@ public class StorageService {
     Path fileUri = rootLocation.resolve(folder).resolve(filename);
     try {
       Files.copy(file.getInputStream(), fileUri, StandardCopyOption.REPLACE_EXISTING);
-      return fileUri.relativize(rootLocation).toString();
+      return rootLocation.relativize(fileUri).toString();
     } catch (IOException e) {
       throw new StorageException("Failed to store file", e);
     }
