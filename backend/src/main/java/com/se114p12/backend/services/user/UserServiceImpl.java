@@ -85,6 +85,9 @@ public class UserServiceImpl implements UserService {
     if (userRepository.existsByEmail(registerRequestDTO.getEmail())) {
       throw new DataConflictException("Email already exists");
     }
+    if (userRepository.existsByPhone(registerRequestDTO.getPhone())) {
+      throw new DataConflictException("Phone already exists");
+    }
     User user = new User();
     user.setFullname(registerRequestDTO.getFullname());
     user.setUsername(registerRequestDTO.getUsername());
