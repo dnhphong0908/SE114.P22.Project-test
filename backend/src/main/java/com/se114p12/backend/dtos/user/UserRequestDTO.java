@@ -22,7 +22,9 @@ public class UserRequestDTO {
   @Email(message = "Invalid email format")
   private String email;
 
-  @Pattern(regexp = "^(03|05|07|08|09)[0-9]{8}$", message = "Invalid phone number")
+  @Pattern(
+      regexp = "^(\\+84|0)(3[2-9]|5[2-9]|7[0|6-9]|8[1-9]|9[0-4|6-9])[0-9]{7}$",
+      message = "Invalid phone number")
   private String phone;
 
   private MultipartFile avatar;
