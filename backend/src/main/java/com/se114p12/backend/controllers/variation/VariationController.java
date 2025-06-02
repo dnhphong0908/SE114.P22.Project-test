@@ -27,16 +27,7 @@ public class VariationController {
           @RequestParam(required = false) String name,
           @ParameterObject Pageable pageable
   ) {
-    Page<VariationResponseDTO> pageResult = variationService.getVariationsByProductId(productId, name, pageable);
-    PageVO<VariationResponseDTO> pageVO = PageVO.<VariationResponseDTO>builder()
-            .page(pageResult.getNumber())
-            .size(pageResult.getSize())
-            .totalElements(pageResult.getTotalElements())
-            .totalPages(pageResult.getTotalPages())
-            .numberOfElements(pageResult.getNumberOfElements())
-            .content(pageResult.getContent())
-            .build();
-
+    PageVO<VariationResponseDTO> pageVO = variationService.getVariationsByProductId(productId, name, pageable);
     return ResponseEntity.ok(pageVO);
   }
 

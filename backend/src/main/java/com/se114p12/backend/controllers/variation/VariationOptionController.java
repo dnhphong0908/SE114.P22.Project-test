@@ -3,9 +3,11 @@ package com.se114p12.backend.controllers.variation;
 import com.se114p12.backend.dtos.variation.VariationOptionRequestDTO;
 import com.se114p12.backend.dtos.variation.VariationOptionResponseDTO;
 import com.se114p12.backend.services.variation.VariationOptionService;
+import com.se114p12.backend.vo.PageVO;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -21,10 +23,11 @@ public class VariationOptionController {
     private final VariationOptionService variationOptionService;
 
     @GetMapping
-    public ResponseEntity<List<VariationOptionResponseDTO>> getByVariationId(
-            @RequestParam Long variationId
+    public ResponseEntity<PageVO<VariationOptionResponseDTO>> getByVariationId(
+            @RequestParam Long variationId,
+            Pageable pageable
     ) {
-        return ResponseEntity.ok(variationOptionService.getByVariationId(variationId));
+        return ResponseEntity.ok(variationOptionService.getByVariationId(variationId, pageable));
     }
 
     @PreAuthorize("hasRole('ADMIN')")

@@ -8,7 +8,9 @@ import com.se114p12.backend.exceptions.DataConflictException;
 import com.se114p12.backend.mappers.variation.VariationOptionMapper;
 import com.se114p12.backend.repositories.variation.VariationOptionRepository;
 import com.se114p12.backend.repositories.variation.VariationRepository;
+import com.se114p12.backend.vo.PageVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,11 +24,16 @@ public class VariationOptionServiceImpl implements VariationOptionService {
     private final VariationOptionMapper variationOptionMapper;
 
     @Override
-    public List<VariationOptionResponseDTO> getByVariationId(Long variationId) {
-        List<VariationOption> options = variationOptionRepository.findByVariationId(variationId);
-        return options.stream()
-                .map(variationOptionMapper::toDto)
-                .toList();
+    public PageVO<VariationOptionResponseDTO> getByVariationId(Long variationId, Pageable pageable) {
+        var page = variationOptionRepository.findByVariationId(variationId, pageable);
+        return PageVO.<VariationOptionResponseDTO>builder()
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .numberOfElements(page.getNumberOfElements())
+                .content(page.map(variationOptionMapper::toDto).getContent())
+                .build();
     }
 
     @Override
