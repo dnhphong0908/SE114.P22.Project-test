@@ -79,6 +79,7 @@ import com.example.mam.ui.theme.Transparent
 import com.example.mam.ui.theme.WhiteDefault
 import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
+import com.example.mam.dto.product.ProductResponse
 
 @Composable
 fun UnderlinedClickableText(
@@ -478,8 +479,8 @@ fun QuantitySelectionButton(
 
 @Composable
 fun ProductClientListItem(
-    item: Product,
-    onClick: (Product) -> Unit =  {Product ->},
+    item: ProductResponse,
+    onClick: (ProductResponse) -> Unit =  {ProductResponse ->},
     color: Color = WhiteDefault,
     modifier: Modifier = Modifier){
     Card(

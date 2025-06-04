@@ -4,8 +4,8 @@ import java.time.Instant
 
 open class BaseResponse(
     val id: Long = 0,
-    val createAt: Instant = Instant.now(),
-    val updateAt: Instant = Instant.now(),
+    val createdAt: String = "",
+    val updatedAt: String = "",
     val createBy: Long = 0,
     val updateBy: Long = 0,
 )

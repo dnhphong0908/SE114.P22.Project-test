@@ -95,6 +95,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.DashboardViewModel
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 
@@ -109,6 +110,8 @@ fun DashboardScreen(
     // Your UI code here
     // You can use viewModel to access the data and state
     // For example:
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val isLoading = viewModel.isLoading.collectAsState()
     val processingOrderNum = viewModel.processingOrderNum.collectAsState().value
     val notProcessingOrderNum = viewModel.notProcessingOrderNum.collectAsState().value
@@ -135,7 +138,24 @@ fun DashboardScreen(
                 foregroundColor = OrangeDefault,
                 icon = Icons.Outlined.Logout,
                 shadow = "outer",
-                onClick = onBackClicked,
+                onClick = {
+                    scope.launch {
+                        val result = viewModel.logOut()
+                        if (result == 1) {
+                            Toast.makeText(
+                                context,
+                                "Đăng xuất thành công",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onBackClicked()
+                        }
+                        else Toast.makeText(
+                            context,
+                            "Đăng xuất thất bại",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                },
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(top = 16.dp, start = 16.dp)
@@ -189,8 +209,7 @@ fun DashboardScreen(
                 ) {
                     Card(
                         modifier = Modifier
-                            .padding(16.dp)
-                            .weight(1f),
+                            .padding(16.dp),
                         colors = CardDefaults.cardColors(containerColor = WhiteDefault),
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 4.dp,
@@ -218,8 +237,7 @@ fun DashboardScreen(
                     }
                     Card(
                         modifier = Modifier
-                            .padding(16.dp)
-                            .weight(1f),
+                            .padding(16.dp),
                         colors = CardDefaults.cardColors(containerColor = WhiteDefault),
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 4.dp,
@@ -231,6 +249,7 @@ fun DashboardScreen(
                             text = "Đơn chưa tiếp nhận",
                             color = BrownDefault,
                             fontSize = 16.sp,
+                            maxLines = 1,
                             textAlign = TextAlign.Start,
                             modifier = Modifier
                                 .padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 5.dp)
@@ -286,7 +305,7 @@ fun DashboardScreen(
                                 ),
                                 shape = RoundedCornerShape(20.dp),
                                 modifier = Modifier
-                                    .size(100.dp)
+                                    .size(90.dp)
                             ) {
                                 Column(
                                     verticalArrangement = Arrangement.Center,
@@ -300,12 +319,12 @@ fun DashboardScreen(
                                         contentDescription = "Item ${it.label}",
                                         //tint = WhiteDefault,
                                         modifier = Modifier
-                                            .size(60.dp)
+                                            .size(50.dp)
                                             .padding(8.dp)
                                     )
                                     Text(
                                         text = it.label,
-                                        fontSize = 16.sp,
+                                        fontSize = 14.sp,
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier
                                             .padding(
@@ -801,12 +820,3 @@ enum class MyNav(val label: String, val icon: ImageVector) {
 
 
 
-@Preview
-@Composable
-fun DashboardScreenPreview() {
-    val viewModel = DashboardViewModel()
-    DashboardScreen(
-        viewModel = viewModel,
-        onBackClicked = {}
-    )
-}

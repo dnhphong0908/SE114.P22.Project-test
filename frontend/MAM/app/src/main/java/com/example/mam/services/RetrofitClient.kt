@@ -1,8 +1,7 @@
 package com.example.mam.services
 
-import androidx.navigation.NavController
+import com.example.mam.data.Constant.BASE_URL
 import com.example.mam.data.UserPreferencesRepository
-import com.mapbox.common.MapboxOptions.accessToken
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
@@ -11,7 +10,6 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "http://10.45.234.225:8080/api/v1/"
 
     //tạo Retrofit client cho public
     fun createPublicRetrofit(): Retrofit {
@@ -46,5 +44,7 @@ object RetrofitClient {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
+
+
 
 }

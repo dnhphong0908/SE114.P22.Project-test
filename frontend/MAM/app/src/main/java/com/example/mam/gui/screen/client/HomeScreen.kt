@@ -36,7 +36,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
@@ -52,6 +54,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mam.R
+import com.example.mam.dto.product.CategoryResponse
+import com.example.mam.dto.product.ProductResponse
 import com.example.mam.entity.Product
 import com.example.mam.entity.ProductCategory
 import com.example.mam.gui.component.BasicOutlinedButton
@@ -69,7 +73,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
-    onItemClicked: (Product) -> Unit = {Product -> },
+    onItemClicked: (ProductResponse) -> Unit = {ProductResponse -> },
     onNotificationClicked: () -> Unit = {},
     onCartClicked: () -> Unit = {},
     onShippingClicked: () -> Unit = {},
@@ -78,21 +82,21 @@ fun HomeScreen(
     viewmodel: HomeScreenViewModel = viewModel(),
     modifier: Modifier = Modifier
 ){
-    viewmodel.loadListCategory()
-    viewmodel.loadListProduct()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val categories: List<ProductCategory> = viewmodel.getListCategory()
+    val categories: List<CategoryResponse> = viewmodel.getListCategory()
+    val productMap by viewmodel
+        .productMap
+        .collectAsState()
 
     val childListState = rememberLazyListState()
-    var rowListState = rememberLazyListState()
+    val rowListState = rememberLazyListState()
     val isRowScrolled = remember {
         derivedStateOf {
             val lastItemIndex = childListState.layoutInfo.totalItemsCount
             val firstVisibleItemIndex = childListState.firstVisibleItemIndex
             val visibleItems = childListState.layoutInfo.visibleItemsInfo
             val lastItemOffset = visibleItems.lastOrNull()?.offset ?: 0
-
 
             if (visibleItems.any { it.index == lastItemIndex -1}) {
                 lastItemIndex - 2 // Nếu item cuối cùng đang hiển thị, trả về index cuối cùng
@@ -101,16 +105,22 @@ fun HomeScreen(
             }
         }
     }
-    LaunchedEffect(childListState) {
+    LaunchedEffect(key1 = childListState) {
         snapshotFlow { childListState.firstVisibleItemIndex }
             .collect { index ->
                 // Scroll the LazyRow to the corresponding category
                 if (index >= 2 && index < categories.size + 2) { // Adjust for header and image
-                    scope.launch {
                         rowListState.animateScrollToItem(index - 2) // Adjust index for categories
-                    }
                 }
             }
+    }
+    LaunchedEffect(Unit) {
+        viewmodel.loadListCategory()
+    }
+    LaunchedEffect(categories) {
+        if(categories.isNotEmpty() && productMap.isEmpty()){
+            viewmodel.loadAllProductsFromCategories(categories)
+        }
     }
     Box(
         modifier = modifier
@@ -160,7 +170,6 @@ fun HomeScreen(
                         .padding(top = 16.dp, end = 16.dp)
                 )
             }
-
             LazyColumn(
                 state = childListState,
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -193,7 +202,6 @@ fun HomeScreen(
                     )
             )
             {
-
                 item {
                     Box(
                         contentAlignment = Alignment.Center,
@@ -229,7 +237,7 @@ fun HomeScreen(
                             Spacer(Modifier.width(5.dp))
                             BasicOutlinedButton(
                                 text = category.name,
-                                url = category.iconUrl,
+                                url = category.imageUrl,
                                 onClick = {
                                     scope.launch {
                                     val targetIndex = categories.indexOf(category)
@@ -244,7 +252,7 @@ fun HomeScreen(
                     }
                 }
                 items(categories) { category ->
-                    val products = viewmodel.getListProduct(category.id)
+                    val products = productMap[category.id] ?: emptyList()
                     Spacer(Modifier.height(70.dp))
                     ProductContainer(
                         category = category,
@@ -301,9 +309,7 @@ fun HomeScreen(
                     backgroundColor = OrangeLight,
                     foregroundColor = OrangeDefault,
                     icon = Icons.Filled.Person,
-                    onClick = { scope.launch {
-                        viewmodel.loadUser()
-                    } },
+                    onClick = onProfileClicked,
                     modifier = Modifier
                 )
             }
