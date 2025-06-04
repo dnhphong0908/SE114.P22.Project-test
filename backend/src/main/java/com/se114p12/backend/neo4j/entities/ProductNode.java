@@ -10,12 +10,12 @@ import org.springframework.data.neo4j.core.schema.Relationship;
 
 @Getter
 @Setter
-@Node("Product")
-public class Product {
+@Node("ProductNode")
+public class ProductNode {
   @Id @GeneratedValue private Long id;
 
   @Relationship(type = "BELONGS_TO")
-  private Category category;
+  private CategoryNode category;
 
   @Relationship(type = "BOUGHT_WITH")
   private List<BoughtWithRelationship> coPurchasedProducts;

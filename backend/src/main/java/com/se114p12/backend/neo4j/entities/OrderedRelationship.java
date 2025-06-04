@@ -8,8 +8,9 @@ import org.springframework.data.neo4j.core.schema.TargetNode;
 @Getter
 @Setter
 @RelationshipProperties
-public class BoughtWithRelationship {
+public class OrderedRelationship {
+
   private Long count;
 
-  @TargetNode private ProductNode product;
+  @TargetNode private Long productNodeId;
 }
