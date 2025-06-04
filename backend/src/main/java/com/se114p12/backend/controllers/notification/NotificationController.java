@@ -4,12 +4,12 @@ import com.se114p12.backend.dtos.nofitication.NotificationRequestDTO;
 import com.se114p12.backend.dtos.nofitication.NotificationResponseDTO;
 import com.se114p12.backend.services.notification.NotificationService;
 import com.se114p12.backend.util.JwtUtil;
+import com.se114p12.backend.vo.PageVO;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -24,20 +24,20 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.pushNotification(request));
     }
 
-    // @GetMapping("/subscribe")
-    // public SseEmitter subscribe() {
-    //     String username = JwtUtil.getCurrentUserCredentials(); // Lấy username/email/phone từ token
-    //     return notificationService.createEmitter(username);
-    // }
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping
+    public ResponseEntity<PageVO<NotificationResponseDTO>> getAllNotifications(Pageable pageable) {
+        pageable = pageable.isPaged() ? pageable : Pageable.unpaged();
+        PageVO<NotificationResponseDTO> notifications = notificationService.getAll(pageable);
+        return ResponseEntity.ok(notifications);
+    }
 
     @GetMapping("/me")
-    public ResponseEntity<List<NotificationResponseDTO>> getMyNotifications() {
+    public ResponseEntity<PageVO<NotificationResponseDTO>> getMyNotifications(Pageable pageable) {
+        pageable = pageable.isPaged() ? pageable : Pageable.unpaged();
         Long userId = jwtUtil.getCurrentUserId();
-        List<NotificationResponseDTO> responses = notificationService.getNotificationsByUserId(userId)
-                .stream()
-                .map(notification -> notificationService.toResponse(notification, userId))
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(responses);
+        PageVO<NotificationResponseDTO> notifications = notificationService.getNotificationsByUserId(userId, pageable);
+        return ResponseEntity.ok(notifications);
     }
 
     @PostMapping("/me/read-all")

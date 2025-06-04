@@ -28,6 +28,7 @@ public class PromotionController {
     public ResponseEntity<PageVO<PromotionResponseDTO>> getAllPromotions(
             @ParameterObject Pageable pageable,
             @Filter Specification<Promotion> specification) {
+        pageable = pageable.isPaged() ? pageable : Pageable.unpaged();
         return ResponseEntity.ok(promotionService.getAll(specification, pageable));
     }
 
