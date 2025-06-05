@@ -24,6 +24,8 @@ class BaseService(userPreferencesRepository: UserPreferencesRepository) {
         privateRetrofit.create(ProductService::class.java)
     }
 
+    val shipperService: ShipperService by lazy {
+        privateRetrofit.create(ShipperService::class.java)
     val userService: UserService by lazy {
         privateRetrofit.create(UserService::class.java)
     }

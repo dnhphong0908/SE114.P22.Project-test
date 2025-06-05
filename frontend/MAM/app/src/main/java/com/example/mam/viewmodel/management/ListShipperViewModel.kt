@@ -1,24 +1,47 @@
 package com.example.mam.viewmodel.management
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
+import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.product.CategoryResponse
+import com.example.mam.dto.shipper.ShipperResponse
 import com.example.mam.entity.Shipper
+import com.example.mam.services.BaseService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class ListShipperViewModel(): ViewModel() {
+class ListShipperViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository
+): ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _shipper = MutableStateFlow<MutableList<Shipper>>(mutableListOf())
-    val shipper: StateFlow<List<Shipper>> = _shipper
+    private val _isDeleting = MutableStateFlow(false)
+    val isDeleting: StateFlow<Boolean> = _isDeleting
 
-    private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf())
+    private val _shippers = MutableStateFlow<MutableList<ShipperResponse>>(mutableListOf())
+    val shippers: StateFlow<List<ShipperResponse>> = _shippers
+
+    private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf(
+        "Tất cả",
+        "Tên"
+    ))
     val sortingOptions: StateFlow<List<String>> = _sortingOptions
 
-    private val _selectedSortingOption = MutableStateFlow<String>("")
+    private val _selectedSortingOption = MutableStateFlow<String>(_sortingOptions.value[0])
     val selectedSortingOption: StateFlow<String> = _selectedSortingOption
+
+    private val _asc = MutableStateFlow(true)
+    val asc = _asc.asStateFlow()
 
     private val _searchQuery = MutableStateFlow<String>("")
     val searchQuery: StateFlow<String> = _searchQuery
@@ -38,11 +61,51 @@ class ListShipperViewModel(): ViewModel() {
         _searchQuery.value = query
     }
 
-    fun searchShipper() {
-        _shipper.value = _shipper.value.filter {
-            it.name.contains(searchQuery.value, ignoreCase = true) ||
-                    it.phoneNumber.contains(searchQuery.value, ignoreCase = true)}.toMutableList()
-        setSearchHistory(searchQuery.value)
+    suspend fun searchShipper() {
+        _isLoading.value = true
+        var currentPage = 0
+        val allShippers = mutableListOf<ShipperResponse>()
+
+        try {
+            Log.d("Shipper", "Bắt đầu tim kiem Shipper")
+            Log.d("Shipper", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
+
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .shipperService.getShippers(
+                        filter = "name ~~ '*${_searchQuery.value}*' or description ~~ '*${_searchQuery.value}*'",
+                        page = currentPage
+                    )
+
+                Log.d("Shipper", "Status code: ${response.code()}")
+
+                if (response.isSuccessful) {
+                    setSearchHistory(_searchQuery.value)
+                    val page = response.body()
+                    if (page != null){
+                        allShippers.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        Log.d("Category", "Lấy trang ${page.page}")
+                        _shippers.value = allShippers.toMutableList()
+
+                    }
+                    else break
+                } else {
+                    Log.d("Shipper", "Tim Shipper thất bại: ${response.errorBody()}")
+                    break // Stop loop on failure
+                }
+            }
+            _shippers.value = allShippers.toMutableList() // Update UI with all categories
+
+        } catch (e: Exception) {
+            Log.d("Shipper", "Không thể lấy Shipper: ${e.message}")
+        } finally {
+            _isLoading.value = false
+            Log.d("Shipper", "Kết thúc lấy Shipper")
+        }
     }
 
     fun setSelectedSortingOption(option: String) {
@@ -62,20 +125,131 @@ class ListShipperViewModel(): ViewModel() {
         }
     }
 
-    fun loadData() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate network call
-                _shipper.value = mutableListOf(
-                    Shipper("Nguyễn Văn A", "0123456789", "59-A1 999.99", "1"),
-                    Shipper("Trần Thị B", "0987654321", "59-A1 999.99", "2"),
-                    Shipper("Lê Văn C", "0912345678", "59-A1 999.99", "3")
-                )
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
+    suspend fun loadData() {
+        _isLoading.value = true
+        var currentPage = 0
+        val allShippers = mutableListOf<ShipperResponse>()
+
+        try {
+            Log.d("Shipper", "Bắt đầu lấy Shipper")
+            Log.d("Shipper", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
+
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .shipperService.getShippers(filter = "", page = currentPage)
+
+                Log.d("Shipper", "Status code: ${response.code()}")
+
+                if (response.isSuccessful) {
+                    val page = response.body()
+                    if (page != null){
+                        allShippers.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        Log.d("Shipper", "Lấy trang ${page.page}")
+                        _shippers.value = allShippers.toMutableList()
+
+                    }
+                    else break
+                } else {
+                    Log.d("Shipper", "Lấy Shipper thất bại: ${response.errorBody()}")
+                    break // Stop loop on failure
+                }
+            }
+            _shippers.value = allShippers.toMutableList() // Update UI with all categories
+
+        } catch (e: Exception) {
+            Log.d("Shipper", "Không thể lấy Shipper: ${e.message}")
+        } finally {
+            _isLoading.value = false
+            Log.d("Shipper", "Kết thúc lấy Shipper")
+        }
+    }
+
+    suspend fun sortCategory(){
+        _isLoading.value = true
+        var currentPage = 0
+        val allShippers = mutableListOf<ShipperResponse>()
+        val sortOption = when(_selectedSortingOption.value){
+            "Tên" -> "name"
+            else -> "id"
+        }
+        try {
+            Log.d("Shipper", "Bắt đầu lấy Shipper")
+            Log.d("Shipper", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
+
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .shipperService.getShippers(
+                        filter = "",
+                        page = currentPage,
+                        sort = listOf("${sortOption}," + if (_asc.value) "asc" else "desc")
+                    )
+
+                Log.d("Shipper", "Status code: ${response.code()}")
+
+                if (response.isSuccessful) {
+                    val page = response.body()
+                    if (page != null){
+                        allShippers.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        Log.d("Shipper", "Lấy trang ${page.page}")
+                        _shippers.value = allShippers.toMutableList()
+
+                    }
+                    else break
+                } else {
+                    Log.d("Shipper", "Lấy Shipper thất bại: ${response.errorBody()}")
+                    break // Stop loop on failure
+                }
+            }
+
+            _shippers.value = allShippers.toMutableList() // Update UI with all categories
+
+        } catch (e: Exception) {
+            Log.d("Shipper", "Không thể lấy Shipper: ${e.message}")
+        } finally {
+            _isLoading.value = false
+            Log.d("Shipper", "Kết thúc lấy Shipper")
+        }
+    }
+
+    fun setASC(){
+        _asc.value = !_asc.value
+    }
+
+    suspend fun deleteShipper(id: Long): Int{
+        _isDeleting.value = true
+        try{
+            Log.d("Shipper", "Bắt đầu xóa Shipper")
+            Log.d("Shipper", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
+            val response = BaseService(userPreferencesRepository).shipperService.deleteShipper(id)
+            Log.d("Shipper", "Status code: ${response.code()}")
+            if (response.isSuccessful) {
+                _shippers.value = _shippers.value.filterNot { it.id == id }.toMutableList()
+                return 1
+            } else {
+                Log.d("Shipper", "Xóa Shipper thất bại: ${response.errorBody()}")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.d("Category", "Không thể xóa Danh mục: ${e.message}")
+            return -1
+        } finally {
+            _isDeleting.value = false
+            Log.d("Category", "Kết thúc xóa Danh mục")
+        }
+    }
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                ListCategoryViewModel(application.userPreferencesRepository)
             }
         }
     }
