@@ -4,6 +4,7 @@ import com.se114p12.backend.dtos.stats.RevenueStatsResponseDTO;
 import com.se114p12.backend.entities.order.Order;
 import com.se114p12.backend.repositories.order.OrderRepository;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.Year;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -58,6 +59,18 @@ public class StatsServiceImpl implements StatsService {
             orders.stream()
                 .collect(
                     Collectors.groupingBy(order -> Year.from(order.getCreatedAt()).toString()));
+        break;
+      case "quarter":
+        groupedOrders =
+            orders.stream()
+                .collect(
+                    Collectors.groupingBy(
+                        order -> {
+                          LocalDate date = LocalDate.from(order.getCreatedAt());
+                          int month = date.getMonthValue();
+                          int quarter = (month - 1) / 3 + 1;
+                          return "" + date.getYear() + "-Q" + quarter;
+                        }));
         break;
 
       default:
