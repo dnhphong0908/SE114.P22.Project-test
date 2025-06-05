@@ -4,7 +4,7 @@ import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.dtos.product.CategoryRequestDTO;
 import com.se114p12.backend.dtos.product.CategoryResponseDTO;
 import com.se114p12.backend.entities.product.ProductCategory;
-import com.se114p12.backend.services.product.CategoryServiceImpl;
+import com.se114p12.backend.services.product.CategoryService;
 import com.se114p12.backend.vo.PageVO;
 import com.turkraft.springfilter.boot.Filter;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,7 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequiredArgsConstructor
 public class ProductCategoryController {
-  private final CategoryServiceImpl productCategoryService;
+  private final CategoryService productCategoryService;
 
   @Operation(
       summary = "Get all product categories",

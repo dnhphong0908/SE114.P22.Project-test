@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 public interface OrderService {
     PageVO<OrderResponseDTO> getAll(Specification<Order> specification, Pageable pageable);
     OrderResponseDTO getById(Long id);
+    PageVO<OrderResponseDTO> getOrdersByUserId(Long userId, Specification<Order> specification, Pageable pageable);
     OrderResponseDTO create(OrderRequestDTO orderRequestDTO);
     OrderResponseDTO update(Long id, OrderRequestDTO orderRequestDTO);
     void cancelOrder(Long id);

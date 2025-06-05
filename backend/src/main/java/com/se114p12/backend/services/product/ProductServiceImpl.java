@@ -13,6 +13,7 @@ import com.se114p12.backend.vo.PageVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -26,6 +27,24 @@ public class ProductServiceImpl implements ProductService {
     private final ProductCategoryRepository productCategoryRepository;
     private final StorageService storageService;
     private final ProductMapper productMapper;
+
+    @Override
+    public PageVO<ProductResponseDTO> getAllProducts(Specification<Product> specification, Pageable pageable) {
+        Page<Product> productPage = productRepository.findAll(specification ,pageable);
+        List<ProductResponseDTO> productDTOs = productPage.getContent()
+                .stream()
+                .map(productMapper::entityToResponse)
+                .toList();
+
+        return PageVO.<ProductResponseDTO>builder()
+                .content(productDTOs)
+                .page(productPage.getNumber())
+                .size(productPage.getSize())
+                .totalElements(productPage.getTotalElements())
+                .totalPages(productPage.getTotalPages())
+                .numberOfElements(productPage.getNumberOfElements())
+                .build();
+    }
 
     @Override
     public PageVO<ProductResponseDTO> getProductsByCategory(Long categoryId, Pageable pageable) {
