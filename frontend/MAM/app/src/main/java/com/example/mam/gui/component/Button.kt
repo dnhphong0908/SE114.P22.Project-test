@@ -79,6 +79,7 @@ import com.example.mam.ui.theme.Transparent
 import com.example.mam.ui.theme.WhiteDefault
 import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
+import com.example.mam.R
 import com.example.mam.dto.product.ProductResponse
 
 @Composable
@@ -503,6 +504,7 @@ fun ProductClientListItem(
                 model = item.imageUrl, // Đây là URL từ API
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.ic_mam_logo),
                 modifier = Modifier
                     .size(80.dp)
                     .clip(RoundedCornerShape(8.dp))
