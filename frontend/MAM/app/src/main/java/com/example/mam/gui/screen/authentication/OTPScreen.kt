@@ -59,8 +59,7 @@ import com.plcoding.composeotpinput.OtpViewModel
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun OTPScreen(
-    focusRequester: List<FocusRequester> = List(4) { FocusRequester() },
-    forgetPasswordViewModel: ForgetPasswordViewModel = viewModel(),
+    focusRequester: List<FocusRequester> = List(8) { FocusRequester() },
     viewModel: OtpViewModel = viewModel(),
     onAction: (OtpAction) -> Unit = viewModel::onAction,
     onVerifyClicked: () -> Unit = {},
@@ -68,16 +67,12 @@ fun OTPScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val email = viewModel.email.collectAsStateWithLifecycle().value
 
     // Quản lý focus và bàn phím
     val focusManager = LocalFocusManager.current
     val keyboardManager = LocalSoftwareKeyboardController.current
 
-    val phoneNumber by forgetPasswordViewModel.phoneNumber.collectAsState()
-
-    LaunchedEffect(Unit) {
-        forgetPasswordViewModel.fetchPhoneNumber()
-    }
 
     // Tự động focus vào ô tương ứng
     LaunchedEffect(state.focusedIndex) {
@@ -171,7 +166,7 @@ fun OTPScreen(
             ) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "Chúng tôi sẽ gửi mã OTP đến \nsố điện thoại của bạn",
+                    text = "Chúng tôi sẽ gửi mã OTP đến \nemail của bạn",
                     style = TextStyle(
                         fontSize = Variables.BodySizeMedium,
                         lineHeight = 22.4.sp,
@@ -181,7 +176,7 @@ fun OTPScreen(
                     )
                 )
                 Text(
-                    text = phoneNumber,
+                    text = email,
                    // text = viewModel.phoneNumber,
                     style = TextStyle(
                         fontSize = Variables.BodySizeMedium,

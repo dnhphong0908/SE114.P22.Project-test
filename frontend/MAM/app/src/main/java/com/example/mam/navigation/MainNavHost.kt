@@ -79,6 +79,7 @@ import com.example.mam.viewmodel.management.ManagePromotionViewModel
 import com.example.mam.viewmodel.management.ManageShipperViewModel
 import com.example.mam.viewmodel.management.ManageUserViewModel
 import com.google.accompanist.navigation.animation.AnimatedNavHost
+import com.plcoding.composeotpinput.OtpViewModel
 import com.yourapp.ui.notifications.NotificationScreen
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -199,31 +200,52 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val forgetPasswordVM: ForgetPasswordViewModel = viewModel(backStackEntry)
+                val forgetPasswordVM: ForgetPasswordViewModel = viewModel(backStackEntry, factory = ForgetPasswordViewModel.Factory)
                 ForgetPasswordScreen(
-                    onChangeClicked = {
-
+                    onChangeClicked = { email, password ->
+                        navController.navigate("${AuthenticationScreen.OTP.name}/$email/$password")
                     },
                     onCloseClicked = {
                         navController.popBackStack()
                     },
+                    isForgot = true,
                 )
             }
             composable(
-                route = AuthenticationScreen.OTP.name,
+                route = "ChangePassword",
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
+            ) { backStackEntry ->
+                val forgetPasswordVM: ForgetPasswordViewModel = viewModel(backStackEntry, factory = ForgetPasswordViewModel.Factory)
+                ForgetPasswordScreen(
+                    isForgot = false,
+                    onCloseClicked = {
+                        navController.popBackStack()
+                    },
+                    viewModel = forgetPasswordVM,
+                )
+            }
+            composable(
+                route = "${AuthenticationScreen.OTP.name}/{email}/{password}",
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) {
-            OTPScreen(
-                onVerifyClicked = {
-
-                },
-                onCloseClicked = {
-                    navController.popBackStack()
-                }
-            )
+                val viewModel: OtpViewModel = viewModel(factory = OtpViewModel.Factory)
+                OTPScreen(
+                    onVerifyClicked = {
+                        navController.navigate(route = AuthenticationScreen.Start.name) {
+                            popUpTo("Profile") { inclusive = true }
+                        }
+                    },
+                    onCloseClicked = {
+                        navController.popBackStack()
+                    },
+                    viewModel = viewModel,
+                )
             }
         }
         navigation(
@@ -277,7 +299,9 @@ fun MainNavHost(
                         navController.navigate(route = AuthenticationScreen.Start.name) {
                         popUpTo("Profile") { inclusive = true }
                     }},
-                    onChangePasswordClicked = { },
+                    onChangePasswordClicked = {
+                        navController.navigate("ChangePassword")
+                    },
                     viewModel = viewModel
                 )
             }

@@ -88,7 +88,7 @@ fun ProductContainer(
         Spacer(modifier = Modifier.height(20.dp))
 
         AsyncImage(
-            model = category.imageUrl, // Đây là URL từ API
+            model = category.getRealURL(), // Đây là URL từ API
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier

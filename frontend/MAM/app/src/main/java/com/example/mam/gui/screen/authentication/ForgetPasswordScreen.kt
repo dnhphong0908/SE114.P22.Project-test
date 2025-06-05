@@ -1,5 +1,6 @@
 package com.example.mam.gui.screen.authentication
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation.Companion.keyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Text
@@ -20,8 +22,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -40,24 +44,24 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.authentication.ForgetPasswordViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun ForgetPasswordScreen(
-    onChangeClicked: () -> Unit = {},
+    onChangeClicked: (String,String) -> Unit = { _,_ -> },
     onCloseClicked: () -> Unit = {},
+    isForgot: Boolean = true,
     viewModel: ForgetPasswordViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
-    val forgetPasswordState: ForgetPasswordRequest by viewModel.forgetPasswordState.collectAsStateWithLifecycle()
-    val repeatPassword: String by viewModel.repeatPassword.collectAsStateWithLifecycle()
-    val forgetPasswordViewModel: ForgetPasswordViewModel = viewModel()
 
-    val phoneNumber by forgetPasswordViewModel.phoneNumber.collectAsState()
+    val email= viewModel.email.collectAsStateWithLifecycle().value
+    val repeatPassword= viewModel.repeatPassword.collectAsStateWithLifecycle().value
+    val password= viewModel.password.collectAsStateWithLifecycle().value
+    val oldPassword = viewModel.oldPassword.collectAsStateWithLifecycle().value
 
-    // Gọi hàm lấy số điện thoại
-    LaunchedEffect(Unit) {
-        viewModel.fetchPhoneNumber()
-    }
+    val context = LocalContext.current
+    val scope =  rememberCoroutineScope()
 
     BoxWithConstraints(
         modifier = Modifier
@@ -129,11 +133,25 @@ fun ForgetPasswordScreen(
                         .wrapContentHeight()
                 ) {
                     Spacer(modifier = Modifier.height(10.dp))
+                    EditFieldType1(
+                        label = if(isForgot)"Email" else "Mật khẩu cũ",
+                        errorLabel = if (isForgot && !viewModel.isEmailValid()) "Email không hợp lệ" else "",
+                        value = if(isForgot) email else oldPassword,
+                        backgroundColor = WhiteDefault,
+                        keyboardOptions = KeyboardOptions.Default.copy(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        onValueChange = {
+                            if(isForgot) viewModel.setEmail(it)
+                            else viewModel.setOldPassword(it)},
+                        modifier = Modifier.fillMaxWidth()
+                    )
                     PasswordFieldType1(
                         label = "Mật khẩu mới",
                         subLabel = "Mật khẩu có ít nhất 6 chữ số",
                         errorLabel = if (!viewModel.isPasswordValid()) "Mật khẩu không hợp lệ!" else "",
-                        value = forgetPasswordState.newPassword,
+                        value = password,
                         backgroundColor = WhiteDefault,
                         onValueChange = { viewModel.setNewPassword(it) },
                         modifier = Modifier.fillMaxWidth()
@@ -149,8 +167,46 @@ fun ForgetPasswordScreen(
                     )
                     OuterShadowFilledButton(
                         text = "Xác nhận",
-                        isEnable = viewModel.isChangeButtonEnable(),
-                        onClick = onChangeClicked,
+                        isEnable = viewModel.isChangeButtonEnable(isForgot),
+                        onClick = {
+                            if (isForgot) {
+                                scope.launch{
+                                    if( viewModel.sendOTP() == 1) {
+                                        Toast.makeText(
+                                            context,
+                                            "Gửi mã OTP thành công",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        onChangeClicked(email, password)
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Gửi mã OTP thất bại, vui lòng thử lại sau",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+
+                            } else {
+                                scope.launch {
+                                    if(viewModel.changePassword() == 1) {
+                                        Toast.makeText(
+                                            context,
+                                            "Đổi mật khẩu thành công",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        onCloseClicked()
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Đổi mật khẩu thất bại, vui lòng thử lại sau",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            }
+
+                        },
                         modifier = Modifier
                             .fillMaxWidth(0.5f)
                             .height(40.dp)
