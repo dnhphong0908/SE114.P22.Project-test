@@ -94,7 +94,7 @@ class OtpViewModel(
                     focusedIndex = action.index
                 ) }
             }
-            is OtpAction.OnEnterNumber -> {
+            is OtpAction.OnEnterCharacter -> {
                 enterNumber(action.number, action.index)
             }
             OtpAction.OnKeyboardBack -> {
@@ -113,7 +113,7 @@ class OtpViewModel(
         }
     }
 
-    private fun enterNumber(number: Int?, index: Int) {
+    private fun enterNumber(number: String?, index: Int) {
         val newCode = state.value.code.mapIndexed { currentIndex, currentNumber ->
             if(currentIndex == index) {
                 number
@@ -143,14 +143,14 @@ class OtpViewModel(
     }
 
     private fun getNextFocusedTextFieldIndex(
-        currentCode: List<Int?>,
+        currentCode: List<String?>,
         currentFocusedIndex: Int?
     ): Int? {
         if(currentFocusedIndex == null) {
             return null
         }
 
-        if(currentFocusedIndex == 7) {
+        if(currentFocusedIndex == 5) {
             return currentFocusedIndex
         }
 
@@ -161,7 +161,7 @@ class OtpViewModel(
     }
 
     private fun getFirstEmptyFieldIndexAfterFocusedIndex(
-        code: List<Int?>,
+        code: List<String?>,
         currentFocusedIndex: Int
     ): Int {
         code.forEachIndexed { index, number ->
