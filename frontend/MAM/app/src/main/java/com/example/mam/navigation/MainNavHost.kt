@@ -200,7 +200,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val forgetPasswordVM: ForgetPasswordViewModel = viewModel(backStackEntry, factory = ForgetPasswordViewModel.Factory)
+                val forgetPasswordVM: ForgetPasswordViewModel = viewModel( factory = ForgetPasswordViewModel.Factory)
                 ForgetPasswordScreen(
                     onChangeClicked = { email, password ->
                         navController.navigate("${AuthenticationScreen.OTP.name}/$email/$password")
@@ -208,6 +208,7 @@ fun MainNavHost(
                     onCloseClicked = {
                         navController.popBackStack()
                     },
+                    viewModel = forgetPasswordVM,
                     isForgot = true,
                 )
             }
@@ -218,7 +219,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val forgetPasswordVM: ForgetPasswordViewModel = viewModel(backStackEntry, factory = ForgetPasswordViewModel.Factory)
+                val forgetPasswordVM: ForgetPasswordViewModel = viewModel( factory = ForgetPasswordViewModel.Factory)
                 ForgetPasswordScreen(
                     isForgot = false,
                     onCloseClicked = {
@@ -229,16 +230,18 @@ fun MainNavHost(
             }
             composable(
                 route = "${AuthenticationScreen.OTP.name}/{email}/{password}",
+                arguments = listOf(navArgument("email") { type = NavType.StringType },
+                                   navArgument("password") { type = NavType.StringType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
-            ) {
-                val viewModel: OtpViewModel = viewModel(factory = OtpViewModel.Factory)
+            ) {backStackEntry ->
+                val viewModel: OtpViewModel = viewModel(backStackEntry,factory = OtpViewModel.Factory)
                 OTPScreen(
                     onVerifyClicked = {
                         navController.navigate(route = AuthenticationScreen.Start.name) {
-                            popUpTo("Profile") { inclusive = true }
+                            popUpTo(AuthenticationScreen.OTP.name) { inclusive = true }
                         }
                     },
                     onCloseClicked = {

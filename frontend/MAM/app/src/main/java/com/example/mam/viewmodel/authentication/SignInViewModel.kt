@@ -68,7 +68,7 @@ class SignInViewModel(
                 Log.d("LOGIN", "DSAccessToken: ${accessToken.first()}")
                 Log.d("LOGIN", "DSRefreshToken: ${refreshToken.first()}")
                 val me = BaseService(userPreferencesRepository).authPrivateService.getUserInfo().body()!!
-                return if (me.role.id.toInt() == 1) 1
+                return if (me.role.name == "ADMIN") 1
                 else 2
             }
             else{

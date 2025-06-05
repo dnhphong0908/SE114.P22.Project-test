@@ -26,7 +26,7 @@ interface AuthPublicService {
     suspend fun verifyOtp(@Body request: VerifyOTPRequest): Response<VerifyOTPResponse>
     @POST("auth/refresh")
     suspend fun refreshToken(@Body request: RefreshTokenRequest): Response<AuthResponse>
-    @POST("auth/forget-password")
+    @POST("auth/forgot-password")
     suspend fun forgetPassword(@Body request: ForgetPasswordRequest): Response<Void>
     @GET("metadata")
     suspend fun getMetadata(@Query("types") types: List<String>?): Response<Map<String, List<String>>>

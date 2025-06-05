@@ -526,7 +526,7 @@ fun newOtpInputField(
                 color = BrownDefault
             ),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
+                keyboardType = KeyboardType.Ascii,
                 imeAction = ImeAction.Next),
             modifier = modifier
                 .focusRequester(focusRequester)

@@ -12,6 +12,7 @@ import com.example.mam.MAMApplication
 import com.example.mam.data.Constant
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.authentication.ForgetPasswordRequest
+import com.example.mam.dto.authentication.SendOTPRequest
 import com.example.mam.dto.authentication.VerifyOTPRequest
 import com.example.mam.services.BaseService
 import com.example.mam.viewmodel.authentication.otp.OtpAction
@@ -39,9 +40,41 @@ class OtpViewModel(
 
     private val _password = MutableStateFlow<String>(savedStateHandle.get<String>("password") ?: "")
 
+    suspend fun reSendOTP(): Int {
+        try {
+            val metadata = BaseService(userPreferencesRepository).authPublicService.getMetadata(listOf(
+                Constant.metadata.OTP_ACTION.name
+            ))
+            Log.d("OtpViewModel", "Get metadata: ${metadata.code()}")
+            val action = metadata.body()?.get(Constant.metadata.OTP_ACTION.name)?.get(0) ?: ""
+            if (!metadata.isSuccessful) {
+                Log.d("OtpViewModel", "Error getting metadata: ${metadata.errorBody()?.string()}")
+                return 0
+            }
+            Log.d("OtpViewModel", "Metadata: $action")
+            val request = SendOTPRequest(
+                _email.value,
+                action
+            )
+            Log.d("ForgetPasswordViewModel", "Sending OTP with request: ${request.email}, ${request.action}")
+            val respond = BaseService(userPreferencesRepository).authPublicService.sendOtp(
+                request
+            )
+            Log.d("ForgetPasswordViewModel", "Send OTP response: ${respond.code()}")
+            return if (respond.isSuccessful) {
+                Log.d("ForgetPasswordViewModel", "OTP sent successfully")
+                1
+            } else {
+                Log.d("ForgetPasswordViewModel", "Failed to send OTP: ${respond.errorBody()?.string()}")
+                0
+            }
+        } catch (e: Exception) {
+            Log.d("ForgetPasswordViewModel", "Error sending OTP: ${e.message}")
+            return 0
+        }
+    }
 
-
-    suspend fun verifyOtp(otp: String): Int {
+    suspend fun verifyOtp(): Int {
         try {
             val metadata = BaseService(userPreferencesRepository).authPublicService.getMetadata(listOf(
                 Constant.metadata.OTP_ACTION.name
@@ -53,7 +86,7 @@ class OtpViewModel(
             }
             Log.d("OtpViewModel", "Metadata: ${metadata.body()?.get(Constant.metadata.OTP_ACTION.name)?.get(0) ?: ""}")
             val otpRequest = VerifyOTPRequest(
-                otp = otp,
+                otp = otp.value,
                 email = _email.value,
                 action = metadata.body()?.get(Constant.metadata.OTP_ACTION.name)?.get(0) ?: ""
             )
@@ -62,9 +95,11 @@ class OtpViewModel(
             Log.d("OtpViewModel", "Verify OTP response: ${otpResponse.code()}")
             if (otpResponse.isSuccessful) {
                 val code = otpResponse.body()?.code ?: return 0
+                Log.d("OtpViewModel", "OTP verified successfully, code: $code")
                 val request = ForgetPasswordRequest(
                     code, _password.value
                 )
+                Log.d("OtpViewModel", "Changing password with request: ${request.code}, ${request.newPassword}")
                 val response = BaseService(userPreferencesRepository).authPublicService.forgetPassword(request)
                 Log.d("OtpViewModel", "Forget password response: ${response.code()}")
                 if (response.isSuccessful) {
@@ -131,10 +166,7 @@ class OtpViewModel(
                     currentCode = it.code,
                     currentFocusedIndex = it.focusedIndex
                 )
-            },
-            isValid = if(newCode.none { it == null }) {
-                newCode.joinToString("") == VALID_OTP_CODE
-            } else null
+            }
         ) }
     }
 

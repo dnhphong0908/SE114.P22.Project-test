@@ -221,6 +221,7 @@ fun SignUpScreen(
                                         "Đăng ký thành công! Vui lòng xác thực qua mail để tiếp tục",
                                         Toast.LENGTH_LONG
                                     ).show()
+                                    onSignInClicked()
                                 }
                                 else {
                                     Toast.makeText(
@@ -230,7 +231,6 @@ fun SignUpScreen(
                                     ).show()
                                 }
                             }
-                            onSignInClicked()
                         },
                         modifier = Modifier
                             .width(182.dp)

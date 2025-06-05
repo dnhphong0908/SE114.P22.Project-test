@@ -217,9 +217,3 @@ fun ForgetPasswordScreen(
         }
     }
 }
-
-@Preview(showBackground = true)
-@Composable
-fun PreviewChangePasswordScreen() {
-    ForgetPasswordScreen()
-}
