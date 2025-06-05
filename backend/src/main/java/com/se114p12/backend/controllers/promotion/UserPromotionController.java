@@ -2,11 +2,20 @@ package com.se114p12.backend.controllers.promotion;
 
 import com.se114p12.backend.entities.promotion.Promotion;
 import com.se114p12.backend.services.promotion.UserPromotionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "User Promotion Module", description = "Endpoints for managing user-specific promotions")
 @RestController
 @RequestMapping("/api/v1/user-promotions")
 @RequiredArgsConstructor
@@ -14,18 +23,44 @@ public class UserPromotionController {
 
     private final UserPromotionService userPromotionService;
 
+    @Operation(summary = "Get available promotions for a user",
+            description = "Returns all unused and valid promotions for the given user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved available promotions",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = Promotion.class))))
+    })
     @GetMapping("/available")
-    public List<Promotion> getAvailablePromotions(@RequestParam Long userId) {
+    public List<Promotion> getAvailablePromotions(
+            @Parameter(description = "User ID") @RequestParam Long userId
+    ) {
         return userPromotionService.getAvailablePromotions(userId);
     }
 
+    @Operation(summary = "Get promotions applicable for an order",
+            description = "Returns promotions that a user can use for a given order value")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved applicable promotions",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = Promotion.class))))
+    })
     @GetMapping("/available-for-order")
-    public List<Promotion> getAvailablePromotionsForOrder(@RequestParam Long userId, @RequestParam Double orderValue) {
+    public List<Promotion> getAvailablePromotionsForOrder(
+            @Parameter(description = "User ID") @RequestParam Long userId,
+            @Parameter(description = "Order total value") @RequestParam Double orderValue
+    ) {
         return userPromotionService.getAvailablePromotionsForOrder(userId, orderValue);
     }
 
+    @Operation(summary = "Mark promotion as used",
+            description = "Marks a promotion as used by the user (e.g., after a successful order)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Promotion marked as used successfully", content = @Content),
+            @ApiResponse(responseCode = "400", description = "Invalid request or promotion not applicable", content = @Content)
+    })
     @PostMapping("/use")
-    public void markPromotionAsUsed(@RequestParam Long userId, @RequestParam Long promotionId) {
+    public void markPromotionAsUsed(
+            @Parameter(description = "User ID") @RequestParam Long userId,
+            @Parameter(description = "Promotion ID") @RequestParam Long promotionId
+    ) {
         userPromotionService.markPromotionAsUsed(userId, promotionId);
     }
 }

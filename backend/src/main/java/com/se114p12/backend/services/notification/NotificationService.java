@@ -5,11 +5,12 @@ import com.se114p12.backend.dtos.nofitication.NotificationResponseDTO;
 import com.se114p12.backend.entities.notification.Notification;
 import com.se114p12.backend.vo.PageVO;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 public interface NotificationService {
     NotificationResponseDTO pushNotification(NotificationRequestDTO request);
-    PageVO<NotificationResponseDTO> getAll(Pageable pageable);
-    PageVO<NotificationResponseDTO> getNotificationsByUserId(Long userId, Pageable pageable);
+    PageVO<NotificationResponseDTO> getAll(Specification<Notification> specification, Pageable pageable);
+    PageVO<NotificationResponseDTO> getNotificationsByUserId(Long userId, Specification<Notification> specification, Pageable pageable);
     void markAsRead(Long userId, Long notificationId);
     void markAllAsRead(Long userId);
     void deleteNotification(Long notificationId);

@@ -1,4 +1,4 @@
-package com.se114p12.backend.controllers;
+package com.se114p12.backend.controllers.role;
 
 import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.dtos.role.RoleRequestDTO;

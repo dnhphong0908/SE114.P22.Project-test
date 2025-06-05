@@ -66,6 +66,19 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public PageVO<OrderResponseDTO> getOrdersByUserId(Long userId, Specification<Order> specification, Pageable pageable) {
+        Page<Order> orders = orderRepository.findByUser_Id(userId, specification, pageable);
+        return PageVO.<OrderResponseDTO>builder()
+                .content(orders.getContent().stream().map(orderMapper::entityToResponseDTO).toList())
+                .totalElements(orders.getTotalElements())
+                .totalPages(orders.getTotalPages())
+                .numberOfElements(orders.getNumberOfElements())
+                .page(orders.getNumber())
+                .size(orders.getSize())
+                .build();
+    }
+
+    @Override
     public OrderResponseDTO create(OrderRequestDTO orderRequestDTO) {
         Long currentUserId = jwtUtil.getCurrentUserId();
         Cart cart = cartRepository.findByUserId(currentUserId).orElseThrow(() -> new ResourceNotFoundException("Cart not found"));

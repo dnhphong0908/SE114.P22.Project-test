@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -32,7 +33,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserRepository userRepository;
     private final EmitterRepository emitterRepository;
     private final NotificationUserRepository notificationUserRepository;
-    private final NotificationMapper mapper;
+    private final NotificationMapper notificationMapper;
 
     @Override
     public NotificationResponseDTO pushNotification(NotificationRequestDTO request) {
@@ -73,8 +74,8 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public PageVO<NotificationResponseDTO> getAll(Pageable pageable) {
-        Page<Notification> page = notificationRepository.findAll(pageable);
+    public PageVO<NotificationResponseDTO> getAll(Specification<Notification> specification, Pageable pageable) {
+        Page<Notification> page = notificationRepository.findAll(specification, pageable);
 
         List<NotificationResponseDTO> content = page
                 .map(notification -> toResponse(notification, null))
@@ -92,13 +93,13 @@ public class NotificationServiceImpl implements NotificationService {
 
 
     @Override
-    public PageVO<NotificationResponseDTO> getNotificationsByUserId(Long userId, Pageable pageable) {
+    public PageVO<NotificationResponseDTO> getNotificationsByUserId(Long userId, Specification<Notification> specification, Pageable pageable) {
         List<Long> notificationIds = notificationUserRepository.findByUserId(userId)
                 .stream()
                 .map(nu -> nu.getNotification().getId())
                 .toList();
 
-        Page<Notification> page = notificationRepository.findByIdIn(notificationIds, pageable);
+        Page<Notification> page = notificationRepository.findByIdIn(notificationIds, specification, pageable);
 
         List<NotificationResponseDTO> content = page
                 .map(notification -> toResponse(notification, userId))
@@ -113,7 +114,6 @@ public class NotificationServiceImpl implements NotificationService {
                 .content(content)
                 .build();
     }
-
 
     @Override
     public void markAsRead(Long userId, Long notificationId) {
@@ -147,7 +147,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public NotificationResponseDTO toResponse(Notification notification, Long userId) {
-        NotificationResponseDTO response = mapper.toDTO(notification);
+        NotificationResponseDTO response = notificationMapper.toDTO(notification);
         response.setUserId(userId);
         return response;
     }
