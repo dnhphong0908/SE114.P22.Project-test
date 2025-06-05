@@ -17,12 +17,14 @@ public class RecommendServiceImpl implements RecommendService {
   private final GeneralRecommendation generalRecommendation;
   private final JwtUtil jwtUtil;
 
+  // Injecting the recommendation strategies
+  private final HistoryBaseRecommendation historyBaseRecommendation;
+  private final CategoryBaseRecommendation categoryBaseRecommendation;
+  private final CoPurchaseRecommendation coPurchaseRecommendation;
+
   // register recommendation strategies
   @PostConstruct
-  private void init(
-      HistoryBaseRecommendation historyBaseRecommendation,
-      CategoryBaseRecommendation categoryBaseRecommendation,
-      CoPurchaseRecommendation coPurchaseRecommendation) {
+  private void init() {
     recommendationStrategies.add(historyBaseRecommendation);
     recommendationStrategies.add(categoryBaseRecommendation);
     recommendationStrategies.add(coPurchaseRecommendation);

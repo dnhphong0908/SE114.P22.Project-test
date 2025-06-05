@@ -8,6 +8,18 @@ bootJar {
     mainClass = 'com.se114p12.backend.BackendApplication'
 }
 
+// // fix neo4j issue with Java 23
+bootRun {
+  jvmArgs += [
+    "--add-opens=java.base/java.lang=ALL-UNNAMED"
+  ]
+}
+
+tasks.named("test") {
+    jvmArgs += "--add-opens=java.base/java.lang=ALL-UNNAMED"
+}
+
+
 group = 'com.se114-p12'
 version = '0.0.1-SNAPSHOT'
 
