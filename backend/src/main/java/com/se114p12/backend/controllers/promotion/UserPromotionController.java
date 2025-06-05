@@ -1,5 +1,6 @@
 package com.se114p12.backend.controllers.promotion;
 
+import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.entities.promotion.Promotion;
 import com.se114p12.backend.services.promotion.UserPromotionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +30,7 @@ public class UserPromotionController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved available promotions",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = Promotion.class))))
     })
+    @ErrorResponse
     @GetMapping("/available")
     public List<Promotion> getAvailablePromotions(
             @Parameter(description = "User ID") @RequestParam Long userId
@@ -42,6 +44,7 @@ public class UserPromotionController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved applicable promotions",
                     content = @Content(array = @ArraySchema(schema = @Schema(implementation = Promotion.class))))
     })
+    @ErrorResponse
     @GetMapping("/available-for-order")
     public List<Promotion> getAvailablePromotionsForOrder(
             @Parameter(description = "User ID") @RequestParam Long userId,
@@ -56,6 +59,7 @@ public class UserPromotionController {
             @ApiResponse(responseCode = "200", description = "Promotion marked as used successfully", content = @Content),
             @ApiResponse(responseCode = "400", description = "Invalid request or promotion not applicable", content = @Content)
     })
+    @ErrorResponse
     @PostMapping("/use")
     public void markPromotionAsUsed(
             @Parameter(description = "User ID") @RequestParam Long userId,

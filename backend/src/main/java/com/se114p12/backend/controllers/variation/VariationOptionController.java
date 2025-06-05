@@ -1,5 +1,6 @@
 package com.se114p12.backend.controllers.variation;
 
+import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.dtos.variation.VariationOptionRequestDTO;
 import com.se114p12.backend.dtos.variation.VariationOptionResponseDTO;
 import com.se114p12.backend.services.variation.VariationOptionService;
@@ -32,6 +33,7 @@ public class VariationOptionController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved variation options",
                     content = @Content(schema = @Schema(implementation = PageVO.class)))
     })
+    @ErrorResponse
     @GetMapping
     public ResponseEntity<PageVO<VariationOptionResponseDTO>> getByVariationId(
             @Parameter(description = "ID of the variation", required = true)
@@ -46,6 +48,7 @@ public class VariationOptionController {
             @ApiResponse(responseCode = "200", description = "Variation option created successfully",
                     content = @Content(schema = @Schema(implementation = VariationOptionResponseDTO.class)))
     })
+    @ErrorResponse
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<VariationOptionResponseDTO> create(
@@ -58,6 +61,7 @@ public class VariationOptionController {
             @ApiResponse(responseCode = "200", description = "Variation option updated successfully",
                     content = @Content(schema = @Schema(implementation = VariationOptionResponseDTO.class)))
     })
+    @ErrorResponse
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<VariationOptionResponseDTO> update(
@@ -71,6 +75,7 @@ public class VariationOptionController {
             @ApiResponse(responseCode = "204", description = "Variation option deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Variation option not found")
     })
+    @ErrorResponse
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(

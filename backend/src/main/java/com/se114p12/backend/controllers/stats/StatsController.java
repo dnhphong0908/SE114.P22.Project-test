@@ -1,5 +1,6 @@
 package com.se114p12.backend.controllers.stats;
 
+import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.stats.RevenueStatsResponseDTO;
 import com.se114p12.backend.services.stats.StatsService;
@@ -28,6 +29,7 @@ public class StatsController {
 
   @Operation(summary = "Get user statistics", description = "Returns summary data related to users.")
   @ApiResponse(responseCode = "501", description = "Not implemented yet")
+  @ErrorResponse
   @GetMapping("/user")
   public ResponseEntity<?> getUserStats() {
     throw new UnsupportedOperationException("Not implemented yet");
@@ -35,6 +37,7 @@ public class StatsController {
 
   @Operation(summary = "Get order statistics", description = "Returns summary data related to orders.")
   @ApiResponse(responseCode = "501", description = "Not implemented yet")
+  @ErrorResponse
   @GetMapping("/order")
   public ResponseEntity<?> getOrderStats() {
     throw new UnsupportedOperationException("Not implemented yet");
@@ -42,6 +45,7 @@ public class StatsController {
 
   @Operation(summary = "Get product statistics", description = "Returns summary data related to products.")
   @ApiResponse(responseCode = "501", description = "Not implemented yet")
+  @ErrorResponse
   @GetMapping("/product")
   public ResponseEntity<?> getProductStats() {
     throw new UnsupportedOperationException("Not implemented yet");
@@ -55,6 +59,7 @@ public class StatsController {
           @ApiResponse(responseCode = "200", description = "Successful retrieval of revenue statistics",
                   content = @Content(array = @ArraySchema(schema = @Schema(implementation = RevenueStatsResponseDTO.class))))
   })
+  @ErrorResponse
   @GetMapping("/revenue")
   public ResponseEntity<List<RevenueStatsResponseDTO>> getRevenueStats(
           @Parameter(description = "Start date in ISO-8601 format (e.g., 2024-01-01T00:00:00Z)", required = false)

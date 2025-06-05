@@ -1,5 +1,6 @@
 package com.se114p12.backend.controllers.variation;
 
+import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.dtos.variation.VariationRequestDTO;
 import com.se114p12.backend.dtos.variation.VariationResponseDTO;
 import com.se114p12.backend.services.variation.VariationService;
@@ -32,6 +33,7 @@ public class VariationController {
           @ApiResponse(responseCode = "200", description = "Successfully retrieved variations",
                   content = @Content(schema = @Schema(implementation = PageVO.class)))
   })
+  @ErrorResponse
   @GetMapping
   public ResponseEntity<PageVO<VariationResponseDTO>> getVariationsByProduct(
           @Parameter(description = "ID of the product", required = true)
@@ -51,6 +53,7 @@ public class VariationController {
           @ApiResponse(responseCode = "200", description = "Variation created successfully",
                   content = @Content(schema = @Schema(implementation = VariationResponseDTO.class)))
   })
+  @ErrorResponse
   @PreAuthorize("hasRole('ADMIN')")
   @PostMapping
   public ResponseEntity<VariationResponseDTO> createVariation(
@@ -64,6 +67,7 @@ public class VariationController {
           @ApiResponse(responseCode = "200", description = "Variation updated successfully",
                   content = @Content(schema = @Schema(implementation = VariationResponseDTO.class)))
   })
+  @ErrorResponse
   @PreAuthorize("hasRole('ADMIN')")
   @PutMapping("/{id}")
   public ResponseEntity<VariationResponseDTO> updateVariation(
@@ -79,6 +83,7 @@ public class VariationController {
   @ApiResponses(value = {
           @ApiResponse(responseCode = "204", description = "Variation deleted successfully")
   })
+  @ErrorResponse
   @PreAuthorize("hasRole('ADMIN')")
   @DeleteMapping("/{id}")
   public ResponseEntity<Void> deleteVariation(

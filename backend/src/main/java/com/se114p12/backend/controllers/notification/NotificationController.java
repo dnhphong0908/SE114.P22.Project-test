@@ -1,5 +1,6 @@
 package com.se114p12.backend.controllers.notification;
 
+import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.dtos.nofitication.NotificationRequestDTO;
 import com.se114p12.backend.dtos.nofitication.NotificationResponseDTO;
 import com.se114p12.backend.entities.notification.Notification;
@@ -66,6 +67,7 @@ public class NotificationController {
 
     @Operation(summary = "Mark all my notifications as read", description = "Set all current user's notifications as read")
     @ApiResponse(responseCode = "200", description = "Marked all as read")
+    @ErrorResponse
     @PostMapping("/me/read-all")
     public ResponseEntity<Void> markAllMyNotificationsAsRead() {
         Long userId = jwtUtil.getCurrentUserId();
@@ -78,6 +80,7 @@ public class NotificationController {
             @ApiResponse(responseCode = "200", description = "Marked as read"),
             @ApiResponse(responseCode = "404", description = "Notification not found")
     })
+    @ErrorResponse
     @PostMapping("/{id}/read")
     public ResponseEntity<Void> markAsRead(
             @Parameter(description = "Notification ID to mark as read") @PathVariable Long id) {
@@ -91,6 +94,7 @@ public class NotificationController {
             @ApiResponse(responseCode = "204", description = "Deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Notification not found")
     })
+    @ErrorResponse
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @Parameter(description = "Notification ID to delete") @PathVariable Long id) {
@@ -100,6 +104,7 @@ public class NotificationController {
 
     @Operation(summary = "Count unread notifications", description = "Get number of unread notifications for current user")
     @ApiResponse(responseCode = "200", description = "Returned unread count", content = @Content(schema = @Schema(implementation = Long.class)))
+    @ErrorResponse
     @GetMapping("/me/unread-count")
     public ResponseEntity<Long> countMyUnreadNotifications() {
         Long userId = jwtUtil.getCurrentUserId();

@@ -1,5 +1,6 @@
 package com.se114p12.backend.controllers.order;
 
+import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.dtos.order.OrderRequestDTO;
 import com.se114p12.backend.dtos.order.OrderResponseDTO;
 import com.se114p12.backend.entities.order.Order;
@@ -36,6 +37,7 @@ public class OrderController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved order", content = @Content(schema = @Schema(implementation = OrderResponseDTO.class)))
     })
+    @ErrorResponse
     @GetMapping("/{id}")
     public ResponseEntity<OrderResponseDTO> findById(@PathVariable("id") Long id) {
         return ResponseEntity.ok(orderService.getById(id));
@@ -46,6 +48,7 @@ public class OrderController {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved orders",
                     content = @Content(schema = @Schema(implementation = PageVO.class)))
     })
+    @ErrorResponse
     @GetMapping("/me")
     public ResponseEntity<PageVO<OrderResponseDTO>> getMyOrders(
             @ParameterObject Pageable pageable,
@@ -60,6 +63,7 @@ public class OrderController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved orders")
     })
+    @ErrorResponse
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     public ResponseEntity<PageVO<OrderResponseDTO>> getAllOrders(
@@ -72,6 +76,7 @@ public class OrderController {
 
     @Operation(summary = "Create a new order", description = "Create a new order from cart or manual input")
     @ApiResponse(responseCode = "200", description = "Order successfully created", content = @Content(schema = @Schema(implementation = OrderResponseDTO.class)))
+    @ErrorResponse
     @PostMapping("/create")
     public ResponseEntity<OrderResponseDTO> createOrder(@Valid @RequestBody OrderRequestDTO orderRequestDTO) {
         return ResponseEntity.ok(orderService.create(orderRequestDTO));
@@ -79,6 +84,7 @@ public class OrderController {
 
     @Operation(summary = "Update an order", description = "Update the order data by its ID")
     @ApiResponse(responseCode = "200", description = "Order successfully updated", content = @Content(schema = @Schema(implementation = OrderResponseDTO.class)))
+    @ErrorResponse
     @PutMapping("/update/{id}")
     public ResponseEntity<OrderResponseDTO> updateOrder(
             @PathVariable("id") Long id,
@@ -89,6 +95,7 @@ public class OrderController {
 
     @Operation(summary = "Delete an order", description = "Delete an order by its ID")
     @ApiResponse(responseCode = "204", description = "Order successfully deleted")
+    @ErrorResponse
     @DeleteMapping("/delete/{id}")
     public ResponseEntity<Void> deleteOrder(@PathVariable("id") Long id) {
         orderService.delete(id);
@@ -97,6 +104,7 @@ public class OrderController {
 
     @Operation(summary = "Cancel an order", description = "Cancel an order by its ID")
     @ApiResponse(responseCode = "204", description = "Order successfully cancelled")
+    @ErrorResponse
     @PostMapping("/cancel/{id}")
     public ResponseEntity<Void> cancelOrder(@PathVariable("id") Long id) {
         orderService.cancelOrder(id);
@@ -105,6 +113,7 @@ public class OrderController {
 
     @Operation(summary = "Mark an order as delivered", description = "Mark a specific order as delivered")
     @ApiResponse(responseCode = "200", description = "Order marked as delivered")
+    @ErrorResponse
     @PutMapping("/{orderId}/delivered")
     public ResponseEntity<String> markOrderAsDelivered(@PathVariable Long orderId) {
         orderService.markOrderAsDelivered(orderId);

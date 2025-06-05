@@ -1,5 +1,6 @@
 package com.se114p12.backend.controllers.storage;
 
+import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.services.general.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -34,6 +35,7 @@ public class StorageController {
           @ApiResponse(responseCode = "404", description = "Image not found"),
           @ApiResponse(responseCode = "500", description = "Internal server error")
   })
+  @ErrorResponse
   @GetMapping(value = "/images", produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
   public ResponseEntity<Resource> getImageStoragePath(
           @Parameter(description = "Relative path to the image resource", required = true, example = "product-images/abc.jpg")

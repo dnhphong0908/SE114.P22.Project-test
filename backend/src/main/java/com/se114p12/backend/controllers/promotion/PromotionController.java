@@ -1,5 +1,6 @@
 package com.se114p12.backend.controllers.promotion;
 
+import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.dtos.promotion.PromotionRequestDTO;
 import com.se114p12.backend.dtos.promotion.PromotionResponseDTO;
 import com.se114p12.backend.entities.promotion.Promotion;
@@ -35,6 +36,7 @@ public class PromotionController {
             @ApiResponse(responseCode = "200", description = "List of promotions retrieved successfully",
                     content = @Content(schema = @Schema(implementation = PageVO.class)))
     })
+    @ErrorResponse
     @GetMapping
     public ResponseEntity<PageVO<PromotionResponseDTO>> getAllPromotions(
             @ParameterObject Pageable pageable,
@@ -50,6 +52,7 @@ public class PromotionController {
                     content = @Content(schema = @Schema(implementation = PromotionResponseDTO.class))),
             @ApiResponse(responseCode = "404", description = "Promotion not found", content = @Content)
     })
+    @ErrorResponse
     @GetMapping("/{id}")
     public ResponseEntity<PromotionResponseDTO> getPromotionById(@PathVariable Long id) {
         return ResponseEntity.ok(promotionService.findById(id));
@@ -61,6 +64,7 @@ public class PromotionController {
                     content = @Content(schema = @Schema(implementation = PromotionResponseDTO.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request body", content = @Content)
     })
+    @ErrorResponse
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<PromotionResponseDTO> createPromotion(
@@ -75,6 +79,7 @@ public class PromotionController {
                     content = @Content(schema = @Schema(implementation = PromotionResponseDTO.class))),
             @ApiResponse(responseCode = "404", description = "Promotion not found", content = @Content)
     })
+    @ErrorResponse
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<PromotionResponseDTO> updatePromotion(
@@ -89,6 +94,7 @@ public class PromotionController {
             @ApiResponse(responseCode = "200", description = "Promotion deleted successfully", content = @Content),
             @ApiResponse(responseCode = "404", description = "Promotion not found", content = @Content)
     })
+    @ErrorResponse
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePromotion(@PathVariable Long id) {

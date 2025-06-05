@@ -1,5 +1,6 @@
 package com.se114p12.backend.controllers.payment;
 
+import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.services.payment.VnPayService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,6 +28,7 @@ public class VnPayController {
             @ApiResponse(responseCode = "200", description = "Payment URL created successfully", content = @Content(schema = @Schema(implementation = String.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input parameters", content = @Content)
     })
+    @ErrorResponse
     @GetMapping("/create-payment")
     public String createPayment(
             @Parameter(description = "Order ID to pay for") @RequestParam Long orderId,
@@ -41,6 +43,7 @@ public class VnPayController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Result of payment process", content = @Content(schema = @Schema(implementation = String.class)))
     })
+    @ErrorResponse
     @GetMapping("/return")
     public String handleReturn(
             @Parameter(description = "All return parameters from VnPay") @RequestParam Map<String, String> params

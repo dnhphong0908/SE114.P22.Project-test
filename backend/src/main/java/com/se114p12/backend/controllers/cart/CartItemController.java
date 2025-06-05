@@ -1,5 +1,6 @@
 package com.se114p12.backend.controllers.cart;
 
+import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.dtos.cart.CartItemRequestDTO;
 import com.se114p12.backend.dtos.cart.CartItemResponseDTO;
 import com.se114p12.backend.services.cart.CartItemService;
@@ -35,6 +36,7 @@ public class CartItemController {
             description = "Successfully retrieved cart items",
             content = @Content(schema = @Schema(implementation = PageVO.class))
     )
+    @ErrorResponse
     @GetMapping
     public ResponseEntity<PageVO<CartItemResponseDTO>> getAllCartItems(
             @ParameterObject Pageable pageable
@@ -51,6 +53,7 @@ public class CartItemController {
             description = "Successfully created cart item",
             content = @Content(schema = @Schema(implementation = CartItemResponseDTO.class))
     )
+    @ErrorResponse
     @PostMapping
     public ResponseEntity<CartItemResponseDTO> createCartItem(
             @Parameter(description = "Cart item data")
@@ -66,6 +69,7 @@ public class CartItemController {
             @ApiResponse(responseCode = "200", description = "Successfully updated cart item", content = @Content(schema = @Schema(implementation = CartItemResponseDTO.class))),
             @ApiResponse(responseCode = "404", description = "Cart item not found")
     })
+    @ErrorResponse
     @PutMapping("/{id}")
     public ResponseEntity<CartItemResponseDTO> updateCartItem(
             @Parameter(description = "ID of the cart item to update") @PathVariable Long id,
@@ -81,6 +85,7 @@ public class CartItemController {
             @ApiResponse(responseCode = "204", description = "Successfully deleted cart item"),
             @ApiResponse(responseCode = "404", description = "Cart item not found")
     })
+    @ErrorResponse
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCartItem(
             @Parameter(description = "ID of the cart item to delete") @PathVariable Long id) {

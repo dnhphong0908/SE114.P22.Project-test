@@ -1,5 +1,6 @@
 package com.se114p12.backend.controllers.shipper;
 
+import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.dtos.shipper.ShipperRequest;
 import com.se114p12.backend.dtos.shipper.ShipperResponse;
 import com.se114p12.backend.entities.shipper.Shipper;
@@ -31,8 +32,8 @@ public class ShipperController {
     private final ShipperService shipperService;
 
     @Operation(summary = "Create a new shipper")
-    @ApiResponse(responseCode = "200", description = "Successfully created",
-            content = @Content(schema = @Schema(implementation = ShipperResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Successfully created", content = @Content(schema = @Schema(implementation = ShipperResponse.class)))
+    @ErrorResponse
     @PostMapping
     public ResponseEntity<ShipperResponse> create(
             @RequestBody ShipperRequest request) {
@@ -40,8 +41,8 @@ public class ShipperController {
     }
 
     @Operation(summary = "Get all shippers", description = "Supports pagination and filtering")
-    @ApiResponse(responseCode = "200", description = "List of shippers",
-            content = @Content(schema = @Schema(implementation = PageVO.class)))
+    @ApiResponse(responseCode = "200", description = "List of shippers", content = @Content(schema = @Schema(implementation = PageVO.class)))
+    @ErrorResponse
     @GetMapping
     public ResponseEntity<PageVO<ShipperResponse>> getAll(
             @ParameterObject Pageable pageable,
@@ -56,6 +57,7 @@ public class ShipperController {
                     content = @Content(schema = @Schema(implementation = ShipperResponse.class))),
             @ApiResponse(responseCode = "404", description = "Shipper not found")
     })
+    @ErrorResponse
     @GetMapping("/{id}")
     public ResponseEntity<ShipperResponse> getById(
             @Parameter(description = "Shipper ID") @PathVariable Long id) {
@@ -63,8 +65,8 @@ public class ShipperController {
     }
 
     @Operation(summary = "Update a shipper by ID")
-    @ApiResponse(responseCode = "200", description = "Updated successfully",
-            content = @Content(schema = @Schema(implementation = ShipperResponse.class)))
+    @ApiResponse(responseCode = "200", description = "Updated successfully", content = @Content(schema = @Schema(implementation = ShipperResponse.class)))
+    @ErrorResponse
     @PutMapping("/{id}")
     public ResponseEntity<ShipperResponse> update(
             @Parameter(description = "Shipper ID") @PathVariable Long id,
@@ -77,6 +79,7 @@ public class ShipperController {
             @ApiResponse(responseCode = "204", description = "Deleted successfully"),
             @ApiResponse(responseCode = "404", description = "Shipper not found")
     })
+    @ErrorResponse
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(
             @Parameter(description = "Shipper ID") @PathVariable Long id) {
