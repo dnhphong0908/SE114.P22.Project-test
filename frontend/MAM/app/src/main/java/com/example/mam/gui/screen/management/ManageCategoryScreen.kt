@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -37,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -69,7 +72,9 @@ import com.example.mam.ui.theme.GreyDefault
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
+import com.example.mam.viewmodel.ImageViewModel
 import com.example.mam.viewmodel.management.ManageCategoryViewModel
+import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -93,11 +98,13 @@ fun ManageCategoryScreen(
     val updatedAt = viewModel.updatedAt.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val activity = context as? Activity
     val imagePicker = if (!isPreview) {
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
                 viewModel.setCategoryImage(it.toString())
+                viewModel.setCategoryImageFile(context,uri)
             }
         }
     } else null
@@ -105,14 +112,10 @@ fun ManageCategoryScreen(
         if (isEdit) {
             viewModel.loadData()
         }
-        if (isAdd) {
-            viewModel.setCategoryName("")
-            viewModel.setCategoryDescription("")
-            viewModel.setCategoryImage("https://static.vecteezy.com/system/resources/previews/056/202/171/non_2x/add-image-or-photo-icon-vector.jpg")
-        }
         if (isPreview) {
             viewModel.mockData()
         }
+
     }
     Column(
         modifier = Modifier
@@ -149,15 +152,31 @@ fun ManageCategoryScreen(
                 icon = if (isEdit || isAdd) Icons.Default.Done else Icons.Default.Edit,
                 shadow = "outer",
                 onClick = {
-                    if (isEdit) {
-                        viewModel.updateCategory()
-                        onBackClick()
-                    } else if (isAdd) {
-                        viewModel.addCategory()
-                        onBackClick()
+                    scope.launch {
+                        if (isEdit) {
+                            val result = viewModel.updateCategory()
+                            Toast.makeText(
+                                context,
+                                when(result){
+                                    1 -> "Chỉnh sửa thành công"
+                                    else -> "Chỉnh sửa thất bại"
+                                },
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onBackClick()
+                        } else if (isAdd) {
+                            val result = viewModel.createCategory()
+                            Toast.makeText(
+                                context,
+                                when(result){
+                                    1 -> "Thêm thành công"
+                                    else -> "Thêm thất bại"
+                                },
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onBackClick()
+                        }
                     }
-
-
                 },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -225,7 +244,9 @@ fun ManageCategoryScreen(
                         placeholder = painterResource(R.drawable.upload_image),
                         error = null,
                         modifier = Modifier
-                            .fillMaxWidth(0.8f) // Set width to 80% of screen width
+                            .widthIn(max = 150.dp)
+                            .fillMaxWidth(0.8f)
+                            // Set width to 80% of screen width
                             .aspectRatio(1f)
                             .padding(8.dp)
                             .clip(RoundedCornerShape(50))
@@ -259,7 +280,7 @@ fun ManageCategoryScreen(
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append("ID: ")
                             }
-                            append(categoryId)
+                            append(categoryId.toString())
                         },
                         textAlign = TextAlign.Start,
                         color = GreyDefault,
@@ -400,17 +421,4 @@ fun ManageCategoryScreen(
             }
         }
     }
-
-
-@Preview
-@Composable
-fun ManageCategoryScreenPreview() {
-    ManageCategoryScreen(
-        viewModel = ManageCategoryViewModel(savedStateHandle = SavedStateHandle(mapOf("categoryId" to "1"))),
-        onBackClick = {},
-        isPreview = true,
-        isEdit = true,
-        isAdd = false
-    )
-}
 

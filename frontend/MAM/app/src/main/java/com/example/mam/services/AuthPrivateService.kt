@@ -11,4 +11,6 @@ import retrofit2.http.POST
 interface AuthPrivateService {
     @GET("auth/me")
     suspend fun getUserInfo(): Response<UserResponse>
+    @POST("auth/logout")
+    suspend fun logOut(@Body refreshToken: RefreshTokenRequest): Response<Void>
 }

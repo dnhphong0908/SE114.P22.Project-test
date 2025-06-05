@@ -1,5 +1,8 @@
 package com.example.mam.gui.screen.client
 
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -66,6 +70,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.client.CheckOutViewModel
+import com.mapbox.geojson.Point
 
 @Composable
 fun CheckOutScreen(
@@ -77,6 +82,7 @@ fun CheckOutScreen(
 ) {
     val items = viewModel.orderItems.collectAsStateWithLifecycle()
     val discount = viewModel.discount.collectAsStateWithLifecycle().value
+    val address = viewModel.address.collectAsStateWithLifecycle().value
     val discountList = viewModel.discountList.collectAsStateWithLifecycle().value
     val isScreenActive = rememberUpdatedState(newValue = true)
 
@@ -91,6 +97,7 @@ fun CheckOutScreen(
         viewModel.loadOrderItems()
         viewModel.loadPaymentOptions()
         viewModel.loadUser()
+        viewModel.loadAddress()
         paymentOption = paymentOptions.value.firstOrNull()?.name ?: "Default"
     }
     Column(
@@ -181,7 +188,7 @@ fun CheckOutScreen(
                         modifier = Modifier.padding(start = 10.dp)
                     )
                     Text(
-                        text = "Địa chỉ: " + viewModel.address,
+                        text = "Địa chỉ: " + if(address.isEmpty()) "Không xác định" else "${address}",
                         fontSize = 18.sp,
                         color = BrownDefault,
                         fontWeight = FontWeight.Medium,
