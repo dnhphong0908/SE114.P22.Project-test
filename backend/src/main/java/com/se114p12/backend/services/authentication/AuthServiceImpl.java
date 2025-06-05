@@ -14,6 +14,7 @@ import com.se114p12.backend.enums.UserStatus;
 import com.se114p12.backend.enums.VerificationType;
 import com.se114p12.backend.exceptions.BadRequestException;
 import com.se114p12.backend.exceptions.ResourceNotFoundException;
+import com.se114p12.backend.mappers.user.UserMapper;
 import com.se114p12.backend.repositories.authentication.UserRepository;
 import com.se114p12.backend.services.general.MailService;
 import com.se114p12.backend.util.JwtUtil;
@@ -31,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
 
   private final PasswordEncoder passwordEncoder;
   private final AuthenticationManagerBuilder authenticationManagerBuilder;
+  private final UserMapper userMapper;
   private final JwtUtil jwtUtil;
   private final RefreshTokenService refreshTokenService;
   private final UserRepository userRepository;
@@ -58,6 +60,11 @@ public class AuthServiceImpl implements AuthService {
     AuthResponseDTO loginResponseDTO = new AuthResponseDTO();
     loginResponseDTO.setAccessToken(accessToken);
     loginResponseDTO.setRefreshToken(refreshToken);
+    User user =
+        userRepository
+            .findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    loginResponseDTO.setUser(userMapper.entityToResponse(user));
 
     return loginResponseDTO;
   }
@@ -73,6 +80,7 @@ public class AuthServiceImpl implements AuthService {
     AuthResponseDTO loginResponseDTO = new AuthResponseDTO();
     loginResponseDTO.setAccessToken(accessToken);
     loginResponseDTO.setRefreshToken(refreshTokenRequestDTO.getRefreshToken());
+    loginResponseDTO.setUser(userMapper.entityToResponse(refreshToken.getUser()));
     return loginResponseDTO;
   }
 
