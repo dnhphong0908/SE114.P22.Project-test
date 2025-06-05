@@ -6,8 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mam.entity.User
-import com.example.mam.services.APIservice
-import com.example.mam.services.RetrofitClient.api
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -65,8 +63,6 @@ class ProfileViewModel(
         viewModelScope.launch {
             try {
                 val avatarPart = createImagePartFromUri(context, uri)
-                val updatedUser = api?.uploadAvatar(avatarPart)
-                _user.value = updatedUser
             } catch (e: Exception) {
             }
         }

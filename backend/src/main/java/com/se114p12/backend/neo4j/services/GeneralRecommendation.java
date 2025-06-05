@@ -1,6 +1,6 @@
 package com.se114p12.backend.neo4j.services;
 
-import com.se114p12.backend.neo4j.repositories.ProductRepository;
+import com.se114p12.backend.neo4j.repositories.ProductNeo4jRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class GeneralRecommendation {
 
-  private final ProductRepository productRepository;
+  private final ProductNeo4jRepository productRepository;
 
   public List<Long> getRecommendedProductIds() {
     return productRepository.findGeneralRecommended();
