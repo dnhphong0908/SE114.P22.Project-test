@@ -12,6 +12,5 @@ interface AuthPrivateService {
     @GET("auth/me")
     suspend fun getUserInfo(): Response<UserResponse>
     @POST("auth/logout")
-    suspend fun logOut(
-        refressToken: RefreshTokenRequest): Response<Void>
+    suspend fun logOut(@Body refreshToken: RefreshTokenRequest): Response<Void>
 }

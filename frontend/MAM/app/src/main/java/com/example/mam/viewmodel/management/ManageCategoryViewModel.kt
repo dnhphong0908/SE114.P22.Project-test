@@ -12,6 +12,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
+import com.example.mam.data.Constant.BASE_IMAGE
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.product.CategoryRequest
 import com.example.mam.services.BaseService
@@ -46,7 +47,7 @@ class ManageCategoryViewModel(
     private val _categoryDescription = MutableStateFlow<String>("")
     val categoryDescription: StateFlow<String> = _categoryDescription
 
-    private val _categoryImage = MutableStateFlow<String>("https://static.vecteezy.com/system/resources/previews/056/202/171/non_2x/add-image-or-photo-icon-vector.jpg")
+    private val _categoryImage = MutableStateFlow<String>(BASE_IMAGE)
     val categoryImage: StateFlow<String> = _categoryImage
 
     private val _categoryImageFile = MutableStateFlow<File?>(null) // Lưu ảnh dạng Multipart

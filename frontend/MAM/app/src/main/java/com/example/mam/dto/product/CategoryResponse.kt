@@ -1,8 +1,7 @@
 package com.example.mam.dto.product
 
-import android.os.Build.VERSION_CODES.BASE
+import com.example.mam.data.Constant.STORAGE_URL
 import com.example.mam.dto.BaseResponse
-import com.example.mam.services.BASE_URL
 
 data class CategoryResponse(
     val name: String,
@@ -10,6 +9,6 @@ data class CategoryResponse(
     val imageUrl: String,
 ): BaseResponse(){
     fun getRealURL(): String {
-        return BASE_URL + imageUrl.replace("\\", "/")
+        return STORAGE_URL + imageUrl.replace("\\", "/")
     }
 }

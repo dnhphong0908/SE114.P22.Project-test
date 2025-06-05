@@ -7,7 +7,9 @@ import com.se114p12.backend.vo.PageVO;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,7 +22,9 @@ public class CartItemController {
     private final CartItemService cartItemService;
 
     @GetMapping
-    public ResponseEntity<PageVO<CartItemResponseDTO>> getAllCartItems(Pageable pageable) {
+    public ResponseEntity<PageVO<CartItemResponseDTO>> getAllCartItems(
+            @ParameterObject Pageable pageable
+    ) {
         return ResponseEntity.ok(cartItemService.getAllCartItems(pageable));
     }
 

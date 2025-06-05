@@ -159,19 +159,21 @@ fun SignInScreen(
                 onClick = {
                     scope.launch {
                         if (viewModel.SignIn() == 2) {
+                            Toast.makeText(
+                            context,
+                            "Đăng nhập thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
                             onSignInClicked()
-                            Toast.makeText(
-                                context,
-                                "Đăng nhập thành công",
-                                Toast.LENGTH_SHORT
-                            ).show()
+
                         } else if (viewModel.SignIn() == 1) {
-                            onSignInManager()
                             Toast.makeText(
-                                context,
-                                "Đăng nhập thành công",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            context,
+                            "Đăng nhập thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                            onSignInManager()
+
                         }else {
                             Toast.makeText(
                                 context,

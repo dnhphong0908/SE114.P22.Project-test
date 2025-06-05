@@ -14,7 +14,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -151,16 +150,19 @@ public class AuthController {
 
   @PostMapping("/send-otp")
   @ResponseBody
-  public ResponseEntity<String> sendOTP(@Valid @RequestBody SendOTPRequestDTO sendOTPRequestDTO) {
+  public ResponseEntity<Void> sendOTP(@Valid @RequestBody SendOTPRequestDTO sendOTPRequestDTO) {
     authService.sendOtp(sendOTPRequestDTO);
-    return ResponseEntity.ok().body("Send OTP successfully");
+    return ResponseEntity.noContent().build();
   }
 
   @PostMapping("/verify-otp")
   @ResponseBody
-  public ResponseEntity<?> verifyOTP(@Valid @RequestBody VerifyOTPRequestDTO verifyOTPRequestDTO) {
+  public ResponseEntity<VerifyOTPResponseDTO> verifyOTP(
+      @Valid @RequestBody VerifyOTPRequestDTO verifyOTPRequestDTO) {
     String responseCode = authService.verifyOtp(verifyOTPRequestDTO);
-    return ResponseEntity.ok(Map.of("verificationCode", responseCode));
+    VerifyOTPResponseDTO verifyOTPResponseDTO = new VerifyOTPResponseDTO();
+    verifyOTPResponseDTO.setCode(responseCode);
+    return ResponseEntity.ok(verifyOTPResponseDTO);
   }
 
   @PostMapping("/forgot-password")

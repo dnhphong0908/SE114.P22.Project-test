@@ -2,11 +2,11 @@ package com.se114p12.backend.services.variation;
 
 import com.se114p12.backend.dtos.variation.VariationOptionRequestDTO;
 import com.se114p12.backend.dtos.variation.VariationOptionResponseDTO;
-
-import java.util.List;
+import com.se114p12.backend.vo.PageVO;
+import org.springframework.data.domain.Pageable;
 
 public interface VariationOptionService {
-    List<VariationOptionResponseDTO> getByVariationId(Long variationId);
+    PageVO<VariationOptionResponseDTO> getByVariationId(Long variationId, Pageable pageable);
 
     VariationOptionResponseDTO create(VariationOptionRequestDTO dto);
     VariationOptionResponseDTO update(Long id, VariationOptionRequestDTO dto);

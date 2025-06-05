@@ -88,9 +88,9 @@ public class StorageService {
     }
   }
 
-  public void delete(String filename, String folder) {
+  public void delete(String uri) {
     try {
-      Files.deleteIfExists(rootLocation.resolve(folder).resolve(filename));
+      Files.deleteIfExists(rootLocation.resolve(uri));
     } catch (IOException e) {
       throw new StorageException("Failed to delete file", e);
     }

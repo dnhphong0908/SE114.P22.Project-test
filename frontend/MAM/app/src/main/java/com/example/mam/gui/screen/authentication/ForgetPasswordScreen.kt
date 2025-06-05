@@ -129,19 +129,6 @@ fun ForgetPasswordScreen(
                         .wrapContentHeight()
                 ) {
                     Spacer(modifier = Modifier.height(10.dp))
-                    EditFieldType1(
-                        label = "Tên người dùng",
-                        subLabel = "Tên người dùng/Email/Số điện thoại",
-                        errorLabel = if (!viewModel.isUsernamevalid()) "Không tìm thấy người dùng" else "",
-                        value = forgetPasswordState.username,
-                        backgroundColor = WhiteDefault,
-                        onValueChange = { viewModel.setUsername(it) },
-                        keyboardOptions = KeyboardOptions.Default.copy(
-                            keyboardType = KeyboardType.Text,
-                            imeAction = ImeAction.Next
-                        ),
-                        modifier = Modifier.fillMaxWidth()
-                    )
                     PasswordFieldType1(
                         label = "Mật khẩu mới",
                         subLabel = "Mật khẩu có ít nhất 6 chữ số",
