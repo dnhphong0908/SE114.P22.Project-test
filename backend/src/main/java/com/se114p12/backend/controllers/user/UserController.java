@@ -39,6 +39,7 @@ public class UserController {
   public ResponseEntity<PageVO<UserResponseDTO>> getAllUsers(
       @ParameterObject Pageable pageable,
       @Filter @Parameter(name = "filter") Specification<User> specification) {
+    pageable = pageable.isPaged() ? pageable : Pageable.unpaged();
     return ResponseEntity.ok(userService.getAllUsers(specification, pageable));
   }
 
