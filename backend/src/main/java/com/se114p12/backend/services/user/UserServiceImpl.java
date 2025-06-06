@@ -106,10 +106,6 @@ public class UserServiceImpl implements UserService {
             .findByName("USER")
             .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
     user.setRole(userRole);
-    // Tạo cart sau khi đăng ký
-    Cart cart = new Cart();
-    cart.setUser(savedUser);
-    cartRepository.save(cart);
 
     // verify email
     Verification verification = verificationService.createActivationVerification(savedUser.getId());
