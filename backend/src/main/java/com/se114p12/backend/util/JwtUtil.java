@@ -4,7 +4,6 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
-import com.se114p12.backend.dtos.authentication.GoogleLoginRequestDTO;
 import com.se114p12.backend.entities.user.User;
 import com.se114p12.backend.exceptions.BadRequestException;
 import com.se114p12.backend.exceptions.ResourceNotFoundException;
@@ -93,15 +92,15 @@ public class JwtUtil {
     }
   }
 
-  public GoogleIdToken verifyGoogleCredential(GoogleLoginRequestDTO googleLoginRequest) {
+  public GoogleIdToken verifyGoogleCredential(String credential, String clientId) {
     try {
       GoogleIdTokenVerifier verifier =
           new GoogleIdTokenVerifier.Builder(
                   new NetHttpTransport(), GsonFactory.getDefaultInstance())
-              .setAudience(Collections.singletonList(googleLoginRequest.getClientId()))
+              .setAudience(Collections.singletonList(clientId))
               .build();
 
-      GoogleIdToken googleIdToken = verifier.verify(googleLoginRequest.getCredential());
+      GoogleIdToken googleIdToken = verifier.verify(credential);
       if (googleIdToken == null) {
         throw new BadRequestException("Invalid Google ID token");
       }

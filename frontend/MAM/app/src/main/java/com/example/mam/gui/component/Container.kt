@@ -88,8 +88,9 @@ fun ProductContainer(
         Spacer(modifier = Modifier.height(20.dp))
 
         AsyncImage(
-            model = category.imageUrl, // Đây là URL từ API
+            model = category.getRealURL(), // Đây là URL từ API
             contentDescription = null,
+            placeholder = painterResource(R.drawable.ic_mam_logo),
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(50.dp)

@@ -17,6 +17,9 @@ interface ProductService {
     @POST("products")
     suspend fun createProduct(@Body request: ProductRequest): Response<ProductResponse>
 
+    @GET("products/{id}")
+    suspend fun getProductById(@Path("id") id: Long): Response<ProductResponse>
+
     @PUT("products/{id}")
     suspend fun updateProduct(
         @Path("id") id: Long,

@@ -19,6 +19,7 @@ import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "User Module", description = "APIs for managing users")
@@ -38,6 +39,7 @@ public class UserController {
   public ResponseEntity<PageVO<UserResponseDTO>> getAllUsers(
       @ParameterObject Pageable pageable,
       @Filter @Parameter(name = "filter") Specification<User> specification) {
+    pageable = pageable.isPaged() ? pageable : Pageable.unpaged();
     return ResponseEntity.ok(userService.getAllUsers(specification, pageable));
   }
 
@@ -82,6 +84,7 @@ public class UserController {
       description = "Successfully assigned role to user",
       content = @Content(schema = @Schema(implementation = Void.class)))
   @ErrorResponse
+  @PreAuthorize("hasAuthority('ADMIN')")
   @PostMapping("/{id}/assign-role/{roleId}")
   public ResponseEntity<Void> assignRoleToUser(
       @PathVariable("id") Long userId, @PathVariable("roleId") Long roleId) {

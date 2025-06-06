@@ -8,13 +8,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 public interface ProductService {
-    PageVO<ProductResponseDTO> getAllProducts(Specification<Product> specification, Pageable pageable);
+  PageVO<ProductResponseDTO> getAllProducts(
+      Specification<Product> specification, Pageable pageable);
 
-    PageVO<ProductResponseDTO> getProductsByCategory(Long categoryId, Pageable pageable);
+  PageVO<ProductResponseDTO> getProductsByCategory(Long categoryId, Pageable pageable);
 
-    ProductResponseDTO create(ProductRequestDTO dto);
+  ProductResponseDTO getProductById(Long id);
 
-    ProductResponseDTO update(Long id, ProductRequestDTO dto);
+  ProductResponseDTO create(ProductRequestDTO dto);
 
-    void delete(Long id);
+  ProductResponseDTO update(Long id, ProductRequestDTO dto);
+
+  void delete(Long id);
 }

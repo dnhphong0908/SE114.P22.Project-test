@@ -29,61 +29,72 @@ import org.springframework.web.bind.annotation.*;
 @PreAuthorize("hasRole('ADMIN')")
 public class ShipperController {
 
-    private final ShipperService shipperService;
+  private final ShipperService shipperService;
 
-    @Operation(summary = "Create a new shipper")
-    @ApiResponse(responseCode = "200", description = "Successfully created", content = @Content(schema = @Schema(implementation = ShipperResponse.class)))
-    @ErrorResponse
-    @PostMapping
-    public ResponseEntity<ShipperResponse> create(
-            @RequestBody ShipperRequest request) {
-        return ResponseEntity.ok(shipperService.create(request));
-    }
+  @Operation(summary = "Create a new shipper")
+  @ApiResponse(
+      responseCode = "200",
+      description = "Successfully created",
+      content = @Content(schema = @Schema(implementation = ShipperResponse.class)))
+  @ErrorResponse
+  @PostMapping
+  public ResponseEntity<ShipperResponse> create(@RequestBody ShipperRequest request) {
+    return ResponseEntity.ok(shipperService.create(request));
+  }
 
-    @Operation(summary = "Get all shippers", description = "Supports pagination and filtering")
-    @ApiResponse(responseCode = "200", description = "List of shippers", content = @Content(schema = @Schema(implementation = PageVO.class)))
-    @ErrorResponse
-    @GetMapping
-    public ResponseEntity<PageVO<ShipperResponse>> getAll(
-            @ParameterObject Pageable pageable,
-            @Filter Specification<Shipper> specification
-    ) {
-        return ResponseEntity.ok(shipperService.getAll(specification, pageable));
-    }
+  @Operation(summary = "Get all shippers", description = "Supports pagination and filtering")
+  @ApiResponse(
+      responseCode = "200",
+      description = "List of shippers",
+      content = @Content(schema = @Schema(implementation = PageVO.class)))
+  @ErrorResponse
+  @GetMapping
+  public ResponseEntity<PageVO<ShipperResponse>> getAll(
+      @ParameterObject Pageable pageable,
+      @Filter @Parameter(name = "filter") Specification<Shipper> specification) {
+    pageable = pageable.isPaged() ? pageable : Pageable.unpaged();
+    return ResponseEntity.ok(shipperService.getAll(specification, pageable));
+  }
 
-    @Operation(summary = "Get shipper by ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Found the shipper",
-                    content = @Content(schema = @Schema(implementation = ShipperResponse.class))),
-            @ApiResponse(responseCode = "404", description = "Shipper not found")
-    })
-    @ErrorResponse
-    @GetMapping("/{id}")
-    public ResponseEntity<ShipperResponse> getById(
-            @Parameter(description = "Shipper ID") @PathVariable Long id) {
-        return ResponseEntity.ok(shipperService.getById(id));
-    }
+  @Operation(summary = "Get shipper by ID")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Found the shipper",
+            content = @Content(schema = @Schema(implementation = ShipperResponse.class))),
+        @ApiResponse(responseCode = "404", description = "Shipper not found")
+      })
+  @ErrorResponse
+  @GetMapping("/{id}")
+  public ResponseEntity<ShipperResponse> getById(
+      @Parameter(description = "Shipper ID") @PathVariable Long id) {
+    return ResponseEntity.ok(shipperService.getById(id));
+  }
 
-    @Operation(summary = "Update a shipper by ID")
-    @ApiResponse(responseCode = "200", description = "Updated successfully", content = @Content(schema = @Schema(implementation = ShipperResponse.class)))
-    @ErrorResponse
-    @PutMapping("/{id}")
-    public ResponseEntity<ShipperResponse> update(
-            @Parameter(description = "Shipper ID") @PathVariable Long id,
-            @RequestBody ShipperRequest request) {
-        return ResponseEntity.ok(shipperService.update(id, request));
-    }
+  @Operation(summary = "Update a shipper by ID")
+  @ApiResponse(
+      responseCode = "200",
+      description = "Updated successfully",
+      content = @Content(schema = @Schema(implementation = ShipperResponse.class)))
+  @ErrorResponse
+  @PutMapping("/{id}")
+  public ResponseEntity<ShipperResponse> update(
+      @Parameter(description = "Shipper ID") @PathVariable Long id,
+      @RequestBody ShipperRequest request) {
+    return ResponseEntity.ok(shipperService.update(id, request));
+  }
 
-    @Operation(summary = "Delete a shipper by ID")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Shipper not found")
-    })
-    @ErrorResponse
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-            @Parameter(description = "Shipper ID") @PathVariable Long id) {
-        shipperService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
+  @Operation(summary = "Delete a shipper by ID")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "Shipper not found")
+      })
+  @ErrorResponse
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> delete(@Parameter(description = "Shipper ID") @PathVariable Long id) {
+    shipperService.delete(id);
+    return ResponseEntity.noContent().build();
+  }
 }

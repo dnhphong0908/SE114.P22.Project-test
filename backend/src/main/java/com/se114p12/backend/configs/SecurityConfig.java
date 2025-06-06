@@ -44,7 +44,7 @@ public class SecurityConfig implements WebMvcConfigurer {
                         "/api/v1/auth/verify-email",
                         "/api/v1/storage/**",
                         "/api/v1/metadata/**",
-                            "/api/v1/storage/**",
+                        "/api/v1/storage/**",
                         "/v3/api-docs/**",
                         "/swagger-ui/**",
                         "/swagger-ui.html")
@@ -76,6 +76,7 @@ public class SecurityConfig implements WebMvcConfigurer {
         .addPathPatterns("/api/v1/**")
         .excludePathPatterns(
             "/api/v1/auth/login",
+            "/api/v1/auth/me",
             "/api/v1/auth/oauth2/google",
             "/api/v1/auth/register",
             "/api/v1/auth/refresh",

@@ -1,5 +1,6 @@
 package com.example.mam.gui.screen.client
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.scrollable
@@ -28,6 +29,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.ShoppingCart
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,12 +43,15 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.mam.R
+import com.example.mam.dto.variation.VariationOptionResponse
 import com.example.mam.entity.CartItem
 import com.example.mam.entity.Product
 import com.example.mam.entity.VarianceOption
@@ -72,12 +77,20 @@ fun ItemScreen(
     viewModel: ItemViewModel,
     modifier: Modifier = Modifier,
 ){
+    val item = viewModel.item.collectAsStateWithLifecycle().value
+    val quantity = viewModel.quantity.collectAsStateWithLifecycle().value
+    val variances = viewModel.variances.collectAsStateWithLifecycle().value
+    val optionsMap = viewModel.optionsMap.collectAsStateWithLifecycle().value
 
-    val cartItem: CartItem by viewModel.cartItem.collectAsStateWithLifecycle()
-    val item: Product = cartItem.product
+    LaunchedEffect(Unit){
+        viewModel.loadItemDetails()
+        viewModel.loadVariances()
+        viewModel.loadOptions()
+    }
+
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-    var quantity by remember { mutableStateOf(1) }
-    quantity = cartItem.quantity
     val lazyState = rememberLazyListState()
     val coroutine = rememberCoroutineScope()
     var spacerheight by remember { mutableStateOf(170) }
@@ -100,8 +113,9 @@ fun ItemScreen(
     }
     Box(Modifier.fillMaxSize().background(OrangeDefault).padding(WindowInsets.statusBars.asPaddingValues())){
         AsyncImage(
-            model = item.imageUrl,
+            model = item.getRealURL(),
             contentDescription = null,
+            placeholder = painterResource(R.drawable.ic_mam_logo),
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxWidth()
@@ -169,8 +183,15 @@ fun ItemScreen(
                     ) {
                         QuantitySelectionButton(
                             count = quantity,
-                            onValueDecr = {cartItem.quantity = quantity--},
-                            onValueIncr = {cartItem.quantity = quantity++},
+                            onValueDecr = {viewModel.setQuantity(quantity - 1)},
+                            onValueIncr = {
+                                if (quantity < 99) viewModel.setQuantity(quantity + 1)
+                                  else Toast.makeText(
+                                        context,
+                                        "Số lượng tối đa là 99",
+                                        Toast.LENGTH_SHORT
+                                    ).show(
+                                  )},
                             modifier = Modifier
                         )
                         Text(
@@ -192,7 +213,7 @@ fun ItemScreen(
                             .padding(horizontal = 10.dp)
                     )
                     Text(
-                        text = item.longDescription,
+                        text = item.detailDescription,
                         fontSize = 20.sp,
                         color = BrownDefault,
                         modifier = Modifier
@@ -200,51 +221,56 @@ fun ItemScreen(
                             .padding(horizontal = 10.dp)
                     )
                 }
-                items(viewModel.loadVariance(item.id)){ option ->
-                    if (option.name in listOf( "Độ dày đế bánh", "Độ chín của thịt") ){
-                        var selectedOption: VarianceOption
-                        RadioOption(
-                            title = option.name,
-                            options = viewModel.loadOption(option.id),
-                            onClick = { option ->
-                                selectedOption = option
-                                cartItem.options.removeIf { it.idVariance == selectedOption.idVariance }
-                                cartItem.options.add(selectedOption)
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 10.dp)
-                        )
+                items(variances){ option ->
+                    if (option.isMultipleChoice ){
+                        var selectedOption: VariationOptionResponse
+                        optionsMap[option.id]?.let {
+                            RadioOption(
+                                title = option.name,
+                                options = it,
+                                onClick = { option ->
+                                    selectedOption = option
+                                    viewModel.selectRatioOption(option)
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp)
+                            )
+                        }
                     }
                     else if(option.name == "Kích cỡ bánh") {
-                        var sizeOption: VarianceOption
-                        PizzaSizeOption(
-                            title = option.name,
-                            options = viewModel.loadOption(option.id),
-                            onClick = { option ->
-                                sizeOption = option
-                                cartItem.options.removeIf { it.idVariance == sizeOption.idVariance }
-                                cartItem.options.add(sizeOption)
-                            },
-                            image = R.drawable.ic_size_pizza,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 10.dp)
-                        )
+                        var sizeOption: VariationOptionResponse
+                        optionsMap[option.id]?.let {
+                            PizzaSizeOption(
+                                title = option.name,
+                                options = it,
+                                onClick = { option ->
+                                    sizeOption = option
+                                    viewModel.selectRatioOption(option)
+                                },
+                                image = R.drawable.ic_size_pizza,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp)
+                            )
+                        }
                     }
                     else {
-                        MultiChoiceOption(
-                            title = option.name,
-                            options = viewModel.loadOption(option.id),
-                            onSelect = {
-                                cartItem.options.add(it)},
-                            onUnselect = { tmp ->
-                                cartItem.options.removeIf { it.id == tmp.id }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 10.dp)
-                        )
+                        optionsMap[option.id]?.let {
+                            MultiChoiceOption(
+                                title = option.name,
+                                options = it,
+                                onSelect = {option ->
+                                    viewModel.selectOption(option)
+                                },
+                                onUnselect = {option ->
+                                    viewModel.deselectOption(option)
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp)
+                            )
+                        }
                     }
                 }
                 item{
@@ -275,7 +301,7 @@ fun ItemScreen(
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = cartItem.getPriceToString(),
+                        text = viewModel.getTotalPrice(),
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = OrangeDefault,
