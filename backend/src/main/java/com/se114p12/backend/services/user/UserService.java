@@ -1,6 +1,6 @@
 package com.se114p12.backend.services.user;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.se114p12.backend.dtos.authentication.GoogleRegisterRequestDTO;
 import com.se114p12.backend.dtos.authentication.RegisterRequestDTO;
 import com.se114p12.backend.dtos.user.UserRequestDTO;
 import com.se114p12.backend.dtos.user.UserResponseDTO;
@@ -17,7 +17,7 @@ public interface UserService {
 
   UserResponseDTO findByPhone(String phone);
 
-  UserResponseDTO getOrRegisterGoogleUser(GoogleIdToken.Payload payload);
+  UserResponseDTO registerGoogleUser(GoogleRegisterRequestDTO googleRegisterRequestDTO);
 
   UserResponseDTO register(RegisterRequestDTO userRequestDTO);
 

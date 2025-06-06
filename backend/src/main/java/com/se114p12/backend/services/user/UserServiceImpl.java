@@ -2,6 +2,7 @@ package com.se114p12.backend.services.user;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.se114p12.backend.constants.AppConstant;
+import com.se114p12.backend.dtos.authentication.GoogleRegisterRequestDTO;
 import com.se114p12.backend.dtos.authentication.RegisterRequestDTO;
 import com.se114p12.backend.dtos.user.UserRequestDTO;
 import com.se114p12.backend.dtos.user.UserResponseDTO;
@@ -10,6 +11,7 @@ import com.se114p12.backend.entities.authentication.Verification;
 import com.se114p12.backend.entities.cart.Cart;
 import com.se114p12.backend.entities.user.User;
 import com.se114p12.backend.enums.LoginProvider;
+import com.se114p12.backend.enums.RoleName;
 import com.se114p12.backend.enums.UserStatus;
 import com.se114p12.backend.exceptions.BadRequestException;
 import com.se114p12.backend.exceptions.DataConflictException;
@@ -26,6 +28,7 @@ import com.se114p12.backend.util.JwtUtil;
 import com.se114p12.backend.vo.PageVO;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -141,21 +144,39 @@ public class UserServiceImpl implements UserService {
 
   // Register or get user from Google
   @Override
-  public UserResponseDTO getOrRegisterGoogleUser(GoogleIdToken.Payload payload) {
+  public UserResponseDTO registerGoogleUser(GoogleRegisterRequestDTO googleRegisterRequestDTO) {
+    GoogleIdToken googleIdToken =
+        jwtUtil.verifyGoogleCredential(
+            googleRegisterRequestDTO.getCredential(), googleRegisterRequestDTO.getClientId());
+    GoogleIdToken.Payload payload = googleIdToken.getPayload();
+
     Optional<User> userOptional = userRepository.findByEmail(payload.getEmail());
+
+    // If user exists, return the user response
     if (userOptional.isPresent()) return userMapper.entityToResponse(userOptional.get());
+
+    if (userRepository.existsByPhone(
+        SMSService.formatPhoneNumber(googleRegisterRequestDTO.getPhone()))) {
+      throw new DataConflictException("Phone number already exists");
+    }
+
     User user = new User();
     user.setEmail(payload.getEmail());
     user.setFullname(payload.get("name").toString());
-    user.setUsername(payload.get("name").toString());
+    user.setUsername(UUID.randomUUID().toString());
+    if (!smsService.lookupPhoneNumber(googleRegisterRequestDTO.getPhone())) {
+      throw new BadRequestException("Invalid phone number");
+    }
+    user.setPhone(SMSService.formatPhoneNumber(googleRegisterRequestDTO.getPhone()));
     user.setPassword("");
     user.setLoginProvider(LoginProvider.GOOGLE);
     user.setStatus(UserStatus.ACTIVE);
-    user = userRepository.save(user);
     Role userRole =
         roleRepository
-            .findByName("USER")
+            .findByName(RoleName.USER.getValue())
             .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
+    user.setRole(userRole);
+    user = userRepository.save(user);
     return userMapper.entityToResponse(user);
   }
 

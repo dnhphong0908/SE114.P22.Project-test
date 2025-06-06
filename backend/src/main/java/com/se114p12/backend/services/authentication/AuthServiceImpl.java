@@ -1,7 +1,9 @@
 package com.se114p12.backend.services.authentication;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
 import com.se114p12.backend.dtos.authentication.AuthResponseDTO;
 import com.se114p12.backend.dtos.authentication.ForgotPasswordRequestDTO;
+import com.se114p12.backend.dtos.authentication.GoogleLoginRequestDTO;
 import com.se114p12.backend.dtos.authentication.LoginRequestDTO;
 import com.se114p12.backend.dtos.authentication.PasswordChangeDTO;
 import com.se114p12.backend.dtos.authentication.RefreshTokenRequestDTO;
@@ -67,6 +69,32 @@ public class AuthServiceImpl implements AuthService {
     loginResponseDTO.setUser(userMapper.entityToResponse(user));
 
     return loginResponseDTO;
+  }
+
+  @Override
+  public AuthResponseDTO loginWithGoogle(GoogleLoginRequestDTO googleLoginRequestDTO) {
+    GoogleIdToken googleIdToken =
+        jwtUtil.verifyGoogleCredential(
+            googleLoginRequestDTO.getCredential(), googleLoginRequestDTO.getClientId());
+    GoogleIdToken.Payload payload = googleIdToken.getPayload();
+
+    String email = payload.getEmail();
+
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    //     create access token
+    String accessToken = jwtUtil.generateAccessToken(user.getId());
+
+    // create refresh token
+    String refreshToken = refreshTokenService.generateRefreshToken(user.getId()).getToken();
+
+    AuthResponseDTO authenticationResponseDTO = new AuthResponseDTO();
+    authenticationResponseDTO.setAccessToken(accessToken);
+    authenticationResponseDTO.setRefreshToken(refreshToken);
+    return authenticationResponseDTO;
   }
 
   @Override
