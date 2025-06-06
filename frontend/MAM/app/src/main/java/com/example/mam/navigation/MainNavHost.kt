@@ -310,16 +310,16 @@ fun MainNavHost(
             }
             composable(
                 route = "Details/{itemId}",
+                arguments = listOf(navArgument("itemId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) {backStackEntry ->
-                val viewModel: ItemViewModel = viewModel(backStackEntry)
+                val viewModel: ItemViewModel = viewModel(backStackEntry, factory = ItemViewModel.Factory)
                 ItemScreen(
                     onBackClicked = {navController.popBackStack()},
                     onAddClick = {
-                        viewModel.addToCart()
                         navController.popBackStack() },
                     onCartClicked = {navController.navigate("Cart")},
                     viewModel = viewModel

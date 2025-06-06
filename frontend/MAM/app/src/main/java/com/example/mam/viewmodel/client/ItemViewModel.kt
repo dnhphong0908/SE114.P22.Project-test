@@ -1,110 +1,184 @@
 package com.example.mam.viewmodel.client
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
 import com.example.mam.R
+import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.product.ProductResponse
+import com.example.mam.dto.variation.VariationOptionResponse
+import com.example.mam.dto.variation.VariationRequest
+import com.example.mam.dto.variation.VariationResponse
 import com.example.mam.entity.CartItem
 import com.example.mam.entity.Product
 import com.example.mam.entity.Variance
 import com.example.mam.entity.VarianceOption
+import com.example.mam.services.BaseService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.text.DecimalFormat
 
 
-class ItemViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
-    private val _item = MutableStateFlow<Product?>(null)
-//    val item: StateFlow<Product?> get() = _item
-//
-//    init {
-//        val itemId: String? = savedStateHandle["itemId"]
-//        itemId?.let { fetchItem(it) }
-//    }
-//
-//    private fun fetchItem(itemId: String) {
-//        viewModelScope.launch {
-//            try {
-//                val response = RetrofitClient.api.getItemById(itemId)
-//                _item.value = response
-//            } catch (e: Exception) {
-//                // Xử lý lỗi
-//            }
-//        }
-//    }
-    val item = Product(
-        "P003",
-        "Pizza truyền thống",
-        "",
-        "Sốt BBQ đặc trưng, gà nướng, hành tây, ớt chuông, lá basil và phô mai Mozzarella. ",
-        100000,
-        true,
-        "PC001")
-    private val _cartItem = MutableStateFlow(CartItem(product = item, 1))
-    var cartItem = _cartItem.asStateFlow()
-    fun loadAllVariance(): List<Variance> {
-        return mutableListOf(
-            Variance("V001", "Độ dày đế bánh", "P003"),
-            Variance("V002", "Độ dày đế bánh", "P004"),
-            Variance("V003", "Độ dày đế bánh", "P005"),
-            Variance("V004", "Tùy chọn loại bỏ nguyên liệu", "P003"),
-            Variance("V005", "Tùy chọn loại bỏ nguyên liệu", "P004"),
-            Variance("V006", "Tùy chọn loại bỏ nguyên liệu", "P005"),
-            Variance("V007", "Kích cỡ bánh", "P003"),
-            Variance("V008", "Kích cỡ bánh", "P004"),
-            Variance("V009", "Kích cỡ bánh", "P005")
-        )
+class ItemViewModel(
+    savedStateHandle: SavedStateHandle,
+    private val userPreferencesRepository: UserPreferencesRepository
+) : ViewModel() {
+    private val _itemID = savedStateHandle.get<Long>("itemId")
+        ?: throw IllegalArgumentException("Item ID is required")
+
+    private val _item = MutableStateFlow(ProductResponse())
+    val item = _item.asStateFlow()
+
+    private val _quantity = MutableStateFlow(1)
+    val quantity = _quantity.asStateFlow()
+
+    private val _variances = MutableStateFlow<List<VariationResponse>>(emptyList())
+    val variances = _variances.asStateFlow()
+
+    private val _optionsMap = MutableStateFlow<Map<Long, List<VariationOptionResponse>>>(emptyMap())
+    val optionsMap = _optionsMap.asStateFlow()
+
+    private val _selectedOptions = MutableStateFlow<List<VariationOptionResponse>>(emptyList())
+    val selectedOptions = _selectedOptions.asStateFlow()
+
+    fun setQuantity(newQuantity: Int) {
+        if (newQuantity > 0) {
+            _quantity.value = newQuantity
+        }
     }
 
-    fun loadVariance(idProduct: String = item.id): List<Variance>{
-        return loadAllVariance().filter {it.idProduct == idProduct}
-    }
-    fun loadAllOption(): List<VarianceOption>{
-        return mutableListOf(
-            VarianceOption("V001P003", "V001", "Mỏng", 0),
-            VarianceOption("V002P003", "V001", "Thường", 0),
-            VarianceOption("V003P003", "V001", "Dày", 0),
-
-            VarianceOption("V001P004", "V002", "Mỏng", 0),
-            VarianceOption("V002P004", "V002", "Thường", 0),
-            VarianceOption("V003P004", "V002", "Dày", 0),
-
-            VarianceOption("V004P003", "V004", "Hành tây", 0),
-            VarianceOption("V005P003", "V004", "Ớt chuông", 0),
-            VarianceOption("V006P003", "V004", "Lá Basil", 0),
-
-            VarianceOption("V004P004", "V005", "Hành tây", 0),
-            VarianceOption("V005P004", "V005", "Ớt chuông", 0),
-            VarianceOption("V006P004", "V005", "Lá Basil", 0),
-
-            VarianceOption("V007P003", "V007", "20cm", 0),
-            VarianceOption("V008P003", "V007", "25cm", 0),
-            VarianceOption("V009P003", "V007", "30cm", 0),
-
-            VarianceOption("V007P004", "V008", "20cm", 0),
-            VarianceOption("V008P004", "V008", "25cm", 0),
-            VarianceOption("V009P004", "V008", "30cm", 0),
-
-            VarianceOption("V001P005", "V003", "Mỏng", 0),
-            VarianceOption("V002P005", "V003", "Thường", 0),
-            VarianceOption("V003P005", "V003", "Dày", 0),
-
-            VarianceOption("V004P005", "V006", "Hành tây", 0),
-            VarianceOption("V005P005", "V006", "Ớt chuông", 0),
-            VarianceOption("V006P005", "V006", "Lá Basil", 0),
-
-            VarianceOption("V007P005", "V009", "20cm", 0),
-            VarianceOption("V008P005", "V009", "25cm", 0),
-            VarianceOption("V009P005", "V009", "30cm", 0)
-        )
+    fun getTotalPrice(): String {
+        val basePrice = _item.value.originalPrice
+        val additionalPrice = _selectedOptions.value.sumOf { it.additionalPrice }
+        val total = (basePrice.plus(additionalPrice.toBigDecimal())) * _quantity.value.toBigDecimal()
+        val formatter = DecimalFormat("#,###")
+        return "${formatter.format(total)} VND"
     }
 
-    fun loadOption(idVariance: String): List<VarianceOption>{
-        return loadAllOption().filter { it.idVariance == idVariance }
+    fun selectRatioOption(option : VariationOptionResponse) {
+        _selectedOptions.value = _selectedOptions.value.toMutableList().apply {
+            removeAll { it.variationId == option.variationId }
+            add(option)
+        }
+        Log.d("ItemViewModel", "Selected options updated: ${_selectedOptions.value.map { it.value }}")
+    }
+    fun selectOption(optionId: VariationOptionResponse) {
+       _selectedOptions.value = _selectedOptions.value.toMutableList().apply {
+            add(optionId)
+        }
+        Log.d("ItemViewModel", "Selected options updated: ${_selectedOptions.value.map { it.value }}")
     }
 
-    fun addToCart(){
-        //getCart
-        //addToCart
-        //back
+    fun deselectOption(optionId: VariationOptionResponse) {
+        _selectedOptions.value = _selectedOptions.value.toMutableList().apply {
+            remove(optionId)
+        }
+        Log.d("ItemViewModel", "Selected options updated: ${_selectedOptions.value.map { it.value }}")
     }
 
+    suspend fun loadItemDetails() {
+        try {
+            Log.d("ItemViewModel", "Loading item details for ID: $_itemID")
+            val response = BaseService(userPreferencesRepository).productService.getProductById(
+                id = _itemID
+            )
+            Log.d("ItemViewModel", "Response Code: ${response.code()}")
+            if (response.isSuccessful) {
+                val product = response.body()
+                if (product != null) {
+                    _item.value = product
+                    Log.d("ItemViewModel", "Item details loaded: ${_item.value.name}")
+                } else {
+                    Log.d("ItemViewModel", "No item found for ID: $_itemID")
+                }
+            } else {
+                Log.d("ItemViewModel", "Failed to load item details: ${response.errorBody()?.string()}")
+            }
+        }
+        catch (e: Exception) {
+            Log.d("ItemViewModel", "Error loading item details: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun loadVariances() {
+        try {
+            Log.d("ItemViewModel", "Loading variances for product ID: $_itemID")
+           val response = BaseService(userPreferencesRepository).variationService.getVariationByProduct(
+               productId = _itemID
+           )
+            Log.d("ItemViewModel", "Reponse Code: ${response.code()}")
+            if (response.isSuccessful){
+                val page = response.body()
+                if (page != null) {
+                    _variances.value = page.content
+                    Log.d("ItemViewModel", "Variances loaded: ${_variances.value.size}")
+                } else {
+                    Log.d("ItemViewModel", "No variances found for product ID: $_itemID")
+                }
+            } else {
+                Log.d("ItemViewModel", "Failed to load variances: ${response.errorBody()?.string()}")
+            }
+        } catch (e: Exception) {
+            Log.d("ItemViewModel", "Error loading variances: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun loadOptions() {
+        try {
+            Log.d("ItemViewModel", "Loading options for variances")
+            val optionsMap = mutableMapOf<Long, List<VariationOptionResponse>>()
+            for (variance in _variances.value) {
+                val response = BaseService(userPreferencesRepository).variationOptionService.getVariationOption(
+                    variationId = variance.id
+                )
+                if (response.isSuccessful) {
+                    val options = response.body()
+                    if (options != null) {
+                        optionsMap[variance.id] = options.content
+                        Log.d("ItemViewModel", "Loaded ${options.size} options for variance ID: ${variance.id}")
+                    }
+                    else {
+                        optionsMap[variance.id] = emptyList()
+                        Log.d("ItemViewModel", "No options found for variance ID: ${variance.id}")
+                    }
+
+                } else {
+                    Log.d("ItemViewModel", "Failed to load options for variance ID: ${variance.id}, Error: ${response.errorBody()?.string()}")
+                }
+            }
+            _optionsMap.value = optionsMap
+        } catch (e: Exception) {
+            Log.d("ItemViewModel", "Error loading options: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    suspend fun addToCart(): Int{
+        try {
+            return 1
+        }
+        catch (e: Exception) {
+            Log.d("ItemViewModel", "Error adding item to cart: ${e.message}")
+            e.printStackTrace()
+            return 0
+        }
+    }
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                ItemViewModel(
+                    savedStateHandle = this.createSavedStateHandle(),
+                    application.userPreferencesRepository)
+            }
+        }
+    }
 }
