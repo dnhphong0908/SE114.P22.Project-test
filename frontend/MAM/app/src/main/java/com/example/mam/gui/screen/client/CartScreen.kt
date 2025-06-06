@@ -160,7 +160,7 @@ fun CartScreen(
                         text = "Đề xuất món ngon",
                         textAlign = TextAlign.Start,
                         maxLines = 2,
-                        fontSize = 24.sp,
+                        fontSize = 16.sp,
                         color = BrownDefault,
                         fontWeight = FontWeight.Medium,
                         overflow = TextOverflow.Ellipsis,
@@ -206,7 +206,7 @@ fun CartScreen(
                 Column {
                     Text(
                         text = "Tổng cộng",
-                        fontSize = 20.sp,
+                        fontSize = 16.sp,
                         color = BrownDefault,
                         fontWeight = FontWeight.SemiBold
                     )

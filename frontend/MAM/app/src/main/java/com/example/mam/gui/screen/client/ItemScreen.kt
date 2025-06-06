@@ -81,11 +81,17 @@ fun ItemScreen(
     val quantity = viewModel.quantity.collectAsStateWithLifecycle().value
     val variances = viewModel.variances.collectAsStateWithLifecycle().value
     val optionsMap = viewModel.optionsMap.collectAsStateWithLifecycle().value
+    val selectedOptions = viewModel.selectedOptions.collectAsStateWithLifecycle().value
+    var total by remember { mutableStateOf("") }
 
+    LaunchedEffect(selectedOptions, quantity) {
+        total = viewModel.getTotalPrice()
+    }
     LaunchedEffect(Unit){
         viewModel.loadItemDetails()
         viewModel.loadVariances()
         viewModel.loadOptions()
+        total = viewModel.getTotalPrice()
     }
 
     val context = LocalContext.current
@@ -214,7 +220,7 @@ fun ItemScreen(
                     )
                     Text(
                         text = item.detailDescription,
-                        fontSize = 20.sp,
+                        fontSize = 16.sp,
                         color = BrownDefault,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -296,12 +302,12 @@ fun ItemScreen(
                 Column {
                     Text(
                         text = "Tổng cộng",
-                        fontSize = 20.sp,
+                        fontSize = 16.sp,
                         color = BrownDefault,
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = viewModel.getTotalPrice(),
+                        text = total,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = OrangeDefault,

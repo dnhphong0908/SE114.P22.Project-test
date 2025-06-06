@@ -66,12 +66,14 @@ class ItemViewModel(
             removeAll { it.variationId == option.variationId }
             add(option)
         }
+        getTotalPrice()
         Log.d("ItemViewModel", "Selected options updated: ${_selectedOptions.value.map { it.value }}")
     }
     fun selectOption(optionId: VariationOptionResponse) {
        _selectedOptions.value = _selectedOptions.value.toMutableList().apply {
             add(optionId)
         }
+        getTotalPrice()
         Log.d("ItemViewModel", "Selected options updated: ${_selectedOptions.value.map { it.value }}")
     }
 
@@ -79,6 +81,7 @@ class ItemViewModel(
         _selectedOptions.value = _selectedOptions.value.toMutableList().apply {
             remove(optionId)
         }
+        getTotalPrice()
         Log.d("ItemViewModel", "Selected options updated: ${_selectedOptions.value.map { it.value }}")
     }
 

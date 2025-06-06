@@ -220,7 +220,7 @@ fun ProfileInput(
         OutlinedTextField(
             value = value,
             textStyle = TextStyle(
-                fontSize = 20.sp, // <-- Chỉnh font size ở đây
+                fontSize = 16.sp, // <-- Chỉnh font size ở đây
                 color = textColor // Đảm bảo màu chữ vẫn đúng
             ),
             colors = TextFieldDefaults.colors(

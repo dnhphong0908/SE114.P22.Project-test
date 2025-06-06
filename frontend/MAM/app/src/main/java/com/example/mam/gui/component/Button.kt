@@ -61,6 +61,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -190,7 +191,7 @@ fun InnerShadowFilledButton(
 @Composable
 fun OuterShadowFilledButton(
     text: String,
-    fontSize: TextUnit = 16.sp,
+    fontSize: TextUnit = 14.sp,
     isEnable: Boolean = true,
     color: Color = OrangeDefault,
     textColor: Color = WhiteDefault,
@@ -520,15 +521,26 @@ fun ProductClientListItem(
                 Text(
                     text = item.name,
                     textAlign = TextAlign.Start,
-                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
                     modifier = Modifier
                         .align(Alignment.Start)
                         .padding(top = 5.dp)
                 )
                 Text(
+                    text = item.shortDescription,
+                    textAlign = TextAlign.Start,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(bottom = 5.dp)
+                )
+                Text(
                     text = if (item.isAvailable) item.getPriceToString() else "Hết sản phẩm",
                     textAlign = TextAlign.Start,
-                    fontSize = 18.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .align(Alignment.Start)
