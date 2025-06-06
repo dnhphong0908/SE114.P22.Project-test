@@ -316,7 +316,24 @@ fun ItemScreen(
                 OuterShadowFilledButton(
                     text = "Thêm",
                     icon = Icons.Default.AddShoppingCart,
-                    onClick = onAddClick ,
+                    onClick = {
+                        scope.launch{
+                            if(viewModel.addToCart() == 1){
+                                Toast.makeText(
+                                    context,
+                                    "Đã thêm sản phẩm vào giỏ hàng",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                onAddClick()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Không thể thêm sản phẩm vào giỏ hàng",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    } ,
                     modifier = Modifier
                 )
             }

@@ -11,6 +11,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.R
 import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.cart.CartItemRequest
 import com.example.mam.dto.product.ProductResponse
 import com.example.mam.dto.variation.VariationOptionResponse
 import com.example.mam.dto.variation.VariationRequest
@@ -166,7 +167,26 @@ class ItemViewModel(
 
     suspend fun addToCart(): Int{
         try {
-            return 1
+            val basePrice = _item.value.originalPrice
+            val additionalPrice = _selectedOptions.value.sumOf { it.additionalPrice }
+            val total = (basePrice.plus(additionalPrice.toBigDecimal())) * _quantity.value.toBigDecimal()
+            Log.d("ItemViewModel", "Adding item to cart: ${_item.value.name}, Quantity: ${_quantity.value}")
+            val request = CartItemRequest(
+                productId = _item.value.id,
+                quantity = _quantity.value.toLong(),
+                price = total,
+                variationOptionIds = _selectedOptions.value.map { it.id }.toSet()
+            )
+            Log.d("ItemViewModel", "CartItemRequest: $request")
+            val response = BaseService(userPreferencesRepository).cartItemService.addCartItem(request)
+            Log.d("ItemViewModel", "Response Code: ${response.code()}")
+            if (response.isSuccessful) {
+                Log.d("ItemViewModel", "Item added to cart successfully")
+                return 1
+            } else {
+                Log.d("ItemViewModel", "Failed to add item to cart: ${response.errorBody()?.string()}")
+                return 0
+            }
         }
         catch (e: Exception) {
             Log.d("ItemViewModel", "Error adding item to cart: ${e.message}")
