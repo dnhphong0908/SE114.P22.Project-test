@@ -26,61 +26,79 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class VariationOptionController {
 
-    private final VariationOptionService variationOptionService;
+  private final VariationOptionService variationOptionService;
 
-    @Operation(summary = "Get variation options by variation ID", description = "Retrieve all variation options associated with a specific variation")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved variation options",
-                    content = @Content(schema = @Schema(implementation = PageVO.class)))
-    })
-    @ErrorResponse
-    @GetMapping
-    public ResponseEntity<PageVO<VariationOptionResponseDTO>> getByVariationId(
-            @Parameter(description = "ID of the variation", required = true)
-            @RequestParam Long variationId,
-            @ParameterObject Pageable pageable
-    ) {
-        return ResponseEntity.ok(variationOptionService.getByVariationId(variationId, pageable));
-    }
+  @Operation(
+      summary = "Get variation options by variation ID",
+      description = "Retrieve all variation options associated with a specific variation")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Successfully retrieved variation options",
+            content = @Content(schema = @Schema(implementation = PageVO.class)))
+      })
+  @ErrorResponse
+  @GetMapping
+  public ResponseEntity<PageVO<VariationOptionResponseDTO>> getByVariationId(
+      @Parameter(description = "ID of the variation", required = true) @RequestParam
+          Long variationId,
+      @ParameterObject Pageable pageable) {
+    pageable = pageable.isPaged() ? pageable : Pageable.unpaged();
+    return ResponseEntity.ok(variationOptionService.getByVariationId(variationId, pageable));
+  }
 
-    @Operation(summary = "Create a variation option", description = "Create a new variation option (Admin only)")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Variation option created successfully",
-                    content = @Content(schema = @Schema(implementation = VariationOptionResponseDTO.class)))
-    })
-    @ErrorResponse
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    public ResponseEntity<VariationOptionResponseDTO> create(
-            @Valid @RequestBody VariationOptionRequestDTO dto) {
-        return ResponseEntity.ok(variationOptionService.create(dto));
-    }
+  @Operation(
+      summary = "Create a variation option",
+      description = "Create a new variation option (Admin only)")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Variation option created successfully",
+            content = @Content(schema = @Schema(implementation = VariationOptionResponseDTO.class)))
+      })
+  @ErrorResponse
+  @PreAuthorize("hasRole('ADMIN')")
+  @PostMapping
+  public ResponseEntity<VariationOptionResponseDTO> create(
+      @Valid @RequestBody VariationOptionRequestDTO dto) {
+    return ResponseEntity.ok(variationOptionService.create(dto));
+  }
 
-    @Operation(summary = "Update a variation option", description = "Update an existing variation option by its ID (Admin only)")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Variation option updated successfully",
-                    content = @Content(schema = @Schema(implementation = VariationOptionResponseDTO.class)))
-    })
-    @ErrorResponse
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping("/{id}")
-    public ResponseEntity<VariationOptionResponseDTO> update(
-            @Parameter(description = "ID of the variation option to update") @PathVariable Long id,
-            @Valid @RequestBody VariationOptionRequestDTO dto) {
-        return ResponseEntity.ok(variationOptionService.update(id, dto));
-    }
+  @Operation(
+      summary = "Update a variation option",
+      description = "Update an existing variation option by its ID (Admin only)")
+  @ApiResponses(
+      value = {
+        @ApiResponse(
+            responseCode = "200",
+            description = "Variation option updated successfully",
+            content = @Content(schema = @Schema(implementation = VariationOptionResponseDTO.class)))
+      })
+  @ErrorResponse
+  @PreAuthorize("hasRole('ADMIN')")
+  @PutMapping("/{id}")
+  public ResponseEntity<VariationOptionResponseDTO> update(
+      @Parameter(description = "ID of the variation option to update") @PathVariable Long id,
+      @Valid @RequestBody VariationOptionRequestDTO dto) {
+    return ResponseEntity.ok(variationOptionService.update(id, dto));
+  }
 
-    @Operation(summary = "Delete a variation option", description = "Delete a variation option by its ID (Admin only)")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "204", description = "Variation option deleted successfully"),
-            @ApiResponse(responseCode = "404", description = "Variation option not found")
-    })
-    @ErrorResponse
-    @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(
-            @Parameter(description = "ID of the variation option to delete") @PathVariable Long id) {
-        variationOptionService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
+  @Operation(
+      summary = "Delete a variation option",
+      description = "Delete a variation option by its ID (Admin only)")
+  @ApiResponses(
+      value = {
+        @ApiResponse(responseCode = "204", description = "Variation option deleted successfully"),
+        @ApiResponse(responseCode = "404", description = "Variation option not found")
+      })
+  @ErrorResponse
+  @PreAuthorize("hasRole('ADMIN')")
+  @DeleteMapping("/{id}")
+  public ResponseEntity<Void> delete(
+      @Parameter(description = "ID of the variation option to delete") @PathVariable Long id) {
+    variationOptionService.delete(id);
+    return ResponseEntity.noContent().build();
+  }
 }
