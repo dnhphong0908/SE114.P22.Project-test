@@ -10,6 +10,7 @@ import com.se114p12.backend.util.OtpGenerator;
 import java.time.Instant;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -58,6 +59,7 @@ public class VerificationServiceImpl implements VerificationService {
       throw new ResourceNotFoundException("Verification type mismatch");
     }
     if (verification.getExpiredAt().isBefore(Instant.now())) {
+      verificationRepository.delete(verification);
       throw new ResourceNotFoundException("Verification code expired");
     }
     return verification;
@@ -66,6 +68,16 @@ public class VerificationServiceImpl implements VerificationService {
   @Override
   public void deleteVerification(Verification verification) {
     verificationRepository.delete(verification);
+  }
+
+  /**
+   * Scheduled task to delete expired verifications. This method is currently empty and should be
+   * implemented to remove expired verifications.
+   */
+  @Scheduled(cron = "0 0 0 * * ?")
+  @Override
+  public void deleteExpiredVerifications() {
+    verificationRepository.deleteExpiredVerifications();
   }
 
   /**
