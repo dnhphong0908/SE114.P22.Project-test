@@ -1,4 +1,4 @@
-package com.se114p12.backend.controllers.auth;
+package com.se114p12.backend.controllers.authentication;
 
 import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.dtos.authentication.*;
