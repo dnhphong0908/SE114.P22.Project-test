@@ -12,7 +12,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface Shipper {
+interface ShipperService {
     @GET("shippers/{id}")
     suspend fun getShipperById(@Path("id") id: Long): Response<ShipperResponse>
     @PUT("shippers/{id}")
@@ -25,7 +25,9 @@ interface Shipper {
     @GET("shippers")
     suspend fun getShippers(
         @Query("page") page: Int = 0,
-        @Query("size") size: Int = 10
+        @Query("size") size: Int = 10,
+        @Query("sort") sort: List<String>? = null,
+        @Query("filter") filter: String
     ): Response<PageVO<ShipperResponse>>
     @POST("shippers")
     suspend fun createShipper(@Body shipperRequest: ShipperRequest): Response<ShipperResponse>

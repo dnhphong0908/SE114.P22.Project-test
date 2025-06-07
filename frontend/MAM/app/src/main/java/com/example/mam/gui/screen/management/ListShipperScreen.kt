@@ -53,6 +53,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -74,7 +75,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.mam.entity.Shipper
+import com.example.mam.dto.shipper.ShipperResponse
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
@@ -86,6 +87,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListShipperViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun ListShipperScreen(
@@ -94,15 +96,16 @@ fun ListShipperScreen(
     onHomeClick: () -> Unit = {},
     onShipperClick: (String) -> Unit = {},
     onAddShipperClick: () -> Unit = {},
-    onEditShipperClick: (String) -> Unit = {},
-    mockData: List<Shipper> ?= null
+    onEditShipperClick: (Long) -> Unit = {},
+    mockData: List<ShipperResponse> ?= null
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
     val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
-    val shipperList = viewModel.shipper.collectAsStateWithLifecycle().value
+    val shipperList = viewModel.shippers.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
         viewModel.loadSortingOptions()
@@ -241,7 +244,7 @@ fun ListShipperScreen(
                                             disabledContainerColor = WhiteDefault
                                         ),
                                         onClick = {
-                                            viewModel.searchShipper()
+                                            scope.launch { viewModel.searchShipper() }
                                             focusManager.clearFocus()
                                         }) {
                                         Icon(Icons.Default.Search, contentDescription = "Search")
@@ -389,10 +392,10 @@ fun ListShipperScreen(
 
 @Composable
 fun ShipperItem(
-    shipper: Shipper,
+    shipper: ShipperResponse,
     onClick: (String) -> Unit,
-    onEditClick: (String) -> Unit,
-    onDeleteClick: (String) -> Unit,
+    onEditClick: (Long) -> Unit,
+    onDeleteClick: (Long) -> Unit,
 ) {
     var expand by remember { mutableStateOf(false) }
         Surface(
@@ -401,7 +404,7 @@ fun ShipperItem(
             modifier = Modifier.padding(8.dp)
         ) {
         Card(
-            onClick = { onClick(shipper.phoneNumber) },
+            onClick = { onClick(shipper.phone) },
             colors = CardDefaults.cardColors(
                 containerColor = WhiteDefault
             ),
@@ -420,7 +423,7 @@ fun ShipperItem(
                         .weight(1f)
                 ) {
                     Text(
-                        text = shipper.name,
+                        text = shipper.fullname,
                         textAlign = TextAlign.Start,
                         color = BrownDefault,
                         fontSize = 18.sp,
@@ -465,7 +468,7 @@ fun ShipperItem(
                         withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
                             append("Số điện thoại: ")
                         }
-                        append(shipper.phoneNumber)},
+                        append(shipper.phone)},
                     textAlign = TextAlign.Start,
                     color = BrownDefault,
                     fontSize = 16.sp,
@@ -496,34 +499,34 @@ fun ShipperItem(
     }
 }
 
-@Preview
-@Composable
-fun ShipperItemPreview() {
-    ShipperItem(
-        shipper = Shipper(
-            name = "Nguyễn Văn A",
-            phoneNumber = "0123456789",
-            licensePlate = "29A-123.45"
-        ),
-        onClick = {},
-        onEditClick = {},
-        onDeleteClick = {}
-    )
-}
-
-@Preview
-@Composable
-fun ShipperScreenPreview() {
-    ListShipperScreen(
-        viewModel = ListShipperViewModel(),
-        onBackClick = {},
-        onShipperClick = {},
-        onAddShipperClick = {},
-        onEditShipperClick = {},
-        mockData = listOf(
-            Shipper("Nguyễn Văn A", "0123456789", "59-A1 999.99", "1"),
-            Shipper("Trần Thị B", "0987654321", "59-A1 999.99", "2"),
-            Shipper("Lê Văn C", "0912345678", "59-A1 999.99", "3")
-        )
-    )
-}
+//@Preview
+//@Composable
+//fun ShipperItemPreview() {
+//    ShipperItem(
+//        shipper = Shipper(
+//            name = "Nguyễn Văn A",
+//            phoneNumber = "0123456789",
+//            licensePlate = "29A-123.45"
+//        ),
+//        onClick = {},
+//        onEditClick = {},
+//        onDeleteClick = {}
+//    )
+//}
+//
+//@Preview
+//@Composable
+//fun ShipperScreenPreview() {
+//    ListShipperScreen(
+//        viewModel = ListShipperViewModel(),
+//        onBackClick = {},
+//        onShipperClick = {},
+//        onAddShipperClick = {},
+//        onEditShipperClick = {},
+//        mockData = listOf(
+//            Shipper("Nguyễn Văn A", "0123456789", "59-A1 999.99", "1"),
+//            Shipper("Trần Thị B", "0987654321", "59-A1 999.99", "2"),
+//            Shipper("Lê Văn C", "0912345678", "59-A1 999.99", "3")
+//        )
+//    )
+//}

@@ -59,7 +59,7 @@ import com.plcoding.composeotpinput.OtpViewModel
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
 fun OTPScreen(
-    focusRequester: List<FocusRequester> = List(4) { FocusRequester() },
+    focusRequester: List<FocusRequester> = List(6) { FocusRequester() },
     forgetPasswordViewModel: ForgetPasswordViewModel = viewModel(),
     viewModel: OtpViewModel = viewModel(),
     onAction: (OtpAction) -> Unit = viewModel::onAction,
@@ -193,7 +193,7 @@ fun OTPScreen(
                 )
                 Box(
                     modifier = Modifier
-                        .width(238.dp)
+                        .width(330.dp)
                         .height(49.dp)
                         .background(
                             color = OrangeLight,
@@ -211,7 +211,7 @@ fun OTPScreen(
 //                        resetTrigger = resetTrigger
 //                    )
                     Row(
-                        horizontalArrangement = Arrangement.spacedBy(14.dp, Alignment.CenterHorizontally),
+                        horizontalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterHorizontally),
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .padding(vertical = 16.dp)
@@ -220,7 +220,7 @@ fun OTPScreen(
                     ) {
                         state.code.forEachIndexed { index, number ->
                             newOtpInputField(
-                                number = number,
+                                char = number,
                                 index = index,
                                 focusedIndex = state.focusedIndex,
                                 focusRequester = focusRequester[index],
@@ -229,8 +229,8 @@ fun OTPScreen(
                                         onAction(OtpAction.OnChangeFieldFocused(index))
                                     }
                                 },
-                                onNumberChanged = { newNumber ->
-                                    onAction(OtpAction.OnEnterNumber(newNumber, index))
+                                onCharacterChanged = { newChar ->
+                                    onAction(OtpAction.OnEnterCharacter(newChar, index))
                                 },
                                 onKeyboardBack = {
                                     onAction(OtpAction.OnKeyboardBack)
