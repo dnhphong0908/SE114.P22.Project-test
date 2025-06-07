@@ -64,6 +64,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun OTPScreen(
     focusRequester: List<FocusRequester> = List(6) { FocusRequester() },
+    forgetPasswordViewModel: ForgetPasswordViewModel = viewModel(),
     viewModel: OtpViewModel = viewModel(),
     onAction: (OtpAction) -> Unit = viewModel::onAction,
     onVerifyClicked: () -> Unit = {},
