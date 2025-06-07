@@ -26,6 +26,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,11 +43,14 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public NotificationResponseDTO pushNotification(NotificationRequestDTO request) {
+        if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
+            throw new IllegalArgumentException("UserIds cannot be null or empty for pushNotification");
+        }
+
         Notification notification = new Notification()
                 .setType(request.getType())
                 .setTitle(request.getTitle())
-                .setMessage(request.getMessage())
-                .setStatus(request.getStatus() != null ? request.getStatus() : 1);
+                .setMessage(request.getMessage());
 
         notification = notificationRepository.save(notification);
 
@@ -82,8 +87,7 @@ public class NotificationServiceImpl implements NotificationService {
         Notification notification = new Notification()
                 .setType(request.getType())
                 .setTitle(request.getTitle())
-                .setMessage(request.getMessage())
-                .setStatus(request.getStatus() != null ? request.getStatus() : 1);
+                .setMessage(request.getMessage());
 
         notification = notificationRepository.save(notification);
 
@@ -138,22 +142,40 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public PageVO<NotificationResponseDTO> getNotificationsByUserId(Long userId, Specification<Notification> specification, Pageable pageable) {
-        List<Long> notificationIds = notificationUserRepository.findByUserId(userId)
-                .stream()
+        // Lấy danh sách NotificationUser theo userId
+        List<NotificationUser> userNotifications = notificationUserRepository.findByUserId(userId);
+        List<Long> notificationIds = userNotifications.stream()
                 .map(nu -> nu.getNotification().getId())
                 .toList();
 
-        // Tạo specification kết hợp điều kiện ID và các điều kiện filter từ người dùng
+        // Tạo Specification để lọc theo notificationIds và điều kiện từ FE
         Specification<Notification> finalSpec = (root, query, cb) -> root.get("id").in(notificationIds);
         if (specification != null) {
             finalSpec = finalSpec.and(specification);
         }
 
+        // Truy vấn danh sách thông báo
         Page<Notification> page = notificationRepository.findAll(finalSpec, pageable);
 
-        List<NotificationResponseDTO> content = page
-                .map(notification -> toResponse(notification, userId))
-                .getContent();
+        // Map notificationId -> NotificationUser (để lấy nhanh trạng thái isRead)
+        Map<Long, Boolean> readStatusMap = userNotifications.stream()
+                .collect(Collectors.toMap(
+                        nu -> nu.getNotification().getId(),
+                        NotificationUser::isRead
+                ));
+
+        // Chuyển từng Notification thành DTO có isRead
+        List<NotificationResponseDTO> content = page.getContent().stream()
+                .map(notification -> {
+                    NotificationResponseDTO dto = notificationMapper.toDTO(notification);
+                    dto.setId(notification.getId());
+                    dto.setCreatedAt(notification.getCreatedAt());
+                    dto.setUpdatedAt(notification.getUpdatedAt());
+                    dto.setUserId(userId);
+                    dto.setIsRead(readStatusMap.getOrDefault(notification.getId(), false));
+                    return dto;
+                })
+                .toList();
 
         return PageVO.<NotificationResponseDTO>builder()
                 .page(page.getNumber())
@@ -197,8 +219,17 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public NotificationResponseDTO toResponse(Notification notification, Long userId) {
-        NotificationResponseDTO response = notificationMapper.toDTO(notification);
-        response.setUserId(userId);
-        return response;
+        NotificationResponseDTO dto = notificationMapper.toDTO(notification);
+        dto.setId(notification.getId());
+        dto.setCreatedAt(notification.getCreatedAt());
+        dto.setUpdatedAt(notification.getUpdatedAt());
+        dto.setUserId(userId);
+
+        if (userId != null) {
+            NotificationUserId id = new NotificationUserId(userId, notification.getId());
+            notificationUserRepository.findById(id).ifPresent(nu -> dto.setIsRead(nu.isRead()));
+        }
+
+        return dto;
     }
 }
