@@ -119,6 +119,7 @@ fun OrderScreen(
             Text(
                 text = "Đơn hàng của bạn",
                 style = Typography.titleLarge,
+                textAlign = TextAlign.Center,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 17.dp)
@@ -244,7 +245,7 @@ fun OrderScreen(
                                 4 -> "Đơn hàng đã được giao tới bạn"
                                 else -> "Đơn hàng không xác định"
                             },
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             color = WhiteDefault,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
@@ -256,7 +257,7 @@ fun OrderScreen(
                     ) {
                         Text(
                             text = "Người giao hàng:",
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             color = WhiteDefault,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Start,
@@ -264,14 +265,14 @@ fun OrderScreen(
                         )
                         Text(
                         text = shipper.value.name + " - " + shipper.value.phoneNumber,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         color = WhiteDefault,
                         textAlign = TextAlign.Start,
                         modifier = Modifier.padding(start = 10.dp).fillMaxWidth()
                         )
                         Text(
                             text = "Biển số xe: " + shipper.value.licensePlate,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             color = WhiteDefault,
                             textAlign = TextAlign.Start,
                             modifier = Modifier.padding(start = 10.dp).fillMaxWidth()
@@ -328,14 +329,14 @@ fun OrderScreen(
                     ) {
                         Text(
                             text = viewModel.getUser().fullName + " - " + viewModel.getUser().phoneNumber,
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             color = BrownDefault,
                             fontWeight = FontWeight.Bold,
                             modifier = Modifier.padding(start = 10.dp)
                         )
                         Text(
                             text = "Địa chỉ: " + address,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             color = BrownDefault,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier.padding(start = 10.dp)
@@ -354,7 +355,7 @@ fun OrderScreen(
                         ) {
                             Text(
                                 text = "Giảm giá:",
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 color = BrownDefault,
                                 fontWeight = FontWeight.Medium,
                                 modifier = Modifier
@@ -363,7 +364,7 @@ fun OrderScreen(
                             )
                             OuterShadowFilledButton(
                                 text = "-"+viewModel.getPriceToString(discount.value),
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 onClick = {  },
                                 modifier = Modifier.wrapContentWidth()
 
@@ -383,14 +384,14 @@ fun OrderScreen(
                         ) {
                             Text(
                                 text = "Phương thức thanh toán:",
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 color = BrownDefault,
                                 fontWeight = FontWeight.Medium,
                                 modifier = Modifier.padding(start = 10.dp)
                             )
                             OuterShadowFilledButton(
                                 text = viewModel.getPaymentType(),
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 onClick = {  },
                                 modifier = Modifier.wrapContentWidth()
 
@@ -404,7 +405,7 @@ fun OrderScreen(
                         )
                         Text(
                             text = "Ghi chú:",
-                            fontSize = 20.sp,
+                            fontSize = 14.sp,
                             color = BrownDefault,
                             fontWeight = FontWeight.Medium,
                             modifier = Modifier
@@ -416,7 +417,7 @@ fun OrderScreen(
                             value = note.value,
                             onValueChange = {},
                             readOnly = true,
-                            textStyle = TextStyle(fontSize = 20.sp, color = BrownDefault),
+                            textStyle = TextStyle(fontSize = 14.sp, color = BrownDefault),
                             colors = TextFieldDefaults.colors(
                                 focusedContainerColor = WhiteDefault,  // Màu nền khi focus
                                 unfocusedContainerColor = WhiteDefault, // Màu nền khi không focus
@@ -447,7 +448,7 @@ fun OrderScreen(
                             Column {
                                 Text(
                                     text = "Tổng cộng",
-                                    fontSize = 20.sp,
+                                    fontSize = 16.sp,
                                     color = BrownDefault,
                                     fontWeight = FontWeight.SemiBold
                                 )

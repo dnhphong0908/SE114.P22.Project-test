@@ -19,8 +19,11 @@ interface VariationOptionService {
     suspend fun deleteVariationOption(@Path("id") id: Long): Response<Unit>
     @GET("variation-options")
     suspend fun getVariationOption(
-        @Query("variationId") variationId: Long = 0L
-    ): Response<List<VariationOptionResponse>>
+        @Query("variationId") variationId: Long,
+        @Query("page") page: Int ?= null,
+        @Query("size") size: Int ?= null,
+        @Query("sort") sort: List<String>? = null,
+    ): Response<PageVO<VariationOptionResponse>>
     @POST("variation-options")
     suspend fun createVariationOption(
         @Body variationOptionRequest: VariationOptionRequest

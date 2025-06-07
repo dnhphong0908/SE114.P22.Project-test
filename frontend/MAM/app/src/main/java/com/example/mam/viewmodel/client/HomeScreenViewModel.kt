@@ -98,7 +98,7 @@ class HomeScreenViewModel(
             Log.d("Category", "Bắt đầu lấy Danh mục")
                 val response = BaseService(userPreferencesRepository)
                     .productService
-                    .getProductsByCategory(id,specification = "", page = 0)
+                    .getProductsByCategory(id,filter= "", page = 0)
                 Log.d("Category", "Status code: ${response.code()}")
 
                 if (response.isSuccessful) {

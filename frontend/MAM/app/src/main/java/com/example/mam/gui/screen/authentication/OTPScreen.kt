@@ -1,6 +1,7 @@
 package com.example.mam.gui.screen.authentication
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,10 +27,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.TextStyle
@@ -55,6 +58,7 @@ import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.authentication.ForgetPasswordViewModel
 import com.example.mam.viewmodel.authentication.otp.OtpAction
 import com.plcoding.composeotpinput.OtpViewModel
+import kotlinx.coroutines.launch
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @Composable
@@ -68,16 +72,15 @@ fun OTPScreen(
     modifier: Modifier = Modifier
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val email = viewModel.email.collectAsStateWithLifecycle().value
+
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     // Quản lý focus và bàn phím
     val focusManager = LocalFocusManager.current
     val keyboardManager = LocalSoftwareKeyboardController.current
 
-    val phoneNumber by forgetPasswordViewModel.phoneNumber.collectAsState()
-
-    LaunchedEffect(Unit) {
-        forgetPasswordViewModel.fetchPhoneNumber()
-    }
 
     // Tự động focus vào ô tương ứng
     LaunchedEffect(state.focusedIndex) {
@@ -171,7 +174,7 @@ fun OTPScreen(
             ) {
                 Spacer(modifier = Modifier.height(10.dp))
                 Text(
-                    text = "Chúng tôi sẽ gửi mã OTP đến \nsố điện thoại của bạn",
+                    text = "Chúng tôi sẽ gửi mã OTP đến \nemail của bạn",
                     style = TextStyle(
                         fontSize = Variables.BodySizeMedium,
                         lineHeight = 22.4.sp,
@@ -181,7 +184,7 @@ fun OTPScreen(
                     )
                 )
                 Text(
-                    text = phoneNumber,
+                    text = email,
                    // text = viewModel.phoneNumber,
                     style = TextStyle(
                         fontSize = Variables.BodySizeMedium,
@@ -245,13 +248,47 @@ fun OTPScreen(
                 }
                 OtpInputWithCountdown(
                     onResendClick = {
-                        resetTrigger = !resetTrigger
-                        viewModel.setOTP((""))
+                        scope.launch{
+                            if (viewModel.reSendOTP() == 1){
+                                Toast.makeText(
+                                    context,
+                                    "Mã OTP đã được gửi lại đến email của bạn",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                resetTrigger = !resetTrigger
+                                viewModel.setOTP((""))
+                            }
+                            else {
+                                Toast.makeText(
+                                    context,
+                                    "Gửi lại mã OTP thất bại, vui lòng thử lại sau",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
                     }
                 )
                 OuterShadowFilledButton(
                     text = "Xác nhận",
-                    onClick = onVerifyClicked,
+                    onClick = {
+                        viewModel.setOTP(state.code.joinToString(""))
+                        scope.launch{
+                            if (viewModel.verifyOtp() == 1) {
+                                Toast.makeText(
+                                    context,
+                                    "Đổi mật khẩu mới thành công",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                onVerifyClicked()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Xác nhận OTP thất bại, vui lòng thử lại sau",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    },
                     //isEnable = viewModel.isOTPValid(),
                     modifier = Modifier
                         .fillMaxWidth(0.5f)

@@ -1,6 +1,7 @@
 package com.example.mam.services
 
 import com.example.mam.dto.authentication.AuthResponse
+import com.example.mam.dto.authentication.ChangePasswordRequest
 import com.example.mam.dto.authentication.RefreshTokenRequest
 import com.example.mam.dto.user.UserResponse
 import retrofit2.Response
@@ -13,4 +14,6 @@ interface AuthPrivateService {
     suspend fun getUserInfo(): Response<UserResponse>
     @POST("auth/logout")
     suspend fun logOut(@Body refreshToken: RefreshTokenRequest): Response<Void>
+    @POST("auth/change-password")
+    suspend fun changePassword(@Body changePasswordRequest: ChangePasswordRequest): Response<Void>
 }

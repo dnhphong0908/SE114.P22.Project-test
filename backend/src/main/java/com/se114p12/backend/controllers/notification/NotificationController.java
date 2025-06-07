@@ -32,6 +32,13 @@ public class NotificationController {
     private final NotificationService notificationService;
     private final JwtUtil jwtUtil;
 
+    @Operation(summary = "Send notification to all users", description = "Send a notification to all users with role USER")
+    @ApiResponse(responseCode = "200", description = "Notification sent to all")
+    @PostMapping("/send-to-all")
+    public ResponseEntity<NotificationResponseDTO> sendToAll(@RequestBody NotificationRequestDTO request) {
+        return ResponseEntity.ok(notificationService.sendToAll(request));
+    }
+
     @Operation(summary = "Send a notification to users", description = "Send a custom notification to multiple users")
     @ApiResponse(responseCode = "200", description = "Notification sent", content = @Content(schema = @Schema(implementation = NotificationResponseDTO.class)))
     @PostMapping("/send")
@@ -68,7 +75,7 @@ public class NotificationController {
     @Operation(summary = "Mark all my notifications as read", description = "Set all current user's notifications as read")
     @ApiResponse(responseCode = "200", description = "Marked all as read")
     @ErrorResponse
-    @PostMapping("/me/read-all")
+    @PutMapping("/me/read-all")
     public ResponseEntity<Void> markAllMyNotificationsAsRead() {
         Long userId = jwtUtil.getCurrentUserId();
         notificationService.markAllAsRead(userId);
@@ -81,7 +88,7 @@ public class NotificationController {
             @ApiResponse(responseCode = "404", description = "Notification not found")
     })
     @ErrorResponse
-    @PostMapping("/{id}/read")
+    @PutMapping("/read/{id}")
     public ResponseEntity<Void> markAsRead(
             @Parameter(description = "Notification ID to mark as read") @PathVariable Long id) {
         Long userId = jwtUtil.getCurrentUserId();

@@ -1,5 +1,6 @@
 package com.se114p12.backend.entities.cart;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.se114p12.backend.entities.BaseEntity;
 import com.se114p12.backend.entities.product.Product;
 import com.se114p12.backend.entities.variation.VariationOption;
@@ -16,6 +17,7 @@ import java.util.Set;
 public class CartItem extends BaseEntity {
     @ManyToOne
     @JoinColumn(name = "cart_id", nullable = false)
+    @JsonIgnore
     private Cart cart;
 
     @ManyToOne

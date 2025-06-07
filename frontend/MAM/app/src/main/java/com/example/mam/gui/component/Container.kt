@@ -88,8 +88,9 @@ fun ProductContainer(
         Spacer(modifier = Modifier.height(20.dp))
 
         AsyncImage(
-            model = category.imageUrl, // Đây là URL từ API
+            model = category.getRealURL(), // Đây là URL từ API
             contentDescription = null,
+            placeholder = painterResource(R.drawable.ic_mam_logo),
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(50.dp)
@@ -139,7 +140,7 @@ fun CartItemContainer(
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
         modifier = modifier
-            .height(160.dp)
+            .height(120.dp)
             .fillMaxWidth(0.95f)
     ){
         Row(
@@ -150,20 +151,20 @@ fun CartItemContainer(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier
                     .fillMaxHeight()
-                    .fillMaxWidth(0.4f)) {
+                    .fillMaxWidth(0.3f)) {
                 AsyncImage(
                     model = cartItem.product.imageUrl, // Đây là URL từ API
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .padding(vertical = 10.dp)
-                        .size(110.dp)
+                        .size(80.dp)
                         .clip(CircleShape)
                 )
                 Text(
                     text = cartItem.getPriceToString(),
                     textAlign = TextAlign.Start,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .padding(bottom = 5.dp))
@@ -182,7 +183,7 @@ fun CartItemContainer(
                         text = cartItem.product.name,
                         textAlign = TextAlign.Start,
                         maxLines = 2,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
@@ -193,7 +194,7 @@ fun CartItemContainer(
                         text = cartItem.getOptionsToString(),
                         textAlign = TextAlign.Start,
                         maxLines = 2,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
                             .align(Alignment.Start)
@@ -252,7 +253,7 @@ fun OrderItemContainer(
         shape = RoundedCornerShape(50.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
         modifier = modifier
-            .height(130.dp)
+            .height(100.dp)
             .fillMaxWidth(0.95f)
 //            .clip(
 //                RoundedCornerShape(
@@ -280,7 +281,7 @@ fun OrderItemContainer(
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .padding(vertical = 10.dp)
-                        .size(105.dp)
+                        .size(80.dp)
                         .clip(CircleShape)
                 )
 
@@ -296,7 +297,7 @@ fun OrderItemContainer(
                         text = item.name,
                         textAlign = TextAlign.Start,
                         maxLines = 2,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
@@ -307,7 +308,7 @@ fun OrderItemContainer(
                         text = item.options,
                         textAlign = TextAlign.Start,
                         maxLines = 3,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
                             .align(Alignment.Start)
@@ -317,7 +318,7 @@ fun OrderItemContainer(
                 Text(
                     text = item.getPriceToString(),
                     textAlign = TextAlign.End,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     fontStyle = FontStyle.Italic,
                     color = OrangeDefault,

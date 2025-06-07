@@ -9,8 +9,15 @@ import java.util.Set;
 @Data
 public class CartItemResponseDTO extends BaseResponseDTO {
     private Long cartId;
-    private Long productId;
     private Long quantity;
     private BigDecimal price;
+
+    private Long productId;
+    private String productName;
+
     private Set<Long> variationOptionIds;
+    private String VariationOptionInfo;
+
+    private String imageUrl;
+
 }

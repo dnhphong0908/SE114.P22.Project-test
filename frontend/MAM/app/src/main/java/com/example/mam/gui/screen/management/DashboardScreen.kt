@@ -282,11 +282,10 @@ fun DashboardScreen(
                     Text(
                         text = "Quản lý",
                         color = BrownDefault,
-                        fontSize = 24.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
-                            .padding(10.dp)
                             .fillMaxWidth()
                     )
                     FlowRow(
@@ -356,7 +355,7 @@ fun DashboardScreen(
                     Text(
                         text = "Thống kê doanh thu",
                         color = BrownDefault,
-                        fontSize = 24.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
@@ -390,7 +389,7 @@ fun DashboardScreen(
                     Text(
                         text = "Tỉ lệ danh mục bán ra",
                         color = BrownDefault,
-                        fontSize = 24.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
@@ -749,6 +748,7 @@ fun SoldCategoryChart(
             ) { slice ->
                 Toast.makeText(context, slice.label, Toast.LENGTH_SHORT).show()
             }
+
         }
         Row(
             horizontalArrangement = Arrangement.End,
@@ -787,10 +787,9 @@ fun SoldCategoryChart(
                 },
                 modifier = Modifier
                     .padding(8.dp)
-                    .width(400.dp)
-                    .height(500.dp)
             )
         }
+
     }
 
 }

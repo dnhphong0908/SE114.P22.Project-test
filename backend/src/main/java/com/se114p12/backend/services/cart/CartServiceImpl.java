@@ -7,10 +7,17 @@ import com.se114p12.backend.repositories.cart.CartRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class CartServiceImpl implements CartService {
     private final CartRepository cartRepository;
+
+    @Override
+    public Optional<Cart> findByUserId(Long userId) {
+        return cartRepository.findByUserId(userId);
+    }
 
     public Cart getCartById(Long id) {
         return cartRepository.findById(id)

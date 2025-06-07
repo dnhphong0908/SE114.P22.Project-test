@@ -29,10 +29,6 @@ public class Notification extends BaseEntity {
 //    @Column(name = "anchor")
 //    private String anchor;
 
-    // 2 trạng thái: 1 - Chưa đọc, 2 - Đã đọc
-    @Column(name = "status", nullable = false, columnDefinition = "TINYINT")
-    private Integer status;
-
     @Nullable
     private String targetUrl;
 
