@@ -20,49 +20,50 @@ import kotlinx.coroutines.launch
 open class NotificationViewModel(
     private val userPreferencesRepository: UserPreferencesRepository
 ): ViewModel() {
-    private val _notifications = MutableStateFlow<List<NotificationResponse>>(emptyList())
+    private val _notifications = MutableStateFlow<MutableList<NotificationResponse>>(mutableListOf())
     val notifications = _notifications.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
     suspend fun loadNotifications() {
-        viewModelScope.launch {
-            var currentPage = 0
-            _isLoading.value = true
-            val allNotifications = mutableListOf<NotificationResponse>()
-            try {
-                Log.d("NotificationViewModel", "Loading notifications")
-                while (true) { // Loop until the last page
-                    Log.d("NotificationViewModel", "Fetching page $currentPage")
-                    val response = BaseService(userPreferencesRepository).notificationService.getMyNotifications(
-                        page = currentPage,
-                        filter = "")
-                    Log.d("NotificationViewModel", "Status code: ${response.code()}")
-                    if (response.isSuccessful) {
-                        val page = response.body()
-                        if (page != null){
-                            allNotifications.addAll(page.content)
-                            if (page.page >= (page.totalPages - 1)) {
-                                break // Stop looping when the last page is reached
-                            }
-                            currentPage++ // Move to the next page
-                            Log.d("NotificationViewModel", "Lấy trang ${page.page}")
-                            _notifications.value = allNotifications.toList() // Update UI with new notifications
-
+        var currentPage = 0
+        _isLoading.value = true
+        val allNotifications = mutableListOf<NotificationResponse>()
+        try {
+            Log.d("NotificationViewModel", "Loading notifications")
+            while (true) { // Loop until the last page
+                Log.d("NotificationViewModel", "Fetching page $currentPage")
+                val response = BaseService(userPreferencesRepository).notificationService.getMyNotifications(
+                    page = currentPage,
+                    sort = listOf("createdAt,desc"), // Sort by created date descending
+                    filter = "")
+                Log.d("NotificationViewModel", "Status code: ${response.code()}")
+                if (response.isSuccessful) {
+                    val page = response.body()
+                    if (page != null){
+                        allNotifications.addAll(page.content)
+                        Log.d("NotificationViewModel", "Đã lấy ${page.content.size} thông báo từ trang ${page.page}")
+                        Log.d("NotificationViewModel", "Tổng số thông báo: ${page.totalElements}, Tổng trang: ${page.totalPages}")
+                        _notifications.value = allNotifications.toMutableList()// Update UI with new notifications
+                        Log.d("NotificationViewModel", "Cập nhật thông báo: ${_notifications.value.size} thông báo hiện có")
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
                         }
-                        else break
-                    } else {
-                        Log.d("NotificationViewModel", "Tai thong bao thất bại: ${response.errorBody()?.string()}")
-                        break // Stop loop on failure
+                        currentPage++ // Move to the next page
+
+
                     }
-                    _notifications.value = allNotifications.toList()
+                    else break
+                } else {
+                    Log.d("NotificationViewModel", "Tai thong bao thất bại: ${response.errorBody()?.string()}")
+                    break // Stop loop on failure
                 }
-            } catch (e: Exception) {
-                Log.d("NotificationViewModel", "Không thể lấy thông báo: ${e.message}")
-            } finally {
-                _isLoading.value = false
             }
+        } catch (e: Exception) {
+            Log.d("NotificationViewModel", "Không thể lấy thông báo: ${e.message}")
+        } finally {
+            _isLoading.value = false
         }
     }
     suspend fun markAllAsRead() {

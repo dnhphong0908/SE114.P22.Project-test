@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.RestaurantMenu
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -65,6 +66,7 @@ import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyDark
 import com.example.mam.ui.theme.OrangeDefault
+import com.example.mam.ui.theme.OrangeLight
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Variables
 import com.example.mam.ui.theme.WhiteDefault
@@ -193,18 +195,18 @@ fun NotificationScreen(
 
 @Composable
 fun NotificationItem(notification: NotificationResponse, viewModel: NotificationViewModel? = null) {
-    val backgroundColor = if (notification.status == 1) OrangeLighter else OrangeDefault.copy(alpha = 0.1f)
+    var isRead = notification.status == 1
     Card(
+        shape = RoundedCornerShape(40.dp,10.dp,40.dp,10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if(isRead) WhiteDefault else OrangeLight,
+        ),
         onClick = {
             viewModel?.viewModelScope?.launch {
                 viewModel.markAsRead(notification.id)
             }
         },
         modifier = Modifier
-            .background(
-                color = backgroundColor,
-                shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp, bottomStart = 10.dp, bottomEnd = 10.dp)
-            )
     ) {
         Row(
             modifier = Modifier
@@ -223,59 +225,53 @@ fun NotificationItem(notification: NotificationResponse, viewModel: Notification
                             bottomEnd = 10.dp
                         )
                     )
-            ){
-                    Icon(
-                        imageVector = when(notification.type) {
-                            Constant.OrderStatus.ORDER_PLACED.name -> Icons.Filled.ShoppingCart
-                            Constant.OrderStatus.ORDER_RECEIVED.name -> Icons.Filled.Inventory
-                            Constant.OrderStatus.ORDER_PREPARING.name -> Icons.Filled.RestaurantMenu
-                            Constant.OrderStatus.ORDER_DELIVERING.name -> Icons.Filled.LocalShipping
-                            Constant.OrderStatus.ORDER_DELIVERED.name -> Icons.Filled.CheckCircle
-                            Constant.OrderStatus.PROMOTION.name -> Icons.Filled.LocalOffer
-                            else -> Icons.Filled.Notifications
-                        },
-                        contentDescription = "",
-                        tint = WhiteDefault,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .align(Alignment.Center)
-                    )
-                }
+            ) {
+                Icon(
+                    imageVector = when (notification.type) {
+                        Constant.OrderStatus.ORDER_PLACED.name -> Icons.Filled.ShoppingCart
+                        Constant.OrderStatus.ORDER_RECEIVED.name -> Icons.Filled.Inventory
+                        Constant.OrderStatus.ORDER_PREPARING.name -> Icons.Filled.RestaurantMenu
+                        Constant.OrderStatus.ORDER_DELIVERING.name -> Icons.Filled.LocalShipping
+                        Constant.OrderStatus.ORDER_DELIVERED.name -> Icons.Filled.CheckCircle
+                        Constant.OrderStatus.PROMOTION.name -> Icons.Filled.LocalOffer
+                        else -> Icons.Filled.Notifications
+                    },
+                    contentDescription = "",
+                    tint = WhiteDefault,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .align(Alignment.Center)
+                )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column(
             ) {
                 Text(
-                    notification.title ,
+                    notification.title,
                     color = BrownDefault,
                     fontSize = Variables.BodySizeMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = if(isRead)FontWeight.Bold else FontWeight.ExtraBold,
                 )
                 Text(
-                    notification.message ,
+                    notification.message,
                     color = BrownDefault,
-                    fontSize = Variables.BodySizeMedium
+                    fontSize = Variables.BodySizeSmall,
+                    fontWeight = if(isRead)FontWeight.Normal else FontWeight.SemiBold,
                 )
                 Instant.parse(notification.createdAt).atZone(ZoneId.systemDefault())?.let {
                     Text(
-                        text = buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                append(notification.title)
-                            }
-                            append(
-                                " - " + it.format(
+                        text = it.format(
                                     DateTimeFormatter.ofPattern(
                                         "HH:mm dd/MM/yyyy"
                                     )
-                                )
-                            )
-                        },
+                        ),
                         color = BrownDefault,
-                        fontSize = Variables.BodySizeMedium,
-                        style = MaterialTheme.typography.bodySmall
+                        fontSize = Variables.BodySizeSmall,
+                        fontWeight = if(isRead)FontWeight.Normal else FontWeight.SemiBold,
                     )
                 }
             }
         }
+    }
 }
 
