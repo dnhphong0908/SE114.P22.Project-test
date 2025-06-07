@@ -61,6 +61,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -79,7 +80,10 @@ import com.example.mam.ui.theme.Transparent
 import com.example.mam.ui.theme.WhiteDefault
 import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
+import com.example.mam.R
 import com.example.mam.dto.product.ProductResponse
+import com.example.mam.dto.variation.VariationOptionRequest
+import com.example.mam.dto.variation.VariationOptionResponse
 
 @Composable
 fun UnderlinedClickableText(
@@ -187,7 +191,7 @@ fun InnerShadowFilledButton(
 @Composable
 fun OuterShadowFilledButton(
     text: String,
-    fontSize: TextUnit = 16.sp,
+    fontSize: TextUnit = 14.sp,
     isEnable: Boolean = true,
     color: Color = OrangeDefault,
     textColor: Color = WhiteDefault,
@@ -500,9 +504,10 @@ fun ProductClientListItem(
                 .fillMaxSize()
         ) {
             AsyncImage(
-                model = item.imageUrl, // Đây là URL từ API
+                model = item.getRealURL(), // Đây là URL từ API
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.ic_mam_logo),
                 modifier = Modifier
                     .size(80.dp)
                     .clip(RoundedCornerShape(8.dp))
@@ -516,15 +521,26 @@ fun ProductClientListItem(
                 Text(
                     text = item.name,
                     textAlign = TextAlign.Start,
-                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
                     modifier = Modifier
                         .align(Alignment.Start)
                         .padding(top = 5.dp)
                 )
                 Text(
+                    text = item.shortDescription,
+                    textAlign = TextAlign.Start,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(bottom = 5.dp)
+                )
+                Text(
                     text = if (item.isAvailable) item.getPriceToString() else "Hết sản phẩm",
                     textAlign = TextAlign.Start,
-                    fontSize = 18.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .align(Alignment.Start)
@@ -578,11 +594,11 @@ fun CustomRadioButton(
 fun RadioOption(
     modifier: Modifier = Modifier,
     title: String,
-    options: List<VarianceOption>,
-    defaultOption: VarianceOption = options.first() ,
-    onClick: (VarianceOption) -> Unit,
+    options: List<VariationOptionResponse>,
+    defaultOption: VariationOptionResponse = options.first() ,
+    onClick: (VariationOptionResponse) -> Unit,
 ) {
-    var temp: VarianceOption by remember { mutableStateOf(defaultOption) }
+    var temp by remember { mutableStateOf(defaultOption) }
     Column(
         modifier = modifier.wrapContentHeight()
     ) {
@@ -622,14 +638,14 @@ fun RadioOption(
 fun PizzaSizeOption(
     modifier: Modifier = Modifier,
     title: String,
-    options: List<VarianceOption>,
-    defaultOption: VarianceOption = options.first() ,
+    options: List<VariationOptionResponse>,
+    defaultOption: VariationOptionResponse = options.first() ,
     @DrawableRes image: Int,
-    onClick: (VarianceOption) -> Unit,
+    onClick: (VariationOptionResponse) -> Unit,
     ) {
         val scope = rememberCoroutineScope()
         val state = rememberLazyListState()
-        var temp: VarianceOption by remember { mutableStateOf(defaultOption) }
+        var temp by remember { mutableStateOf(defaultOption) }
         Column(
             modifier = modifier.wrapContentHeight(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -739,9 +755,9 @@ fun CustomToggleButton(
 fun MultiChoiceOption(
     modifier: Modifier = Modifier,
     title: String,
-    options: List<VarianceOption>,
-    onSelect: (VarianceOption) -> Unit,
-    onUnselect: (VarianceOption) -> Unit,
+    options: List<VariationOptionResponse>,
+    onSelect: (VariationOptionResponse) -> Unit,
+    onUnselect: (VariationOptionResponse) -> Unit,
 ) {
     Column(
         modifier = modifier.wrapContentHeight()

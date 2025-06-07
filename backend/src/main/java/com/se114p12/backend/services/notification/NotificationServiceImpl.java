@@ -2,11 +2,14 @@ package com.se114p12.backend.services.notification;
 
 import com.se114p12.backend.dtos.nofitication.NotificationRequestDTO;
 import com.se114p12.backend.dtos.nofitication.NotificationResponseDTO;
+import com.se114p12.backend.entities.authentication.Role;
 import com.se114p12.backend.entities.notification.Notification;
 import com.se114p12.backend.entities.notification.NotificationUser;
 import com.se114p12.backend.entities.notification.NotificationUserId;
 import com.se114p12.backend.entities.user.User;
+import com.se114p12.backend.enums.RoleName;
 import com.se114p12.backend.mappers.notification.NotificationMapper;
+import com.se114p12.backend.repositories.authentication.RoleRepository;
 import com.se114p12.backend.repositories.authentication.UserRepository;
 import com.se114p12.backend.repositories.notification.EmitterRepository;
 import com.se114p12.backend.repositories.notification.NotificationRepository;
@@ -23,6 +26,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,17 +36,21 @@ public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final EmitterRepository emitterRepository;
     private final NotificationUserRepository notificationUserRepository;
     private final NotificationMapper notificationMapper;
 
     @Override
     public NotificationResponseDTO pushNotification(NotificationRequestDTO request) {
+        if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
+            throw new IllegalArgumentException("UserIds cannot be null or empty for pushNotification");
+        }
+
         Notification notification = new Notification()
                 .setType(request.getType())
                 .setTitle(request.getTitle())
-                .setMessage(request.getMessage())
-                .setStatus(request.getStatus() != null ? request.getStatus() : 1);
+                .setMessage(request.getMessage());
 
         notification = notificationRepository.save(notification);
 
@@ -74,6 +83,46 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public NotificationResponseDTO sendToAll(NotificationRequestDTO request) {
+        Notification notification = new Notification()
+                .setType(request.getType())
+                .setTitle(request.getTitle())
+                .setMessage(request.getMessage());
+
+        notification = notificationRepository.save(notification);
+
+        // Tìm tất cả Role có name là USER
+        Role userRole = roleRepository.findByName(RoleName.USER.toString())
+                .orElseThrow(() -> new RuntimeException("USER role not found"));
+
+        List<User> users = userRepository.findByRole(userRole);
+
+        for (User user : users) {
+            NotificationUser notificationUser = new NotificationUser();
+            notificationUser.setNotification(notification);
+            notificationUser.setUser(user);
+            notification.getReceivers().add(notificationUser);
+
+            Notification finalNotification = notification;
+
+            emitterRepository.get(user.getUsername()).ifPresent(emitter -> {
+                try {
+                    emitter.send(SseEmitter.event()
+                            .name("notification")
+                            .data(toResponse(finalNotification, user.getId())));
+                } catch (IOException e) {
+                    log.warn("Failed to send notification to {}", user.getUsername());
+                    emitterRepository.remove(user.getUsername());
+                }
+            });
+        }
+
+        notificationRepository.save(notification);
+
+        return toResponse(notification, null);
+    }
+
+    @Override
     public PageVO<NotificationResponseDTO> getAll(Specification<Notification> specification, Pageable pageable) {
         Page<Notification> page = notificationRepository.findAll(specification, pageable);
 
@@ -91,19 +140,42 @@ public class NotificationServiceImpl implements NotificationService {
                 .build();
     }
 
-
     @Override
     public PageVO<NotificationResponseDTO> getNotificationsByUserId(Long userId, Specification<Notification> specification, Pageable pageable) {
-        List<Long> notificationIds = notificationUserRepository.findByUserId(userId)
-                .stream()
+        // Lấy danh sách NotificationUser theo userId
+        List<NotificationUser> userNotifications = notificationUserRepository.findByUserId(userId);
+        List<Long> notificationIds = userNotifications.stream()
                 .map(nu -> nu.getNotification().getId())
                 .toList();
 
-        Page<Notification> page = notificationRepository.findByIdIn(notificationIds, specification, pageable);
+        // Tạo Specification để lọc theo notificationIds và điều kiện từ FE
+        Specification<Notification> finalSpec = (root, query, cb) -> root.get("id").in(notificationIds);
+        if (specification != null) {
+            finalSpec = finalSpec.and(specification);
+        }
 
-        List<NotificationResponseDTO> content = page
-                .map(notification -> toResponse(notification, userId))
-                .getContent();
+        // Truy vấn danh sách thông báo
+        Page<Notification> page = notificationRepository.findAll(finalSpec, pageable);
+
+        // Map notificationId -> NotificationUser (để lấy nhanh trạng thái isRead)
+        Map<Long, Boolean> readStatusMap = userNotifications.stream()
+                .collect(Collectors.toMap(
+                        nu -> nu.getNotification().getId(),
+                        NotificationUser::isRead
+                ));
+
+        // Chuyển từng Notification thành DTO có isRead
+        List<NotificationResponseDTO> content = page.getContent().stream()
+                .map(notification -> {
+                    NotificationResponseDTO dto = notificationMapper.toDTO(notification);
+                    dto.setId(notification.getId());
+                    dto.setCreatedAt(notification.getCreatedAt());
+                    dto.setUpdatedAt(notification.getUpdatedAt());
+                    dto.setUserId(userId);
+                    dto.setIsRead(readStatusMap.getOrDefault(notification.getId(), false));
+                    return dto;
+                })
+                .toList();
 
         return PageVO.<NotificationResponseDTO>builder()
                 .page(page.getNumber())
@@ -147,8 +219,17 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public NotificationResponseDTO toResponse(Notification notification, Long userId) {
-        NotificationResponseDTO response = notificationMapper.toDTO(notification);
-        response.setUserId(userId);
-        return response;
+        NotificationResponseDTO dto = notificationMapper.toDTO(notification);
+        dto.setId(notification.getId());
+        dto.setCreatedAt(notification.getCreatedAt());
+        dto.setUpdatedAt(notification.getUpdatedAt());
+        dto.setUserId(userId);
+
+        if (userId != null) {
+            NotificationUserId id = new NotificationUserId(userId, notification.getId());
+            notificationUserRepository.findById(id).ifPresent(nu -> dto.setIsRead(nu.isRead()));
+        }
+
+        return dto;
     }
 }

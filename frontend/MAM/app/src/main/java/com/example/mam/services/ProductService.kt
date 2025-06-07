@@ -17,6 +17,9 @@ interface ProductService {
     @POST("products")
     suspend fun createProduct(@Body request: ProductRequest): Response<ProductResponse>
 
+    @GET("products/{id}")
+    suspend fun getProductById(@Path("id") id: Long): Response<ProductResponse>
+
     @PUT("products/{id}")
     suspend fun updateProduct(
         @Path("id") id: Long,
@@ -31,5 +34,12 @@ interface ProductService {
         @Query("page") page: Int ,
         @Query("size") size: Int?=null,
         @Query("sort") sort: List<String>? = null,
-        @Query("specification") specification: String): Response<PageVO<ProductResponse>>
+        @Query("filter") filter: String): Response<PageVO<ProductResponse>>
+
+    @GET("products")
+    suspend fun getAllProducts(
+        @Query("page") page: Int,
+        @Query("size") size: Int? = null,
+        @Query("sort") sort: List<String>? = null,
+        @Query("filter") filter: String): Response<PageVO<ProductResponse>>
 }

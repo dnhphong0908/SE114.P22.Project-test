@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 @Data
@@ -19,7 +20,7 @@ public class Promotion extends BaseEntity {
     private String description;
 
     @NotNull
-    private Float discountAmount;
+    private BigDecimal discountValue;
 
     @NotNull
     private Double minValue;

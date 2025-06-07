@@ -220,7 +220,7 @@ fun ProfileInput(
         OutlinedTextField(
             value = value,
             textStyle = TextStyle(
-                fontSize = 20.sp, // <-- Chỉnh font size ở đây
+                fontSize = 16.sp, // <-- Chỉnh font size ở đây
                 color = textColor // Đảm bảo màu chữ vẫn đúng
             ),
             colors = TextFieldDefaults.colors(
@@ -526,7 +526,7 @@ fun newOtpInputField(
                 color = BrownDefault
             ),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
+                keyboardType = KeyboardType.Ascii,
                 imeAction = ImeAction.Next),
             modifier = modifier
                 .focusRequester(focusRequester)

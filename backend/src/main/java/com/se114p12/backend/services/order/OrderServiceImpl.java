@@ -9,6 +9,7 @@ import com.se114p12.backend.entities.order.OrderDetail;
 import com.se114p12.backend.entities.product.Product;
 import com.se114p12.backend.dtos.order.OrderRequestDTO;
 import com.se114p12.backend.dtos.order.OrderResponseDTO;
+import com.se114p12.backend.entities.promotion.Promotion;
 import com.se114p12.backend.entities.shipper.Shipper;
 import com.se114p12.backend.enums.OrderStatus;
 import com.se114p12.backend.enums.PaymentStatus;
@@ -20,6 +21,7 @@ import com.se114p12.backend.repositories.cart.CartItemRepository;
 import com.se114p12.backend.repositories.cart.CartRepository;
 import com.se114p12.backend.repositories.order.OrderDetailRepository;
 import com.se114p12.backend.repositories.order.OrderRepository;
+import com.se114p12.backend.repositories.promotion.PromotionRepository;
 import com.se114p12.backend.repositories.shipper.ShipperRepository;
 import com.se114p12.backend.util.JwtUtil;
 import com.se114p12.backend.vo.PageVO;
@@ -40,11 +42,16 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final OrderMapper orderMapper;
+
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+
     private final ShipperRepository shipperRepository;
+
+    private final PromotionRepository promotionRepository;
 
     @Override
     public PageVO<OrderResponseDTO> getAll(Specification<Order> specification, Pageable pageable) {
@@ -87,6 +94,8 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalArgumentException("Cart is empty");
         }
 
+        Promotion promotionUsed = promotionRepository.findByCode(orderRequestDTO.getPromotionCodeId());
+
         Order order = new Order();
         order.setShippingAddress(orderRequestDTO.getShippingAddress());
         order.setNote(orderRequestDTO.getNote());
@@ -119,7 +128,7 @@ public class OrderServiceImpl implements OrderService {
             cartItemRepository.delete(cartItem);
         }
 
-        order.setTotalPrice(totalPrice);
+        order.setTotalPrice(totalPrice.subtract(promotionUsed.getDiscountValue()));
 
         List<Shipper> availableShippers = shipperRepository.findByIsAvailableTrue();
         if (!availableShippers.isEmpty()) {

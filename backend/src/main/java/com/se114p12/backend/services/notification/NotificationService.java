@@ -9,6 +9,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 public interface NotificationService {
     NotificationResponseDTO pushNotification(NotificationRequestDTO request);
+    NotificationResponseDTO sendToAll(NotificationRequestDTO request);
     PageVO<NotificationResponseDTO> getAll(Specification<Notification> specification, Pageable pageable);
     PageVO<NotificationResponseDTO> getNotificationsByUserId(Long userId, Specification<Notification> specification, Pageable pageable);
     void markAsRead(Long userId, Long notificationId);

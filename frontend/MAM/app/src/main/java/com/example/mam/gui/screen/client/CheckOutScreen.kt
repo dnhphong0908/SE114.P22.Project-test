@@ -188,7 +188,7 @@ fun CheckOutScreen(
                         modifier = Modifier.padding(start = 10.dp)
                     )
                     Text(
-                        text = "Địa chỉ: " + if(address.isEmpty()) "Không xác định" else "${address}",
+                        text = "Địa chỉ: " + if(address.isEmpty()) "Không xác định" else address,
                         fontSize = 18.sp,
                         color = BrownDefault,
                         fontWeight = FontWeight.Medium,

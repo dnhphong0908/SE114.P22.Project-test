@@ -39,3 +39,5 @@ out/
 
 ### .env ###
 application-dev.properties
+
+/frontend/MAM/app/src/main/res/values/mapbox-access-token.xml

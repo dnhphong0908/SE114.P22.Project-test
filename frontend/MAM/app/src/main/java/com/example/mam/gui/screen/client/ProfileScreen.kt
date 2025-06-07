@@ -164,7 +164,10 @@ fun ProfileScreen(
                         .align(Alignment.CenterHorizontally)
                 ) {
                     AsyncImage(
-                        model = user.avatarUrl ?: BASE_AVT,
+                        model = user.avatarUrl?.let{
+                            if(!isEditing)user.getRealURL()
+                            else it
+                        } ?: BASE_AVT,
                         contentDescription = "Avatar",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -255,9 +258,8 @@ fun ProfileScreen(
                         imeAction = ImeAction.Done
                     ),
                     onValueChange = {
-                            viewModel.setEmail(it)
                     },
-                    enabled = isEditing,
+                    enabled = false,
                     modifier = Modifier.fillMaxWidth()
                 )
 

@@ -10,8 +10,6 @@ import java.util.List;
 public class ProductRequestDTO {
     private long categoryId;
 
-    private List<Long> variationIds;
-
     private String name;
 
     private String shortDescription;

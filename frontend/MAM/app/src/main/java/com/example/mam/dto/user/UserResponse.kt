@@ -1,5 +1,6 @@
 package com.example.mam.dto.user
 
+import com.example.mam.data.Constant.STORAGE_URL
 import com.example.mam.dto.BaseResponse
 import com.example.mam.dto.role.RoleResponse
 
@@ -22,4 +23,8 @@ data class UserResponse(
     val status: UserStatus = UserStatus.PENDING,
     val loginProvider: LoginProvider = LoginProvider.LOCAL,
     val role: RoleResponse = RoleResponse()
-): BaseResponse()
+): BaseResponse(){
+    fun getRealURL(): String {
+        return STORAGE_URL + avatarUrl?.replace("\\", "/")
+    }
+}

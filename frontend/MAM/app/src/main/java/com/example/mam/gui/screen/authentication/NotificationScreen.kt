@@ -24,8 +24,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Discount
 import androidx.compose.material.icons.filled.DoneAll
+import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.LocalOffer
+import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +44,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -45,64 +55,43 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mam.data.Constant
+import com.example.mam.dto.notification.NotificationResponse
 import com.example.mam.entity.Notification
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyDark
 import com.example.mam.ui.theme.OrangeDefault
+import com.example.mam.ui.theme.OrangeLight
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Variables
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.authentication.NotificationViewModel
+import com.mapbox.maps.extension.style.expressions.dsl.generated.not
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Composable
 fun NotificationScreen(
-    viewModel: NotificationViewModel? = null,
-    mockNotifications: List<Notification>? = null,
+    viewModel: NotificationViewModel = viewModel(),
     onBackClicked: () -> Unit = {},
     ) {
-//    val notifications = mockNotifications
-//        ?: viewModel?.notifications?.collectAsState()?.value
-//        ?: emptyList()
-    val localNotifications = remember { mutableStateListOf<Notification>() }
 
-    if (mockNotifications != null && localNotifications.isEmpty()) {
-        localNotifications.addAll(mockNotifications)
-    }
-
-    val notifications = if (mockNotifications != null) localNotifications else viewModel?.notifications?.collectAsState()?.value
-
-    val isLoading = mockNotifications == null &&
-            (viewModel?.isLoading?.collectAsState()?.value ?: true)
-
-    fun markAllAsReadLocal() {
-        val updatedList = localNotifications.map { it.copy(isRead = true) }
-        localNotifications.clear()
-        localNotifications.addAll(updatedList)
-    }
-
+    val notifications =  viewModel.notifications.collectAsStateWithLifecycle().value
+    val scope = rememberCoroutineScope()
+    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
     val scrollState = rememberScrollState()
 
     LaunchedEffect(Unit) {
-        if (mockNotifications == null) {
-            viewModel?.loadNotifications()
-        }
+        viewModel.loadNotifications()
     }
 
-    if (isLoading) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(32.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            CircularProgressIndicator()
-        }
-    } else {
         Column(
             verticalArrangement = Arrangement.SpaceBetween,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -162,7 +151,8 @@ fun NotificationScreen(
                     )
                     .height(300.dp)
                     .padding(8.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 item {
                     Row(
@@ -175,47 +165,54 @@ fun NotificationScreen(
                             text = "Đọc tất cả",
                             modifier = Modifier
                                 .clickable {
-                                    if (mockNotifications != null) {
-                                        markAllAsReadLocal()
-                                    } else {
-                                        viewModel?.markAllAsRead()
-                                    } },
+                                        scope.launch {
+                                            viewModel.markAllAsRead()
+                                        } },
                             color = OrangeDefault,
                             fontSize = Variables.BodySizeMedium,
                             fontWeight = FontWeight.Bold
                         )
                     }
                 }
-                items(notifications.orEmpty()) { notification ->
-                    NotificationItem(notification)
+                if (isLoading){
+                    item{
+                        CircularProgressIndicator(
+                            color = OrangeDefault,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .size(40.dp)
+                        )
+                    }
+                }
+                else
+                items(notifications) { notification ->
+                    NotificationItem(notification,viewModel)
                 }
             }
         }
-    }
+
 }
 
 @Composable
-fun NotificationItem(notification: Notification) {
-    val backgroundColor = if (notification.isRead) OrangeLighter else OrangeDefault.copy(alpha = 0.1f)
-    Box(
+fun NotificationItem(notification: NotificationResponse, viewModel: NotificationViewModel? = null) {
+    var isRead = notification.isRead
+    Card(
+        shape = RoundedCornerShape(40.dp,10.dp,40.dp,10.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if(isRead) WhiteDefault else OrangeLight,
+        ),
+        onClick = {
+            viewModel?.viewModelScope?.launch {
+                viewModel.markAsRead(notification.id)
+            }
+        },
         modifier = Modifier
-            .background(
-                color = backgroundColor,
-                shape = RoundedCornerShape(topStart = 40.dp, topEnd = 40.dp, bottomStart = 10.dp, bottomEnd = 10.dp)
-            )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            //        AsyncImage(
-            //            model = notification.image,
-            //            contentDescription = "Ảnh thông báo",
-            //            modifier = Modifier
-            //                .size(50.dp)
-            //                .clip(RoundedCornerShape(8.dp))
-            //        )
             Box(
                 modifier = Modifier
                     .size(60.dp)
@@ -228,49 +225,49 @@ fun NotificationItem(notification: Notification) {
                             bottomEnd = 10.dp
                         )
                     )
-            ){
-                notification.icon?.let {
-                    Icon(
-                        imageVector = it,
-                        contentDescription = "",
-                        tint = WhiteDefault,
-                        modifier = Modifier
-                            .size(40.dp)
-                            .align(Alignment.Center)
-                    )
-                }
+            ) {
+                Icon(
+                    imageVector = when (notification.type) {
+                        Constant.OrderStatus.ORDER_PLACED.name -> Icons.Filled.ShoppingCart
+                        Constant.OrderStatus.ORDER_RECEIVED.name -> Icons.Filled.Inventory
+                        Constant.OrderStatus.ORDER_PREPARING.name -> Icons.Filled.RestaurantMenu
+                        Constant.OrderStatus.ORDER_DELIVERING.name -> Icons.Filled.LocalShipping
+                        Constant.OrderStatus.ORDER_DELIVERED.name -> Icons.Filled.CheckCircle
+                        Constant.OrderStatus.PROMOTION.name -> Icons.Filled.LocalOffer
+                        else -> Icons.Filled.Notifications
+                    },
+                    contentDescription = "",
+                    tint = WhiteDefault,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .align(Alignment.Center)
+                )
             }
             Spacer(modifier = Modifier.width(8.dp))
             Column(
             ) {
                 Text(
-                    notification.title ?: "",
+                    notification.title,
                     color = BrownDefault,
                     fontSize = Variables.BodySizeMedium,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = if(isRead)FontWeight.Bold else FontWeight.ExtraBold,
                 )
                 Text(
-                    notification.content ?: "",
+                    notification.message,
                     color = BrownDefault,
-                    fontSize = Variables.BodySizeMedium
+                    fontSize = Variables.BodySizeSmall,
+                    fontWeight = if(isRead)FontWeight.Normal else FontWeight.SemiBold,
                 )
-                notification.timestamp.atZone(ZoneId.systemDefault())?.let {
+                Instant.parse(notification.createdAt).atZone(ZoneId.systemDefault())?.let {
                     Text(
-                        text = buildAnnotatedString {
-                            withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                append(notification.title)
-                            }
-                            append(
-                                " - " + it.format(
+                        text = it.format(
                                     DateTimeFormatter.ofPattern(
                                         "HH:mm dd/MM/yyyy"
                                     )
-                                )
-                            )
-                        },
+                        ),
                         color = BrownDefault,
-                        fontSize = Variables.BodySizeMedium,
-                        style = MaterialTheme.typography.bodySmall
+                        fontSize = Variables.BodySizeSmall,
+                        fontWeight = if(isRead)FontWeight.Normal else FontWeight.SemiBold,
                     )
                 }
             }
@@ -278,35 +275,3 @@ fun NotificationItem(notification: Notification) {
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun PreviewNotificationScreen() {
-    NotificationScreen(
-        mockNotifications = listOf(
-            Notification(
-                id = "1",
-                title = "Đơn hàng đã hoàn tất",
-                content = "Đơn hàng nước chanh đã giao tới bạn!",
-                timestamp = Instant.now(),
-                isRead = false,
-                icon = Icons.Filled.DoneAll
-            ),
-            Notification(
-                id = "2",
-                title = "Đơn hàng đã hoàn tất",
-                content = "Đơn hàng nước cam đã được giao tới bạn!",
-                timestamp = Instant.now(),
-                isRead = true,
-                icon = Icons.Filled.DoneAll
-            ),
-            Notification(
-                id = "3",
-                title = "Khuyến mãi cho đơn hàng đầu tiên!",
-                content = "Với mỗi đơn hàng cho tài khoản lần đầu tiên sử dụng ứng dụng MĂM, bạn thể nhận được voucher giảm 50% cho tổng hóa đơn.",
-                timestamp = Instant.now(),
-                isRead = false,
-                icon = Icons.Filled.Discount
-            )
-        )
-    )
-}

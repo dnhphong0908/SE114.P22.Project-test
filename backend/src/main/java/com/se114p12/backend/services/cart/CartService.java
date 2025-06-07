@@ -2,7 +2,11 @@ package com.se114p12.backend.services.cart;
 
 import com.se114p12.backend.entities.cart.Cart;
 
+import java.util.Optional;
+
 public interface CartService {
+    Optional<Cart> findByUserId(Long userId);
+
     Cart getCartById(Long id);
 
     Cart create(Cart cart);
