@@ -75,7 +75,7 @@ public class NotificationController {
     @Operation(summary = "Mark all my notifications as read", description = "Set all current user's notifications as read")
     @ApiResponse(responseCode = "200", description = "Marked all as read")
     @ErrorResponse
-    @PostMapping("/me/read-all")
+    @PutMapping("/me/read-all")
     public ResponseEntity<Void> markAllMyNotificationsAsRead() {
         Long userId = jwtUtil.getCurrentUserId();
         notificationService.markAllAsRead(userId);
@@ -88,7 +88,7 @@ public class NotificationController {
             @ApiResponse(responseCode = "404", description = "Notification not found")
     })
     @ErrorResponse
-    @PostMapping("/{id}/read")
+    @PutMapping("/read/{id}")
     public ResponseEntity<Void> markAsRead(
             @Parameter(description = "Notification ID to mark as read") @PathVariable Long id) {
         Long userId = jwtUtil.getCurrentUserId();

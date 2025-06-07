@@ -14,7 +14,4 @@ public class NotificationRequestDTO {
     private NotificationType type;
     private String title;
     private String message;
-
-    @Nullable
-    private Integer status;
 }
