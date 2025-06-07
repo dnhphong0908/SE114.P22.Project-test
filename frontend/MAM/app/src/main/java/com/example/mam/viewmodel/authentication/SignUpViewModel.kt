@@ -2,25 +2,36 @@ package com.example.mam.viewmodel.authentication
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
+import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.authentication.SignUpRequest
+import com.example.mam.services.BaseService
+import com.mapbox.common.MapboxOptions.accessToken
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
 
-class SignUpViewModel(): ViewModel() {
+class SignUpViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository
+): ViewModel() {
     private val _signUpState = MutableStateFlow(SignUpRequest())
     val signUpState = _signUpState.asStateFlow()
     private val _repeatPassword = MutableStateFlow("")
     val repeatPassword = _repeatPassword.asStateFlow()
 
     fun setName(it: String) {
-        _signUpState.update { state -> state.copy(fullName = it) }
+        _signUpState.update { state -> state.copy(fullname = it) }
     }
 
     fun setPhoneNumber(it: String) {
-        _signUpState.update { state -> state.copy(phoneNumber = it) }
+        _signUpState.update { state -> state.copy(phone = it) }
     }
 
     fun setEmail(it: String) {
@@ -53,7 +64,7 @@ class SignUpViewModel(): ViewModel() {
     }
 
     fun isFullNameValid(): Boolean {
-        val fullname = _signUpState.value.fullName.trim()
+        val fullname = _signUpState.value.fullname.trim()
         val regex = "^[\\p{L} ]+$".toRegex()
         return fullname.isNotBlank()
                 && fullname.length in 2..100
@@ -67,7 +78,7 @@ class SignUpViewModel(): ViewModel() {
     }
 
     fun isPhoneNumberValid(): Boolean {
-        val phoneNumber = _signUpState.value.phoneNumber.trim()
+        val phoneNumber = _signUpState.value.phone.trim()
         val regex = "^0\\d{9}$".toRegex()
         return regex.matches(phoneNumber)
     }
@@ -87,18 +98,34 @@ class SignUpViewModel(): ViewModel() {
                 && isEmailValid())
     }
 
-    suspend fun SignUp(): Int {
-        return withContext(Dispatchers.IO) {
-            try {
-                1
-            } catch (e: Exception) {
-                Log.e("LOGIN", "Lỗi khi đăng nhập: ${e.message}")
-                0
+    suspend fun signUp(): Int {
+        try {
+            val request = _signUpState.value
+
+            // Gọi service đăng nhập
+            val response = BaseService(userPreferencesRepository).authPublicService.signUp(request)
+            val statusCode = response.code()
+            Log.d("SignUp", "Status Code: $statusCode")
+
+            if (response.isSuccessful) {
+                val user = response.body()
+                return 1
             }
+            else{
+                Log.e("SignUp", "Đăng ky thất bại với mã lỗi: ${response.errorBody()?.string()}")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.e("SignUp", "Lỗi khi đăng ky: ${e.message}")
+            return 0
         }
     }
-
-    fun notifySignUpFalse(){
-
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                SignUpViewModel(application.userPreferencesRepository)
+            }
+        }
     }
 }

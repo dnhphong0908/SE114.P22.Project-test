@@ -52,6 +52,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mam.dto.product.ProductResponse
 import com.example.mam.entity.Product
 import com.example.mam.gui.component.ProductClientListItem
 import com.example.mam.ui.theme.BrownDefault
@@ -66,7 +67,7 @@ import com.example.mam.viewmodel.client.SortOptions
 @Composable
 fun SearchScreen(
     onBackClicked: () -> Unit = {},
-    onItemClicked: (Product) -> Unit = { Product -> },
+    onItemClicked: (ProductResponse) -> Unit = { ProductResponse -> },
     viewModel: SearchViewModel = viewModel()
 ){
     LaunchedEffect(Unit) { viewModel.loadListProduct() }

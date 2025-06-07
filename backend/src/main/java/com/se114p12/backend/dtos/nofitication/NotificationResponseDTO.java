@@ -1,17 +1,16 @@
 package com.se114p12.backend.dtos.nofitication;
 
+import com.se114p12.backend.dtos.BaseResponseDTO;
 import com.se114p12.backend.enums.NotificationType;
 import lombok.Data;
 
 import java.time.Instant;
 
 @Data
-public class NotificationResponseDTO {
-    private Long id;
+public class NotificationResponseDTO extends BaseResponseDTO {
     private NotificationType type;
     private String title;
     private String message;
     private Integer status;
-    private Instant createdAt;
     private Long userId; // người nhận
 }

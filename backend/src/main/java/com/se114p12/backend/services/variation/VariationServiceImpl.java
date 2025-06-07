@@ -8,6 +8,7 @@ import com.se114p12.backend.exceptions.DataConflictException;
 import com.se114p12.backend.mappers.variation.VariationMapper;
 import com.se114p12.backend.repositories.product.ProductRepository;
 import com.se114p12.backend.repositories.variation.VariationRepository;
+import com.se114p12.backend.vo.PageVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,7 +26,7 @@ public class VariationServiceImpl implements VariationService {
     private final VariationMapper variationMapper;
 
     @Override
-    public Page<VariationResponseDTO> getVariationsByProductId(Long productId, String nameFilter, Pageable pageable) {
+    public PageVO<VariationResponseDTO> getVariationsByProductId(Long productId, String nameFilter, Pageable pageable) {
         Specification<Variation> spec = (root, query, cb) -> {
             List<jakarta.persistence.criteria.Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("product").get("id"), productId));
@@ -38,7 +39,16 @@ public class VariationServiceImpl implements VariationService {
         };
 
         Page<Variation> page = variationRepository.findAll(spec, pageable);
-        return page.map(variationMapper::toDTO);
+        Page<VariationResponseDTO> dtoPage = page.map(variationMapper::toDTO);
+
+        return PageVO.<VariationResponseDTO>builder()
+                .page(dtoPage.getNumber())
+                .size(dtoPage.getSize())
+                .totalElements(dtoPage.getTotalElements())
+                .totalPages(dtoPage.getTotalPages())
+                .numberOfElements(dtoPage.getNumberOfElements())
+                .content(dtoPage.getContent())
+                .build();
     }
 
     @Override

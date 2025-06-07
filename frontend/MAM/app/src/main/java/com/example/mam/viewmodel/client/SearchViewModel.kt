@@ -6,15 +6,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.example.mam.R
+import com.example.mam.dto.product.ProductResponse
 import com.example.mam.entity.Product
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 class SearchViewModel(): ViewModel() {
-    private var _originListProduct = MutableStateFlow<MutableList<Product>>(mutableListOf())
-    private var _listProduct = MutableStateFlow<MutableList<Product>>(mutableListOf())
-    val listProduct: StateFlow<List<Product>> get() = _listProduct
+    private var _originListProduct = MutableStateFlow<MutableList<ProductResponse>>(mutableListOf())
+    private var _listProduct = MutableStateFlow<MutableList<ProductResponse>>(mutableListOf())
+    val listProduct: StateFlow<List<ProductResponse>> get() = _listProduct
     private val _searchText = MutableStateFlow("")
     var searchText = _searchText.asStateFlow()
 
@@ -26,28 +27,7 @@ class SearchViewModel(): ViewModel() {
 
 
     fun loadListProduct(){
-        _originListProduct.value = mutableListOf(
-            Product("P000", "Burger thịt hun khói phô mai", "", "", 100000, true, "PC002", ""),
-            Product("P001", "Burger thịt hun khói phô mai", "", "", 100000, true, "PC002", ""),
-            Product("P002", "Burger thịt hun khói phô mai", "", "", 100000, true, "PC002", ""),
-            Product("P003", "Pizza truyền thống", "", "", 100000, true, "PC001", ""),
-            Product("P004", "Pizza truyền thống", "", "", 100000, true, "PC001", ""),
-            Product("P005", "Pizza truyền thống", "", "", 100000, true, "PC001", ""),
-            Product("P006", "Hotdog truyền thống", "", "", 100000, true, "PC003", ""),
-            Product("P007", "Hotdog truyền thống", "", "", 100000, false, "PC003", ""),
-            Product("P008", "Hotdog truyền thống", "", "", 100000, true, "PC003", ""),
-            Product("P009", "Gà rán", "", "", 100000, true, "PC004", ""),
-            Product("P010", "Gà rán", "", "", 100000, true, "PC004", ""),
-            Product("P011", "Gà rán", "", "", 100000, true, "PC004", ""),
-            Product("P012", "Bít tết áp chảo", "", "", 100000, true, "PC005", ""),
-            Product("P013", "Bít tết áp chảo", "", "", 100000, true, "PC005", ""),
-            Product("P014", "Bít tết áp chảo", "", "", 100000, true, "PC005", ""),
-            Product("P015", "Nước chanh", "", "", 100000, true, "PC006", ""),
-            Product("P016", "Nước chanh", "", "", 100000, true, "PC006", ""),
-            Product("P017", "Nước chanh", "", "", 100000, true, "PC006", ""),
-            Product("P018", "Khoai tây chiên", "", "", 100000, true, "PC007", ""),
-            Product("P019", "Khoai tây chiên", "", "", 100000, true, "PC007", ""),
-            Product("P020", "Khoai tây chiên", "", "", 100000, true, "PC007", "") )
+        _originListProduct.value = mutableListOf()
         _listProduct.value = _originListProduct.value
     }
 

@@ -3,7 +3,7 @@ package com.se114p12.backend.util;
 import java.security.SecureRandom;
 
 public class OtpGenerator {
-  private static final int OTP_LENGTH = 8;
+  private static final int OTP_LENGTH = 6;
   private static final String CHARACTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
   private static final SecureRandom random = new SecureRandom();

@@ -47,6 +47,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import com.example.mam.R
+import com.example.mam.dto.product.CategoryResponse
+import com.example.mam.dto.product.ProductResponse
 import com.example.mam.entity.CartItem
 import com.example.mam.entity.OrderItem
 import com.example.mam.entity.Product
@@ -63,9 +65,9 @@ import com.google.android.gms.common.internal.Asserts
 
 @Composable
 fun ProductContainer(
-   category: ProductCategory,
-   products: List<Product>,
-   onClick: (Product) -> Unit = {Product -> },
+   category: CategoryResponse,
+   products: List<ProductResponse>,
+   onClick: (ProductResponse) -> Unit = {ProductResponse -> },
    modifier: Modifier = Modifier
 ){
     Column(
@@ -77,16 +79,16 @@ fun ProductContainer(
             .heightIn(min = 150.dp)
             .clip(shape = CustomShape()) // Điều chỉnh độ cong với giá trị curveHeight
             .background(brush = Brush.verticalGradient(
-                colors = listOf( OrangeLight,WhiteDefault) ,
+                colors = listOf( OrangeLight,WhiteDefault),
                 // Light orange hex code
-            )
+                )
             )
 
     ) {
         Spacer(modifier = Modifier.height(20.dp))
 
         AsyncImage(
-            model = category.iconUrl, // Đây là URL từ API
+            model = category.imageUrl, // Đây là URL từ API
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier

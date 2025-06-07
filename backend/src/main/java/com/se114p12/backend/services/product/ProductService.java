@@ -2,15 +2,22 @@ package com.se114p12.backend.services.product;
 
 import com.se114p12.backend.dtos.product.ProductRequestDTO;
 import com.se114p12.backend.dtos.product.ProductResponseDTO;
+import com.se114p12.backend.entities.product.Product;
 import com.se114p12.backend.vo.PageVO;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 
 public interface ProductService {
-    PageVO<ProductResponseDTO> getProductsByCategory(Long categoryId, Pageable pageable);
+  PageVO<ProductResponseDTO> getAllProducts(
+      Specification<Product> specification, Pageable pageable);
 
-    ProductResponseDTO create(ProductRequestDTO dto);
+  PageVO<ProductResponseDTO> getProductsByCategory(Long categoryId, Pageable pageable);
 
-    ProductResponseDTO update(Long id, ProductRequestDTO dto);
+  ProductResponseDTO getProductById(Long id);
 
-    void delete(Long id);
+  ProductResponseDTO create(ProductRequestDTO dto);
+
+  ProductResponseDTO update(Long id, ProductRequestDTO dto);
+
+  void delete(Long id);
 }

@@ -48,6 +48,6 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(Exception.class)
   public ResponseEntity<?> handle(Exception e) {
     e.printStackTrace(); // log ra console
-    return ResponseEntity.status(401).body(Map.of("error", e.getMessage()));
+    return ResponseEntity.status(500).body(Map.of("error", e.getMessage()));
   }
 }

@@ -14,4 +14,6 @@ public interface VerificationService {
   Verification verifyVerificationCode(String code, VerificationType type);
 
   void deleteVerification(Verification verification);
+
+  void deleteExpiredVerifications();
 }
