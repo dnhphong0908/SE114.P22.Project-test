@@ -27,6 +27,23 @@ public class CartController {
     private final JwtUtil jwtUtil;
 
     @Operation(
+            summary = "Get current user's cart",
+            description = "Retrieve the cart that belongs to the currently authenticated user"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved cart", content = @Content(schema = @Schema(implementation = Cart.class))),
+            @ApiResponse(responseCode = "404", description = "Cart not found for current user")
+    })
+    @ErrorResponse
+    @GetMapping("/me")
+    public ResponseEntity<Cart> getMyCart() {
+        Long userId = jwtUtil.getCurrentUserId();
+        return cartService.findByUserId(userId)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @Operation(
             summary = "Get cart by ID",
             description = "Retrieve a cart by its ID"
     )

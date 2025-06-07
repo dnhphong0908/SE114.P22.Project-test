@@ -32,6 +32,13 @@ public class NotificationController {
     private final NotificationService notificationService;
     private final JwtUtil jwtUtil;
 
+    @Operation(summary = "Send notification to all users", description = "Send a notification to all users with role USER")
+    @ApiResponse(responseCode = "200", description = "Notification sent to all")
+    @PostMapping("/send-to-all")
+    public ResponseEntity<NotificationResponseDTO> sendToAll(@RequestBody NotificationRequestDTO request) {
+        return ResponseEntity.ok(notificationService.sendToAll(request));
+    }
+
     @Operation(summary = "Send a notification to users", description = "Send a custom notification to multiple users")
     @ApiResponse(responseCode = "200", description = "Notification sent", content = @Content(schema = @Schema(implementation = NotificationResponseDTO.class)))
     @PostMapping("/send")
