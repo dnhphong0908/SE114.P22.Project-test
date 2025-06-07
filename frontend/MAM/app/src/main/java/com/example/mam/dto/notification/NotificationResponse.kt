@@ -5,7 +5,7 @@ import com.example.mam.entity.Notification
 import java.time.Instant
 
 data class NotificationResponse(
-    val type: Notification,
+    val type: String,
     val title: String,
     val message: String,
     val status: Int,

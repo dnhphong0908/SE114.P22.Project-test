@@ -8,6 +8,5 @@ data class NotificationRequest(
     val type: Notification,
     val title: String,
     val message: String,
-
     val status: Int?
 )

@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -73,7 +74,7 @@ fun SearchScreen(
     onItemClicked: (ProductResponse) -> Unit = { ProductResponse -> },
     viewModel: SearchViewModel = viewModel()
 ){
-
+    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
     val listProduct = viewModel.products.collectAsStateWithLifecycle().value
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle().value
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
@@ -267,7 +268,17 @@ fun SearchScreen(
                 }
             }
         }
-        items(listProduct){product ->
+        if (isLoading){
+            item{
+                CircularProgressIndicator(
+                    color = OrangeDefault,
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .size(40.dp)
+                )
+            }
+        }
+        else items(listProduct){product ->
             ProductClientListItem(
                 item = product,
                 onClick = {
