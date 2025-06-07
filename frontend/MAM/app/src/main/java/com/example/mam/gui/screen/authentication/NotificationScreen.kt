@@ -195,7 +195,7 @@ fun NotificationScreen(
 
 @Composable
 fun NotificationItem(notification: NotificationResponse, viewModel: NotificationViewModel? = null) {
-    var isRead = notification.status == 1
+    var isRead = notification.isRead
     Card(
         shape = RoundedCornerShape(40.dp,10.dp,40.dp,10.dp),
         colors = CardDefaults.cardColors(

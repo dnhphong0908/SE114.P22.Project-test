@@ -8,17 +8,18 @@ import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface NotificationService {
-    @POST("notifications/{id}/read")
+    @PUT("notifications/read/{id}")
     suspend fun markNotificationAsRead(@Path("id") id: Long): Response<Void>
     @POST("notifications/send")
     suspend fun sendNotification(
         @Body notificationRequest: NotificationRequest
     ): Response<NotificationResponse>
-    @POST("notifications/me/read-all")
+    @PUT("notifications/me/read-all")
     suspend fun markAllMyNotificationsAsRead(): Response<Void>
     @GET("notifications")
     suspend fun getAllNotifications(

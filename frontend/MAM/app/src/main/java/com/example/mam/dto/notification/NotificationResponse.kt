@@ -9,5 +9,6 @@ data class NotificationResponse(
     val title: String,
     val message: String,
     val status: Int,
-    val userId: Long
+    val userId: Long,
+    val isRead: Boolean
 ): BaseResponse()
