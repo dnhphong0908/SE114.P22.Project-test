@@ -39,7 +39,6 @@ class BaseService(userPreferencesRepository: UserPreferencesRepository) {
     val cartItemService: CartItemService by lazy {
         privateRetrofit.create(CartItemService::class.java)
     }
-
     val shipperService: ShipperService by lazy {
         privateRetrofit.create(ShipperService::class.java)
     }

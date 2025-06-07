@@ -1,4 +1,6 @@
+# ============================
 # BUILD STAGE
+# ============================
 FROM eclipse-temurin:23-jdk AS build
 
 WORKDIR /build
@@ -12,13 +14,23 @@ COPY ./src ./src
 
 RUN ./gradlew clean bootJar --no-daemon
 
+
+# ============================
 # APP STAGE
+# ============================
 FROM eclipse-temurin:23-jre-alpine
 
-WORKDIR /app 
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 
-COPY --from=build --chown=node:node /build/build/libs/*.jar app.jar
+WORKDIR /app
+
+RUN mkdir -p /app/uploads && chown -R appuser:appgroup /app
+
+COPY --from=build /build/build/libs/*.jar app.jar
+
+USER appuser
 
 EXPOSE 8080
 
 CMD ["java", "-jar", "app.jar"]
+
