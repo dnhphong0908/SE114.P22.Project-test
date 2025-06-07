@@ -332,7 +332,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) {backStackEntry ->
-                val viewModel: SearchViewModel = viewModel(backStackEntry)
+                val viewModel: SearchViewModel = viewModel(backStackEntry, factory = SearchViewModel.Factory)
                 SearchScreen(
                     onItemClicked = { item ->
                         navController.navigate("Details/${item.id}")

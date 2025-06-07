@@ -34,5 +34,12 @@ interface ProductService {
         @Query("page") page: Int ,
         @Query("size") size: Int?=null,
         @Query("sort") sort: List<String>? = null,
-        @Query("specification") specification: String): Response<PageVO<ProductResponse>>
+        @Query("filter") filter: String): Response<PageVO<ProductResponse>>
+
+    @GET("products")
+    suspend fun getAllProducts(
+        @Query("page") page: Int,
+        @Query("size") size: Int? = null,
+        @Query("sort") sort: List<String>? = null,
+        @Query("filter") filter: String): Response<PageVO<ProductResponse>>
 }
