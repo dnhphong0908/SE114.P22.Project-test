@@ -8,6 +8,7 @@ import com.se114p12.backend.dtos.authentication.LoginRequestDTO;
 import com.se114p12.backend.dtos.authentication.PasswordChangeDTO;
 import com.se114p12.backend.dtos.authentication.RefreshTokenRequestDTO;
 import com.se114p12.backend.dtos.authentication.SendOTPRequestDTO;
+import com.se114p12.backend.dtos.authentication.SendVerifyEmailRequestDTO;
 import com.se114p12.backend.dtos.authentication.VerifyOTPRequestDTO;
 import com.se114p12.backend.entities.authentication.RefreshToken;
 import com.se114p12.backend.entities.authentication.Verification;
@@ -176,5 +177,18 @@ public class AuthServiceImpl implements AuthService {
     User user = verification.getUser();
     user.setPassword(passwordEncoder.encode(forgotPasswordRequestDTO.getNewPassword()));
     userRepository.save(user);
+  }
+
+  @Override
+  public void sendVerificationEmail(SendVerifyEmailRequestDTO sendVerifyEmailRequestDTO) {
+    User user =
+        userRepository
+            .findByEmail(sendVerifyEmailRequestDTO.getEmail())
+            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    if (user.getStatus() == UserStatus.ACTIVE) {
+      throw new BadRequestException("User is already active");
+    }
+    Verification verification = verificationService.createActivationVerification(user.getId());
+    mailService.sendActivationEmail(user.getEmail(), verification.getCode());
   }
 }

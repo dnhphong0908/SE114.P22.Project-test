@@ -4,9 +4,7 @@ import com.se114p12.backend.annotations.ErrorResponse;
 import com.se114p12.backend.dtos.authentication.*;
 import com.se114p12.backend.dtos.user.UserResponseDTO;
 import com.se114p12.backend.services.authentication.AuthService;
-import com.se114p12.backend.services.authentication.RefreshTokenService;
 import com.se114p12.backend.services.user.UserService;
-import com.se114p12.backend.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -27,8 +25,6 @@ public class AuthController {
 
   private final AuthService authService;
   private final UserService userService;
-  private final JwtUtil jwtUtil;
-  private final RefreshTokenService refreshTokenService;
 
   @Operation(summary = "Register a new user")
   @ApiResponse(
@@ -123,6 +119,14 @@ public class AuthController {
       @Valid @RequestBody RefreshTokenRequestDTO refreshTokenRequestDTO) {
     authService.logout(refreshTokenRequestDTO);
     return ResponseEntity.ok().body("Logout successfully");
+  }
+
+  @Operation(summary = "Resend verification email")
+  @PostMapping("/send-verify-email")
+  public ResponseEntity<Void> sendVerifyEmail(
+      @Valid @RequestBody SendVerifyEmailRequestDTO sendVerifyEmailRequestDTO) {
+    authService.sendVerificationEmail(sendVerifyEmailRequestDTO);
+    return ResponseEntity.noContent().build();
   }
 
   @Operation(summary = "Verification email")
