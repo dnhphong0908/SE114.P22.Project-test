@@ -2,7 +2,7 @@ services:
   neo4j:
     image: "neo4j:latest"
     environment:
-      NEO4J_AUTH: ${NEO4J_USERNAME}/${NEO4J_PASSWORD}
+      NEO4J_AUTH: ${NEO4J_AUTH}
     networks:
       - app_network
     ports:
@@ -11,13 +11,8 @@ services:
     healthcheck:
       test:
         [
-          "CMD",
-          "cypher-shell",
-          "-u",
-          "neo4j",
-          "-p",
-          "notverysecret",
-          "RETURN 1",
+          "CMD-SHELL",
+          'cypher-shell -u "$NEO4J_USERNAME" -p "$NEO4J_PASSWORD" "RETURN 1"',
         ]
       interval: 10s
       timeout: 5s
