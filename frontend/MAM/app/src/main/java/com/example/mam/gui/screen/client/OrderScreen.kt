@@ -313,11 +313,11 @@ fun OrderScreen(
                         )
                 ) {
                     Spacer(Modifier.height(20.dp))
-                    orderItems.value.forEach{item ->
-                        OrderItemContainer(
-                            item = item
-                        )
-                    }
+//                    orderItems.value.forEach{item ->
+//                        OrderItemContainer(
+//                            item = item
+//                        )
+//                    }
                     Column(
                         verticalArrangement = Arrangement.spacedBy(5.dp),
                         modifier = Modifier

@@ -1,8 +1,8 @@
 package com.example.mam.gui.screen.client
 
 import android.annotation.SuppressLint
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clipScrollableContainer
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,66 +14,88 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MonetizationOn
-import androidx.compose.material.icons.filled.NotificationsNone
-import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.mam.entity.Cart
-import com.example.mam.entity.CartItem
+import coil.compose.AsyncImage
+import com.example.mam.R
+import com.example.mam.dto.cart.CartItemResponse
 import com.example.mam.gui.component.AdditionalProduct
-import com.example.mam.gui.component.CartItemContainer
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.OuterShadowFilledButton
+import com.example.mam.gui.component.QuantitySelectionButton
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyDark
+import com.example.mam.ui.theme.GreyDefault
+import com.example.mam.ui.theme.GreyLight
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLight
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
+import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.client.CartViewModel
+import kotlinx.coroutines.launch
 
 //@SuppressLint("MutableCollectionMutableState")
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun CartScreen(
     onBackClicked: () -> Unit = {},
     onCheckOutClicked: () -> Unit = {},
-    onAdditionalProductClicked: (String) -> Unit = {string ->},
+    onAdditionalProductClicked: (Long) -> Unit = {},
     viewModel: CartViewModel = viewModel(),
     modifier: Modifier = Modifier
 ) {
-    val cart: Cart by viewModel.cart.collectAsStateWithLifecycle()
+    val cart = viewModel.cart.collectAsStateWithLifecycle().value
+    val recommendedProducts = viewModel.recommendedProducts.collectAsStateWithLifecycle().value
+    val total = viewModel.total.collectAsStateWithLifecycle().value
+
+    val scope = rememberCoroutineScope()
     val isScreenActive = rememberUpdatedState(newValue = true)
     LaunchedEffect(isScreenActive.value) {
-        viewModel.getCart("")
+        viewModel.getCart()
     }
     Box(
         modifier = modifier
@@ -112,7 +134,6 @@ fun CartScreen(
                         .padding(top = 17.dp)
                 )
             }
-
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -146,42 +167,67 @@ fun CartScreen(
             )
             {
                 item { Spacer(Modifier.height(20.dp))}
-                items(cart.items) { item ->
-                    CartItemContainer(
+                if (cart.cartItems.isEmpty() ) {
+                    item {
+                        Text(
+                            text = "Giỏ hàng của bạn đang trống",
+                            fontSize = 18.sp,
+                            color = BrownDefault,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.padding(10.dp)
+                        )
+                    }
+                }
+                else
+                items(cart.cartItems) { item ->
+                    CartItem(
                         cartItem = item,
-                        onQuantityDesc = { viewModel.descItemQuantity(cart.items.indexOf(item)) },
-                        onQuantityIncr = { viewModel.incrItemQuantity(cart.items.indexOf(item)) },
-                        onDeleteClicked = {viewModel.deleteItem(cart.items.indexOf(item))},
-                        modifier = Modifier,
+                        onQuantityIncr = {
+                            scope.launch {
+                                viewModel.incrItemQuantity(item)
+                            }
+                        },
+                        onQuantityDesc = {
+                            scope.launch {
+                                viewModel.descItemQuantity(item)
+                            }
+                        },
+                        onDeleteClicked = {
+                            scope.launch {
+                                viewModel.deleteItem(item.id)
+                            }
+                        },
                     )
                 }
-                item {
-                    Text(
-                        text = "Đề xuất món ngon",
-                        textAlign = TextAlign.Start,
-                        maxLines = 2,
-                        fontSize = 16.sp,
-                        color = BrownDefault,
-                        fontWeight = FontWeight.Medium,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .padding(start = 10.dp, top = 10.dp)
-                            .align(Alignment.Start)
-                            .fillMaxWidth()
-                    )
-                }
-                item {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier
-                            .padding(10.dp)
-                    ) {
-                        items(viewModel.loadAdditionalProduct()){ item ->
-                            AdditionalProduct(
-                                item = item,
-                                onClick = { onAdditionalProductClicked(item.id)},
-                            )
+                if (recommendedProducts.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Đề xuất món ngon",
+                            textAlign = TextAlign.Start,
+                            maxLines = 2,
+                            fontSize = 16.sp,
+                            color = BrownDefault,
+                            fontWeight = FontWeight.Medium,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .padding(start = 10.dp, top = 10.dp)
+                                .align(Alignment.Start)
+                                .fillMaxWidth()
+                        )
+                    }
+                    item {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier
+                                .padding(10.dp)
+                        ) {
+                            items(recommendedProducts){ item ->
+                                AdditionalProduct(
+                                    item = item,
+                                    onClick = { onAdditionalProductClicked(item.id)},
+                                )
 
+                            }
                         }
                     }
                 }
@@ -200,7 +246,9 @@ fun CartScreen(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Absolute.SpaceBetween,
-                modifier = Modifier.padding(10.dp).fillMaxWidth()
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth()
 
             ) {
                 Column {
@@ -211,7 +259,7 @@ fun CartScreen(
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = cart.getTotalToString(),
+                        text = total,
                         fontSize = 24.sp,
                         fontWeight = FontWeight.Bold,
                         color = OrangeDefault,
@@ -220,6 +268,7 @@ fun CartScreen(
                 OuterShadowFilledButton(
                     text = "Thanh toán",
                     icon = Icons.Default.MonetizationOn,
+                    isEnable = cart.cartItems.isNotEmpty(),
                     onClick =  onCheckOutClicked ,
                     modifier = Modifier
                 )
@@ -228,11 +277,113 @@ fun CartScreen(
     }
 }
 
-@Preview
 @Composable
-fun CartPreview(){
-    val viewModel: CartViewModel = viewModel()
-    CartScreen(
-        viewModel = viewModel
-    )
+fun CartItem(
+    onQuantityIncr: () -> Unit = {},
+    onQuantityDesc: () -> Unit = {},
+    onDeleteClicked: () -> Unit = {},
+    cartItem: CartItemResponse,
+    modifier: Modifier = Modifier,
+){
+    Surface(
+        shadowElevation = 4.dp, // Elevation applied here instead
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.padding(8.dp)
+    ) {
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = WhiteDefault
+            ),
+            modifier = Modifier
+                .animateContentSize()
+        ) {
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier
+            ) {
+                AsyncImage(
+                    model = cartItem.getRealUrl(), // Đây là URL từ API
+                    contentDescription = null,
+                    placeholder = painterResource(R.drawable.ic_mam_logo),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(80.dp)
+                        .clip(CircleShape)
+                )
+                Column(
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .weight(1f)
+                ) {
+                    Column (
+                        verticalArrangement = Arrangement.Top,
+                        modifier = Modifier.fillMaxWidth().padding(0.dp, 8.dp, 8.dp, 8.dp)
+                    ) {
+                        Text(
+                            text = cartItem.productName,
+                            textAlign = TextAlign.Start,
+                            color = BrownDefault,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        cartItem.variationOptionInfo?.let {
+                            Text(
+                                text = it,
+                                textAlign = TextAlign.Start,
+                                color = GreyDefault,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                        Text(
+                            text = cartItem.getPrice(),
+                            textAlign = TextAlign.End,
+                            color = OrangeDefault,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(40.dp)
+                            .padding(bottom = 8.dp)
+                    ){
+                        QuantitySelectionButton(
+                            count = cartItem.quantity.toInt(),
+                            onValueDecr = onQuantityDesc,
+                            onValueIncr = onQuantityIncr,
+                            modifier = Modifier.padding(end = 10.dp, start = 10.dp).height(40.dp)
+                        )
+                        IconButton(
+                            onClick = onDeleteClicked,
+                            colors = IconButtonColors(
+                                containerColor = OrangeDefault,
+                                contentColor = WhiteDefault,
+                                disabledContainerColor = GreyLight,
+                                disabledContentColor = WhiteDefault,
+                            ),
+                            shape = RoundedCornerShape(
+                                topStart = 50.dp,
+                                bottomStart = 50.dp
+                            ),
+                            modifier = Modifier
+                                .width(75.dp)
+                        ) {
+                            Icon(Icons.Filled.Delete, "")
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

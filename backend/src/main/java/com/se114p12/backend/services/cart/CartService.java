@@ -1,11 +1,12 @@
 package com.se114p12.backend.services.cart;
 
+import com.se114p12.backend.dtos.cart.CartResponseDTO;
 import com.se114p12.backend.entities.cart.Cart;
 
 import java.util.Optional;
 
 public interface CartService {
-    Optional<Cart> findByUserId(Long userId);
+    CartResponseDTO getCartResponseByUserId(Long userId);
 
     Cart getCartById(Long id);
 

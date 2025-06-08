@@ -16,7 +16,6 @@ import com.example.mam.dto.product.ProductResponse
 import com.example.mam.dto.variation.VariationOptionResponse
 import com.example.mam.dto.variation.VariationRequest
 import com.example.mam.dto.variation.VariationResponse
-import com.example.mam.entity.CartItem
 import com.example.mam.entity.Product
 import com.example.mam.entity.Variance
 import com.example.mam.entity.VarianceOption

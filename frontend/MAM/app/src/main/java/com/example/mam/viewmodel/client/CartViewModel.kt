@@ -1,103 +1,194 @@
 package com.example.mam.viewmodel.client
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
-import com.example.mam.R
-import com.example.mam.entity.Cart
-import com.example.mam.entity.CartItem
-import com.example.mam.entity.Product
-import com.example.mam.entity.VarianceOption
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
+import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.cart.CartResponse
+import com.example.mam.dto.cart.CartItemRequest
+import com.example.mam.dto.cart.CartItemResponse
+import com.example.mam.dto.product.ProductResponse
+import com.example.mam.services.BaseService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.text.DecimalFormat
 
-class CartViewModel(): ViewModel() {
-    private val _cart = MutableStateFlow(Cart())
+class CartViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository
+): ViewModel() {
+    private val _cart = MutableStateFlow(CartResponse())
     val cart = _cart.asStateFlow()
-    fun getCart(id: String){
-        val newCart = Cart()
-        val product1 = Product("P003", "Pizza truyền thống", "", "", 120000, true, "PC001", "")
-        val product2 = Product("P006", "Hotdog truyền thống", "", "", 80000, true, "PC003", "")
 
-        val option1 = VarianceOption("V007P003", "V007", "25cm", 10000)
-        val option2 = VarianceOption("V004P003", "V004", "Hành tây", 5000)
-        val option3 = VarianceOption("V008P003", "V007", "30cm", 15000)
+    private val _recommendedProducts = MutableStateFlow<List<ProductResponse>>(emptyList())
+    val recommendedProducts = _recommendedProducts.asStateFlow()
 
-        newCart.addItem(CartItem(product1, quantity = 2, options = mutableListOf(option1, option2)))
-        newCart.addItem(CartItem(product2, quantity = 1, options = mutableListOf(option3)))
+    private val _total = MutableStateFlow("0 VND")
+    val total = _total.asStateFlow()
 
-        _cart.value = newCart
+    suspend fun getCart(){
+        try {
+            Log.d("CartViewModel", "Loading Cart details")
+            val response = BaseService(userPreferencesRepository).cartService.getMyCart()
+            Log.d("CartViewModel", "Response Code: ${response.code()}")
+            if (response.isSuccessful) {
+                val cartResponse = response.body()
+                if (cartResponse != null) {
+                    _cart.value = cartResponse
+                    _total.value = _cart.value.getTotalPrice()
+                    Log.d("CartViewModel", "Cart details loaded: ${_cart.value.cartItems.size} items")
+                    _cart.value.cartItems.forEach { item ->
+                        Log.d("CartViewModel", "Item: ${item.productName}, Quantity: ${item.quantity}, Price: ${item.getPrice()}, Options: ${item.variationOptionInfo}")
+                    }
+
+                } else {
+                    Log.d("CartViewModel", "No cart found")
+                }
+            } else {
+                Log.d("CartViewModel", "Failed to load cart: ${response.errorBody()?.string()}")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("CartViewModel", "Failed to load cart: ${e.message}")
+        }
     }
 
-    fun loadItem(): MutableList<CartItem>{
-        return _cart.value.items
+
+    suspend fun loadAdditionalProduct(){
+        try {
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("CartViewModel", "Failed to load additional products: ${e.message}")
+        }
     }
 
-    fun loadAdditionalProduct(): MutableList<Product>{
-        return mutableListOf(
-            Product(
-                "P018",
-                "Khoai tây chiên",
-                "",
-                "",
-                100000,
-                true,
-                "PC007"),
-            Product(
-                "P019",
-                "Khoai tây chiên",
-                "",
-                "",
-                100000,
-                true,
-                "PC007"),
-            Product(
-                "P019",
-                "Khoai tây chiên",
-                "",
-                "",
-                100000,
-                true,
-                "PC007"),
-            Product(
-                "P019",
-                "Khoai tây chiên",
-                "",
-                "",
-                100000,
-                true,
-                "PC007"),
-            Product(
-                "P020",
-                "Khoai tây chiên",
-                "",
-                "",
-                100000,
-                true,
-                "PC007")
-        )
+    suspend fun incrItemQuantity(item: CartItemResponse){
+        try {
+            val response = BaseService(userPreferencesRepository).cartItemService.updateCartItem(
+                id = item.id,
+                cartItemRequest = CartItemRequest(
+                    productId = item.productId,
+                    quantity = item.quantity + 1,
+                    price = item.price,
+                    variationOptionIds = item.variationOptionIds
+                )
+            )
+            Log.d("CartViewModel", "Response Code: ${response.code()}")
+            if (response.isSuccessful){
+                _cart.value.cartItems.find { it.id == item.id }?.let {
+                    it.quantity += 1
+                    _total.value = _cart.value.getTotalPrice()
+                }
+            }
+            else {
+                Log.d("CartViewModel", "Failed to increase item quantity: ${response.errorBody()?.string()}")
+            }
+        }
+        catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("CartViewModel", "Failed to increase item quantity: ${e.message}")
+        }
+
     }
 
-    fun incrItemQuantity(index: Int){
-        val updatedItems = _cart.value.items.toMutableList()
-        updatedItems[index] = updatedItems[index].copy(quantity = updatedItems[index].quantity + 1)
+    suspend fun descItemQuantity(item: CartItemResponse){
+        try {
+            val response = BaseService(userPreferencesRepository).cartItemService.updateCartItem(
+                id = item.id,
+                cartItemRequest = CartItemRequest(
+                    productId = item.productId,
+                    quantity = if (item.quantity > 1) item.quantity - 1 else 1,
+                    price = item.price,
+                    variationOptionIds = item.variationOptionIds
+                )
+            )
+            Log.d("CartViewModel", "Response Code: ${response.code()}")
+            if (response.isSuccessful){
+                _cart.value.cartItems.find { it.id == item.id }?.let {
+                    if (it.quantity > 1) {
+                        it.quantity -= 1
+                    }
+                    _total.value = _cart.value.getTotalPrice()
+                }
+                Log.d("CartViewModel", "Item quantity decreased successfully")
+            }
+            else {
+                Log.d("CartViewModel", "Failed to decrease item quantity: ${response.errorBody()?.string()}")
+            }
 
-        _cart.value = _cart.value.copy(items = updatedItems)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("CartViewModel", "Failed to decrease item quantity: ${e.message}")
+        }
+
     }
 
-    fun descItemQuantity(index: Int){
-        val updatedItems = _cart.value.items.toMutableList()
-        updatedItems[index] = updatedItems[index].copy(quantity = if(updatedItems[index].quantity > 1) updatedItems[index].quantity - 1 else 1)
-        _cart.value = _cart.value.copy(items = updatedItems)
+    suspend fun deleteItem(id: Long){
+        try {
+            Log.d("CartViewModel", "Deleting item with ID: $id")
+            val response = BaseService(userPreferencesRepository).cartItemService.deleteCartItem(id)
+            Log.d("CartViewModel", "Response Code: ${response.code()}")
+            if (response.isSuccessful) {
+                Log.d("CartViewModel", "Item deleted successfully")
+                _cart.value.cartItems = _cart.value.cartItems.filter { it.id != id }
+                _total.value = _cart.value.getTotalPrice()
+            } else {
+                Log.d("CartViewModel", "Failed to delete item: ${response.errorBody()?.string()}")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("CartViewModel", "Failed to delete item: ${e.message}")
+        }
+
     }
 
-    fun deleteItem(index: Int){
-        val updatedCart = _cart.value.copy() // Tạo một bản sao mới của giỏ hàng hiện tại
-        updatedCart.delItem(updatedCart.items[index]) // Xóa item khỏi bản sao
-        _cart.value = updatedCart
-    }
+//    suspend fun getProductById(id: Long): String {
+//        try {
+//            Log.d("CartViewModel", "Loading Cart details for ID: $id")
+//            val response = BaseService(userPreferencesRepository).productService.getProductById(
+//                id = _itemID
+//            )
+//            Log.d("ItemViewModel", "Response Code: ${response.code()}")
+//            if (response.isSuccessful) {
+//                val product = response.body()
+//                if (product != null) {
+//                    _item.value = product
+//                    Log.d("CartViewModel", "Cart details loaded: ${_item.value.name}")
+//                } else {
+//                    Log.d("CartViewModel", "No item found for ID: $_itemID")
+//                }
+//            } else {
+//                Log.d("CartViewModel", "Failed to load item details: ${response.errorBody()?.string()}")
+//            }
+//        }
+//        catch (e: Exception) {
+//            Log.d("CartViewModel", "Error loading item details: ${e.message}")
+//            e.printStackTrace()
+//        }
+//    }
+//
+//    suspend fun getOptionById(id: Long): String {
+//        return try {
+//            // Simulate fetching option by ID from a repository or service
+//            // Replace with actual data fetching logic
+//            null // Replace with actual option data
+//        } catch (e: Exception) {
+//            e.printStackTrace()
+//            Log.d("CartViewModel", "Failed to load option by ID: ${e.message}")
+//            null
+//        }
+//    }
 
-    fun checkOut(): String{
-        //tao Order moi
-        _cart.value.clearCart()
-        return "" //Ma oder
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                CartViewModel(
+                    application.userPreferencesRepository)
+            }
+        }
     }
 }

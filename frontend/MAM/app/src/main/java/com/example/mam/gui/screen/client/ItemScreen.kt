@@ -52,7 +52,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.mam.R
 import com.example.mam.dto.variation.VariationOptionResponse
-import com.example.mam.entity.CartItem
 import com.example.mam.entity.Product
 import com.example.mam.entity.VarianceOption
 import com.example.mam.gui.component.CircleIconButton
@@ -198,7 +197,7 @@ fun ItemScreen(
                                         Toast.LENGTH_SHORT
                                     ).show(
                                   )},
-                            modifier = Modifier
+                            modifier = Modifier.height(40.dp)
                         )
                         Text(
                             text = item.getPriceToString(),
