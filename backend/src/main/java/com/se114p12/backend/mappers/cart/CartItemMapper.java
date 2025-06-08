@@ -24,6 +24,7 @@ public interface CartItemMapper {
                       @Context VariationOptionRepository variationRepo);
 
     @Mapping(source = "product.id", target = "productId")
+    @Mapping(source = "cart.id", target = "cartId")
     @Mapping(source = "variationOptions", target = "variationOptionIds", qualifiedByName = "mapVariationOptionIds")
     CartItemResponseDTO toDTO(CartItem entity);
 

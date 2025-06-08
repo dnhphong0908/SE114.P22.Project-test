@@ -81,6 +81,7 @@ public class CartItemServiceImpl implements CartItemService {
 
         CartItem updated = cartItemMapper.toEntity(dto, productRepository, variationOptionRepository);
         updated.setId(id);
+        updated.setCart(existing.getCart());
 
         return cartItemMapper.toDTO(cartItemRepository.save(updated));
     }
