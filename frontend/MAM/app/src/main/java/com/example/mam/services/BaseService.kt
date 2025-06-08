@@ -49,4 +49,13 @@ class BaseService(userPreferencesRepository: UserPreferencesRepository) {
     val notificationService: NotificationService by lazy {
         privateRetrofit.create(NotificationService::class.java)
     }
+    val orderService: OrderService by lazy {
+        privateRetrofit.create(OrderService::class.java)
+    }
+    val promotionService: PromotionService by lazy {
+        privateRetrofit.create(PromotionService::class.java)
+    }
+    val userPromotionService: UserPromotionService by lazy {
+        privateRetrofit.create(UserPromotionService::class.java)
+    }
 }

@@ -29,12 +29,6 @@ class CartViewModel(
     private val _total = MutableStateFlow("0 VND")
     val total = _total.asStateFlow()
 
-    fun getTotalPrice(): String {
-        val total = _cart.value.cartItems.sumOf { it.price * it.quantity.toBigDecimal() }
-        val formatter = DecimalFormat("#,###")
-        return "${formatter.format(total)} VND"
-    }
-
     suspend fun getCart(){
         try {
             Log.d("CartViewModel", "Loading Cart details")
@@ -44,7 +38,7 @@ class CartViewModel(
                 val cartResponse = response.body()
                 if (cartResponse != null) {
                     _cart.value = cartResponse
-                    _total.value = getTotalPrice()
+                    _total.value = _cart.value.getTotalPrice()
                     Log.d("CartViewModel", "Cart details loaded: ${_cart.value.cartItems.size} items")
                     _cart.value.cartItems.forEach { item ->
                         Log.d("CartViewModel", "Item: ${item.productName}, Quantity: ${item.quantity}, Price: ${item.getPrice()}, Options: ${item.variationOptionInfo}")
@@ -86,7 +80,7 @@ class CartViewModel(
             if (response.isSuccessful){
                 _cart.value.cartItems.find { it.id == item.id }?.let {
                     it.quantity += 1
-                    _total.value = getTotalPrice()
+                    _total.value = _cart.value.getTotalPrice()
                 }
             }
             else {
@@ -117,7 +111,7 @@ class CartViewModel(
                     if (it.quantity > 1) {
                         it.quantity -= 1
                     }
-                    _total.value = getTotalPrice()
+                    _total.value = _cart.value.getTotalPrice()
                 }
                 Log.d("CartViewModel", "Item quantity decreased successfully")
             }
@@ -140,6 +134,7 @@ class CartViewModel(
             if (response.isSuccessful) {
                 Log.d("CartViewModel", "Item deleted successfully")
                 _cart.value.cartItems = _cart.value.cartItems.filter { it.id != id }
+                _total.value = _cart.value.getTotalPrice()
             } else {
                 Log.d("CartViewModel", "Failed to delete item: ${response.errorBody()?.string()}")
             }

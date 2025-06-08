@@ -268,6 +268,7 @@ fun CartScreen(
                 OuterShadowFilledButton(
                     text = "Thanh toán",
                     icon = Icons.Default.MonetizationOn,
+                    isEnable = cart.cartItems.isNotEmpty(),
                     onClick =  onCheckOutClicked ,
                     modifier = Modifier
                 )
