@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -47,9 +50,10 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import coil.compose.AsyncImage
 import com.example.mam.R
+import com.example.mam.dto.cart.CartItemResponse
+import com.example.mam.dto.order.OrderDetailResponse
 import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.dto.product.ProductResponse
-import com.example.mam.entity.CartItem
 import com.example.mam.entity.OrderItem
 import com.example.mam.entity.Product
 import com.example.mam.entity.ProductCategory
@@ -122,7 +126,7 @@ fun CartItemContainer(
     onQuantityIncr: () -> Unit = {},
     onQuantityDesc: () -> Unit = {},
     onDeleteClicked: () -> Unit = {},
-    cartItem: CartItem,
+    cartItem: CartItemResponse,
     modifier: Modifier = Modifier,
 ){
     Card(
@@ -134,8 +138,8 @@ fun CartItemContainer(
         ),
         shape = RoundedCornerShape(
             topStart = 50.dp,
-            topEnd = 0.dp,
-            bottomStart = 0.dp,
+            topEnd = 5.dp,
+            bottomStart = 5.dp,
             bottomEnd = 50.dp
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 10.dp),
@@ -144,74 +148,68 @@ fun CartItemContainer(
             .fillMaxWidth(0.95f)
     ){
         Row(
-            Modifier.fillMaxSize()
+            verticalAlignment = Alignment.CenterVertically,
+            modifier =
+            Modifier.fillMaxWidth()
         ){
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally,
+            AsyncImage(
+                model = cartItem.getRealUrl(), // Đây là URL từ API
+                contentDescription = null,
+                placeholder = painterResource(R.drawable.ic_mam_logo),
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .fillMaxHeight()
-                    .fillMaxWidth(0.3f)) {
-                AsyncImage(
-                    model = cartItem.product.imageUrl, // Đây là URL từ API
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
+                    .padding(10.dp)
+                    .size(80.dp)
+                    .clip(CircleShape)
+            )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(5.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp, bottom = 10.dp, start = 10.dp)
+            ) {
+                Text(
+                    text = cartItem.productName,
+                    textAlign = TextAlign.Start,
+                    maxLines = 1,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .padding(vertical = 10.dp)
-                        .size(80.dp)
-                        .clip(CircleShape)
+                        .align(Alignment.Start)
+                        .fillMaxWidth()
                 )
                 Text(
-                    text = cartItem.getPriceToString(),
+                    text = "",
                     textAlign = TextAlign.Start,
+                    maxLines = 2,
+                    fontSize = 14.sp,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .fillMaxWidth()
+                )
+                Text(
+                    text = cartItem.getPrice(),
+                    textAlign = TextAlign.End,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .padding(bottom = 5.dp))
-            }
-            Column(
-                verticalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(0.dp)
-            ) {
-                Column(
-                    modifier = Modifier
-                    .padding(10.dp)
-                    .fillMaxWidth()) {
-                    Text(
-                        text = cartItem.product.name,
-                        textAlign = TextAlign.Start,
-                        maxLines = 2,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .align(Alignment.Start)
-                            .fillMaxWidth()
-                    )
-                    Text(
-                        text = cartItem.getOptionsToString(),
-                        textAlign = TextAlign.Start,
-                        maxLines = 2,
-                        fontSize = 14.sp,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .align(Alignment.Start)
-                            .fillMaxWidth()
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    fontStyle = FontStyle.Italic,
+                    color = OrangeDefault,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(0.dp)
+                        .padding(end = 5.dp)
+                )
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier
+                        .fillMaxWidth()
                 ){
                     QuantitySelectionButton(
-                        count = cartItem.quantity,
+                        count = cartItem.quantity.toInt(),
                         onValueDecr = onQuantityDesc,
                         onValueIncr = onQuantityIncr,
-                        modifier = Modifier.height(40.dp)
+                        modifier = Modifier.padding(end = 10.dp, start = 10.dp)
                     )
                     IconButton(
                         onClick = onDeleteClicked,
@@ -226,21 +224,20 @@ fun CartItemContainer(
                             bottomStart = 50.dp
                         ),
                         modifier = Modifier
-                            .fillMaxWidth(0.8f)
+                            .width(75.dp)
 
                     ) {
                         Icon(Icons.Filled.Delete, "")
                     }
                 }
             }
-
         }
     }
 }
 
 @Composable
 fun OrderItemContainer(
-    item: OrderItem,
+    item: OrderDetailResponse,
     modifier: Modifier = Modifier,
 ){
     Card(
@@ -255,14 +252,14 @@ fun OrderItemContainer(
         modifier = modifier
             .height(100.dp)
             .fillMaxWidth(0.95f)
-//            .clip(
-//                RoundedCornerShape(
-//                    topStart = 50.dp,
-//                    topEnd = 0.dp,
-//                    bottomStart = 0.dp,
-//                    bottomEnd = 50.dp
-//                )
-//            )
+            .clip(
+                RoundedCornerShape(
+                    topStart = 50.dp,
+                    topEnd = 0.dp,
+                    bottomStart = 0.dp,
+                    bottomEnd = 50.dp
+                )
+            )
     ){
         Row(
             Modifier.fillMaxSize()
@@ -275,7 +272,7 @@ fun OrderItemContainer(
                     .wrapContentWidth()
                     .padding(horizontal = 10.dp)) {
                 AsyncImage(
-                    model = item.image,
+                    model = item.getRealUrl(),
                     placeholder = painterResource(R.drawable.ic_mam_logo),
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
@@ -294,7 +291,7 @@ fun OrderItemContainer(
             ) {
                 Column {
                     Text(
-                        text = item.name,
+                        text = item.productName,
                         textAlign = TextAlign.Start,
                         maxLines = 2,
                         fontSize = 16.sp,
@@ -305,7 +302,7 @@ fun OrderItemContainer(
                             .fillMaxWidth()
                     )
                     Text(
-                        text = item.options,
+                        text = item.variationInfo,
                         textAlign = TextAlign.Start,
                         maxLines = 3,
                         fontSize = 14.sp,
@@ -316,7 +313,7 @@ fun OrderItemContainer(
                     )
                 }
                 Text(
-                    text = item.getPriceToString(),
+                    text = item.getPrice(),
                     textAlign = TextAlign.End,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -335,8 +332,8 @@ fun OrderItemContainer(
 @Composable
 fun AdditionalProduct(
     modifier: Modifier = Modifier,
-    item: Product,
-    onClick: (Product) -> Unit = {},
+    item: ProductResponse,
+    onClick: (Long) -> Unit = {},
 ){
     Box(
         modifier = modifier
@@ -345,7 +342,7 @@ fun AdditionalProduct(
     )
     {
         AsyncImage(
-            model = item.imageUrl, // Đây là URL từ API
+            model = item.getRealURL(), // Đây là URL từ API
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -388,7 +385,7 @@ fun AdditionalProduct(
                     text = item.getPriceToString(),
                     fontSize = 14.sp,
                     shadowColor = WhiteDefault,
-                    onClick = { onClick(item) },
+                    onClick = { onClick(item.id) },
                     modifier = Modifier.padding(5.dp)
                 )
 
@@ -399,68 +396,20 @@ fun AdditionalProduct(
 
 @Preview
 @Composable
-fun ContainerPreview(){
-    Column(
-        Modifier.fillMaxSize()
-    ) {
-        CartItemContainer(
-            cartItem = CartItem(
-                Product(
-                    "P003",
-                    "Pizza truyền thống",
-                    "",
-                    "Sốt BBQ đặc trưng, gà nướng, hành tây, ớt chuông, lá basil và phô mai Mozzarella. ",
-                    100000,
-                    true,
-                    "PC001",
-                ),
-                1,
-                mutableListOf(
-                    VarianceOption("V002P003", "V001", "Thường", 0),
-                    VarianceOption("V004P003", "V004", "Hành tây", 0),
-                    VarianceOption("V005P003", "V004", "Ớt chuông", 0),
-                    VarianceOption("V008P003", "V007", "25cm", 0),
-                )
-            )
-        )
-        AdditionalProduct(
-            item = Product(
-                "P003",
-                "Pizza truyền thống",
-                "",
-                "Sốt BBQ đặc trưng, gà nướng, hành tây, ớt chuông, lá basil và phô mai Mozzarella. ",
-                100000,
-                true,
-                "PC001",
-            )
-        )
-        val cartItem = CartItem(
-            Product(
-                "P003",
-                "Pizza truyền thống",
-                "",
-                "Sốt BBQ đặc trưng, gà nướng, hành tây, ớt chuông, lá basil và phô mai Mozzarella. ",
-                100000,
-                true,
-                "PC001",
-            ),
-            1,
-            mutableListOf(
-                VarianceOption("V002P003", "V001", "Thường", 0),
-                VarianceOption("V004P003", "V004", "Hành tây", 0),
-                VarianceOption("V005P003", "V004", "Ớt chuông", 0),
-                VarianceOption("V008P003", "V007", "25cm", 0),
-            )
-        )
-        OrderItemContainer(
-            item = OrderItem(
-                cartItem.product.name,
-                "",
-                cartItem.product.id,
-                cartItem.quantity,
-                cartItem.getOptionsToString(),
-                cartItem.product.originalPrice,
-            )
-        )
-    }
+fun CartItemContainerPreview() {
+    CartItemContainer(
+        cartItem = CartItemResponse(
+            cartId = 1L,
+            productId = 1L,
+            productName = "Test Product",
+            quantity = 2,
+            price = 100000.toBigDecimal(),
+            variationOptionInfo = "Size: M, Color: Red",
+            imageUrl = "https://example.com/image.jpg"
+        ),
+        onQuantityIncr = {},
+        onQuantityDesc = {},
+        onDeleteClicked = {},
+        modifier = Modifier.width(300.dp)
+    )
 }

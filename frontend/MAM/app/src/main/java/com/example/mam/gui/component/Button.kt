@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,6 +37,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -425,6 +427,7 @@ fun CircleIconButton(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun QuantitySelectionButton(
     count: Int,
@@ -435,29 +438,33 @@ fun QuantitySelectionButton(
     Box(modifier = modifier
         .outerShadow() // Đổ bóng lên nền
         .background(OrangeDefault, shape = RoundedCornerShape(50))
-        .padding(0.dp)
-        .wrapContentHeight()) {
+    ) {
         Row(
             modifier = Modifier
                 .padding(0.dp)
+                .fillMaxHeight()
                 .wrapContentWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // Nút Giảm (-)
-            CircleIconButton(
-                icon = Icons.Filled.Remove, // Thay bằng icon phù hợp
+            IconButton(
                 onClick = { if (count > 1) onValueDecr()},
-                modifier = Modifier
-            )
-
+                modifier = Modifier.wrapContentSize()
+            ){
+                Icon(
+                    imageVector = Icons.Filled.Remove,
+                    contentDescription = "Decrease",
+                    tint = WhiteDefault,
+                    modifier = Modifier.wrapContentSize()
+                )
+            }
             // Hiển thị số lượng
             Box(
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.BottomCenter,
                 modifier = Modifier
                     .background(Color.White, shape = RoundedCornerShape(50))
-                    .wrapContentSize()
-                    .padding(0.dp)
+                    .wrapContentWidth()
+                    .fillMaxHeight()
             ){
                 Text(
                     text = "$count",
@@ -466,17 +473,25 @@ fun QuantitySelectionButton(
                     textAlign = TextAlign.Center,
                     color = OrangeDefault,
                     modifier = Modifier
-                        .padding(10.dp)
-                        .wrapContentSize()
-                        .defaultMinSize(minWidth = 30.dp)
+                        .align(Alignment.Center)
+                        .padding(vertical = 5.dp)
+                        .fillMaxHeight()
+                        .wrapContentWidth()
+                        .defaultMinSize(minWidth = 30.dp, minHeight = 30.dp) // Đảm bảo nút có kích thước tối thiểu
                 )
             }
             // Nút Tăng (+)
-            CircleIconButton(
-                icon = Icons.Filled.Add, // Thay bằng icon phù hợp
-                onClick = { onValueIncr() },
-                modifier = Modifier
-            )
+            IconButton(
+                onClick = { if (count < 99) onValueIncr()},
+                modifier = Modifier.wrapContentSize()
+            ){
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Increase",
+                    tint = WhiteDefault,
+                    modifier = Modifier.wrapContentSize()
+                )
+            }
         }
     }
 }

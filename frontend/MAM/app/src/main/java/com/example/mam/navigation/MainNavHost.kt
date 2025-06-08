@@ -348,7 +348,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: CartViewModel = viewModel(backStackEntry)
+                val viewModel: CartViewModel = viewModel(backStackEntry, factory = CartViewModel.Factory)
                 CartScreen(
                     onBackClicked = {navController.popBackStack()},
                     onAdditionalProductClicked = { item ->
@@ -365,7 +365,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: CheckOutViewModel = viewModel(backStackEntry)
+                val viewModel: CheckOutViewModel = viewModel(backStackEntry, factory = CheckOutViewModel.Factory)
                 CheckOutScreen(
                     onBackClicked = {navController.popBackStack()},
                     onCheckOutClicked = {

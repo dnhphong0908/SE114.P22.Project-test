@@ -166,11 +166,11 @@ fun CheckOutScreen(
         )
         {
             item { Spacer(Modifier.height(20.dp)) }
-            items(items.value) { item ->
-                OrderItemContainer(
-                    item = item
-                )
-            }
+//            items(items.value) { item ->
+//                OrderItemContainer(
+//                    item = item
+//                )
+//            }
             item {
                 Column(
                     verticalArrangement = Arrangement.spacedBy(5.dp),
@@ -392,7 +392,7 @@ fun CheckOutScreen(
                                 color = BrownDefault,
                             )
                             Text(
-                                text = viewModel.getCartTotalToString(),
+                                text = "viewModel.getCartTotalToString()",
                                 fontSize = 24.sp,
                                 color = OrangeDefault,
                             )
@@ -430,7 +430,7 @@ fun CheckOutScreen(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                text = viewModel.getTotalPriceToString(),
+                                text = "viewModel.getTotalPriceToString()",
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = OrangeDefault,
