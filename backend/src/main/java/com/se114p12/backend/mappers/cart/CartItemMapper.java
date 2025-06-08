@@ -11,6 +11,7 @@ import com.se114p12.backend.repositories.product.ProductRepository;
 import com.se114p12.backend.repositories.variation.VariationOptionRepository;
 import org.mapstruct.*;
 
+import java.util.Comparator;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,7 @@ public interface CartItemMapper {
         }
         if (entity.getVariationOptions() != null && !entity.getVariationOptions().isEmpty()) {
             String variationNames = entity.getVariationOptions().stream()
+                    .sorted(Comparator.comparing(v -> v.getVariation() != null ? v.getVariation().getName() : "Unknown")) // Sắp xếp theo tên
                     .map(v -> {
                         String variationName = (v.getVariation() != null) ? v.getVariation().getName() : "Unknown";
                         return variationName + ": " + v.getValue();
