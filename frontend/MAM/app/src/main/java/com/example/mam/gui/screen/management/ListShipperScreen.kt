@@ -60,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -75,6 +76,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mam.dto.shipper.ShipperResponse
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.outerShadow
@@ -104,13 +106,16 @@ fun ListShipperScreen(
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
     val shipperList = viewModel.shippers.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
+    val isDeleting = viewModel.isDeleting.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val asc = viewModel.asc.collectAsStateWithLifecycle().value
 
-    LaunchedEffect(Unit) {
-        viewModel.loadSortingOptions()
+    LaunchedEffect(key1 = isDeleting) {
         viewModel.loadData()
     }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -321,56 +326,59 @@ fun ListShipperScreen(
                                 DropdownMenuItem(
                                     text = { Text(option, color = BrownDefault) },
                                     onClick = {
-                                        viewModel.setSelectedSortingOption(option)
                                         sortExpanded = false
+                                        scope.launch {
+                                            viewModel.setSelectedSortingOption(option)
+                                            viewModel.sortShipper()
+                                        }
                                     }
                                 )
                             }
                         }
                     }
                 }
-                if (mockData != null) {
-                    items(mockData) { shipper ->
-                        ShipperItem(
-                            shipper = shipper,
-                            onClick = onShipperClick,
-                            onEditClick = onEditShipperClick,
-                            onDeleteClick = {}
-                        )
-                    }
-                }
-                else {
-                    if (isLoading.value) {
-                        item {
-                            CircularProgressIndicator(
-                                color = OrangeDefault,
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .size(40.dp)
-                            )
-                        }
-                    } else
-                        if (shipperList.isEmpty()) {
-                            item {
-                                Text(
-                                    text = "Không có shipper nào",
-                                    color = GreyDefault,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    modifier = Modifier.padding(16.dp)
-                                )
-                            }
-                        } else {
-                            items(shipperList) { shipper ->
-                                ShipperItem(
-                                    shipper = shipper,
-                                    onClick = onShipperClick,
-                                    onEditClick = onEditShipperClick,
-                                    onDeleteClick = {}
-                                )
-                            }
-                        }
-                }
+//                if (mockData != null) {
+//                    items(mockData) { shipper ->
+//                        ShipperItem(
+//                            shipper = shipper,
+//                            onClick = onShipperClick,
+//                            onEditClick = onEditShipperClick,
+//                            onDeleteClick = {}
+//                        )
+//                    }
+//                }
+//                else {
+//                    if (isLoading.value) {
+//                        item {
+//                            CircularProgressIndicator(
+//                                color = OrangeDefault,
+//                                modifier = Modifier
+//                                    .padding(16.dp)
+//                                    .size(40.dp)
+//                            )
+//                        }
+//                    } else
+//                        if (shipperList.isEmpty()) {
+//                            item {
+//                                Text(
+//                                    text = "Không có shipper nào",
+//                                    color = GreyDefault,
+//                                    fontSize = 18.sp,
+//                                    fontWeight = FontWeight.Medium,
+//                                    modifier = Modifier.padding(16.dp)
+//                                )
+//                            }
+//                        } else {
+//                            items(shipperList) { shipper ->
+//                                ShipperItem(
+//                                    shipper = shipper,
+//                                    onClick = onShipperClick,
+//                                    onEditClick = onEditShipperClick,
+//                                    onDeleteClick = {}
+//                                )
+//                            }
+//                        }
+//                }
             }
         }
         IconButton(
@@ -514,19 +522,16 @@ fun ShipperItem(
 //    )
 //}
 //
-//@Preview
-//@Composable
-//fun ShipperScreenPreview() {
-//    ListShipperScreen(
-//        viewModel = ListShipperViewModel(),
-//        onBackClick = {},
-//        onShipperClick = {},
-//        onAddShipperClick = {},
-//        onEditShipperClick = {},
-//        mockData = listOf(
-//            Shipper("Nguyễn Văn A", "0123456789", "59-A1 999.99", "1"),
-//            Shipper("Trần Thị B", "0987654321", "59-A1 999.99", "2"),
-//            Shipper("Lê Văn C", "0912345678", "59-A1 999.99", "3")
-//        )
-//    )
-//}
+@Preview
+@Composable
+fun ShipperScreenPreview() {
+    ListShipperScreen(
+        viewModel = viewModel(factory = ListShipperViewModel.Factory),
+        onBackClick = {},
+        onShipperClick = {},
+        onAddShipperClick = {},
+        onEditShipperClick = {},
+        mockData = listOf(
+        )
+    )
+}
