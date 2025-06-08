@@ -35,7 +35,10 @@ public interface CartItemMapper {
         }
         if (entity.getVariationOptions() != null && !entity.getVariationOptions().isEmpty()) {
             String variationNames = entity.getVariationOptions().stream()
-                    .map(v -> v.getVariation().getName() + ": " + v.getValue())
+                    .map(v -> {
+                        String variationName = (v.getVariation() != null) ? v.getVariation().getName() : "Unknown";
+                        return variationName + ": " + v.getValue();
+                    })
                     .collect(Collectors.joining(", "));
             dto.setVariationOptionInfo(variationNames);
         }
