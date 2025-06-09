@@ -61,6 +61,10 @@ public class User extends BaseEntity {
   @OneToMany(mappedBy = "user", orphanRemoval = true)
   private List<RefreshToken> roles = new ArrayList<>();
 
-  //    @OneToMany(mappedBy = "user")
+    public User(Long userId) {
+        super();
+    }
+
+    //    @OneToMany(mappedBy = "user")
   //    private List<Review> reviews = new ArrayList<>();
 }

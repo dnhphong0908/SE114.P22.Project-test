@@ -6,6 +6,7 @@ import com.example.mam.dto.authentication.VerifyOTPRequest
 import com.example.mam.dto.authentication.AuthResponse
 import com.example.mam.dto.authentication.ForgetPasswordRequest
 import com.example.mam.dto.authentication.RefreshTokenRequest
+import com.example.mam.dto.authentication.SendVerifyEmailRequest
 import com.example.mam.dto.authentication.SignUpRequest
 import com.example.mam.dto.authentication.VerifyOTPResponse
 import com.example.mam.dto.user.UserResponse
@@ -22,6 +23,8 @@ interface AuthPublicService {
     suspend fun signUp(@Body request: SignUpRequest): Response<UserResponse>
     @POST("auth/send-otp")
     suspend fun sendOtp(@Body request: SendOTPRequest): Response<Void>
+    @POST("auth/send-verify-email")
+    suspend fun sendVerifyEmail(@Body request: SendVerifyEmailRequest): Response<Void>
     @POST("auth/verify-otp")
     suspend fun verifyOtp(@Body request: VerifyOTPRequest): Response<VerifyOTPResponse>
     @POST("auth/refresh")

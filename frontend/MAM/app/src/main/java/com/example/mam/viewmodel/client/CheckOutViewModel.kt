@@ -156,7 +156,7 @@ class CheckOutViewModel(
         try {
             val response = BaseService(userPreferencesRepository).userPromotionService.getAvailablePromotionsForOrder(
                 _user.value.id,
-                _cart.value.getTotalPrice().toDoubleOrNull() ?: 0.0
+                _cart.value.cartItems.sumOf { it.price * it.quantity.toBigDecimal() }.toDouble()
             )
             if (response.isSuccessful) {
                 _discountList.value = _discountList.value.toMutableList().apply {

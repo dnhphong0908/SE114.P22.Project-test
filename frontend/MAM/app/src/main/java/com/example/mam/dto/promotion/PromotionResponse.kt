@@ -6,7 +6,7 @@ import java.math.BigDecimal
 data class PromotionResponse(
     val description: String = "",
     val discountValue: BigDecimal = BigDecimal.ZERO,
-    val minValue: Double = 0.0,
+    val minValue: BigDecimal = BigDecimal.ZERO,
     val startDate: String = "",
     val endDate: String = "",
     val code: String = "",
