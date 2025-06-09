@@ -27,7 +27,7 @@ public class PromotionRequestDTO {
 
     private String code;
 
-    private boolean isPublic;
+    private Boolean isPublic;
 
     @Nullable
     private List<Long> userIds;
