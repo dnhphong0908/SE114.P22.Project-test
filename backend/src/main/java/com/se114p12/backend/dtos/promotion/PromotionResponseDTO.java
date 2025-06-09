@@ -16,4 +16,5 @@ public class PromotionResponseDTO extends BaseResponseDTO {
     private Instant startDate;
     private Instant endDate;
     private String code;
+    private Boolean isPublic;
 }

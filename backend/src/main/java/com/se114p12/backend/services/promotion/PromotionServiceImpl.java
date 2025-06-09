@@ -63,7 +63,7 @@ public class PromotionServiceImpl implements PromotionService {
         promotion = promotionRepository.save(promotion);
 
         // Nếu là promotion riêng tư và có danh sách người dùng
-        if (!dto.isPublic() && dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
+        if (!dto.getIsPublic() && dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
             List<User> users = userRepository.findAllById(dto.getUserIds());
 
             if (users.size() != dto.getUserIds().size()) {

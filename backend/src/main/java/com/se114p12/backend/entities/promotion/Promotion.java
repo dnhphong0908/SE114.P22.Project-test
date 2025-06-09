@@ -34,5 +34,5 @@ public class Promotion extends BaseEntity {
     private String code;
 
     // true: toàn bộ người dùng, false: chỉ định người dùng
-    private Boolean isPublic = true;
+    private Boolean isPublic;
 }
