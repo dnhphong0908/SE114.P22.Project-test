@@ -152,15 +152,6 @@ public class OrderServiceImpl implements OrderService {
           jwtUtil.getCurrentUserId(), appliedPromotion.getId());
     }
 
-    // Chọn shipper để giao hàng
-    List<Shipper> availableShippers = shipperRepository.findByIsAvailableTrue();
-    if (!availableShippers.isEmpty()) {
-      Shipper selectedShipper =
-          availableShippers.get(new Random().nextInt(availableShippers.size()));
-      selectedShipper.setIsAvailable(false);
-      order.setShipper(selectedShipper);
-    }
-
     order.setTotalPrice(totalPrice);
 
     order = orderRepository.save(order);
@@ -250,6 +241,31 @@ public class OrderServiceImpl implements OrderService {
       shipperRepository.save(shipper);
     }
 
+    orderRepository.save(order);
+  }
+
+  @Override
+  public void updateStatus(Long id, OrderStatus status) {
+    Order order =
+        orderRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+    if (order.getOrderStatus().getCode() > status.getCode()) {
+      throw new BadRequestException("Can't update order status to " + status);
+    }
+    if (status == OrderStatus.SHIPPING) {
+
+      // Chọn shipper để giao hàng
+      List<Shipper> availableShippers = shipperRepository.findByIsAvailableTrue();
+      if (availableShippers.isEmpty()) {
+        throw new BadRequestException("No available shippers to assign for this order");
+      }
+      Shipper selectedShipper =
+          availableShippers.get(new Random().nextInt(availableShippers.size()));
+      selectedShipper.setIsAvailable(false);
+      order.setShipper(selectedShipper);
+    }
+    order.setOrderStatus(status);
     orderRepository.save(order);
   }
 }

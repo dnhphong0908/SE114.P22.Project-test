@@ -48,7 +48,7 @@ public class DataInitializer implements ApplicationRunner {
     validateAdminInfo();
 
     // Clean up any existing user with the same information
-    cleanUpUserWithSameAdminInfomation();
+    // cleanUpUserWithSameAdminInfomation();
 
     // Create admin user
     createAdminUser();
@@ -66,22 +66,22 @@ public class DataInitializer implements ApplicationRunner {
     }
   }
 
-  private void cleanUpUserWithSameAdminInfomation() {
-    Optional<User> existsByUsername = userRepository.findByUsername(adminUsername);
-    Optional<User> existsByEmail = userRepository.findByEmail(adminEmail);
-    Optional<User> existsByPhone = userRepository.findByPhone(adminPhone);
-    Set<Long> ids = new HashSet<>();
-    if (existsByUsername.isPresent()) {
-      ids.add(existsByUsername.get().getId());
-    }
-    if (existsByEmail.isPresent()) {
-      ids.add(existsByEmail.get().getId());
-    }
-    if (existsByPhone.isPresent()) {
-      ids.add(existsByPhone.get().getId());
-    }
-    userRepository.deleteAllById(ids);
-  }
+  // private void cleanUpUserWithSameAdminInfomation() {
+  //   Optional<User> existsByUsername = userRepository.findByUsername(adminUsername);
+  //   Optional<User> existsByEmail = userRepository.findByEmail(adminEmail);
+  //   Optional<User> existsByPhone = userRepository.findByPhone(adminPhone);
+  //   Set<Long> ids = new HashSet<>();
+  //   if (existsByUsername.isPresent()) {
+  //     ids.add(existsByUsername.get().getId());
+  //   }
+  //   if (existsByEmail.isPresent()) {
+  //     ids.add(existsByEmail.get().getId());
+  //   }
+  //   if (existsByPhone.isPresent()) {
+  //     ids.add(existsByPhone.get().getId());
+  //   }
+  //   userRepository.deleteAllById(ids);
+  // }
 
   private void createAdminUser() {
     if (userRepository.existsByUsername(adminUsername)) {
