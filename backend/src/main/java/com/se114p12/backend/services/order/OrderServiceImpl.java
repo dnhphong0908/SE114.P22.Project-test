@@ -79,7 +79,10 @@ public class OrderServiceImpl implements OrderService {
   @Override
   public PageVO<OrderResponseDTO> getOrdersByUserId(
       Long userId, Specification<Order> specification, Pageable pageable) {
-    Page<Order> orders = orderRepository.findByUser_Id(userId, specification, pageable);
+    Specification<Order> userSpec =
+        (root, _, criteriaBuilder) -> criteriaBuilder.equal(root.get("user").get("id"), userId);
+    specification = specification == null ? userSpec : userSpec.and(specification);
+    Page<Order> orders = orderRepository.findAll(specification, pageable);
     return PageVO.<OrderResponseDTO>builder()
         .content(orders.getContent().stream().map(orderMapper::entityToResponseDTO).toList())
         .totalElements(orders.getTotalElements())
