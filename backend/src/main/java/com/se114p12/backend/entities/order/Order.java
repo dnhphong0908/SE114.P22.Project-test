@@ -30,7 +30,6 @@ public class Order extends BaseEntity {
 
     private String note;
 
-    @NotNull
     private Instant expectedDeliveryTime;
 
     @Nullable

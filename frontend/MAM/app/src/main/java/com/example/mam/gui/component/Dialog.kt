@@ -14,6 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,7 +29,8 @@ fun CustomDialog(
     title: String,
     message: String,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
+    isHavingCancelButton: Boolean = true,
 ) {
     Dialog(onDismissRequest = { onDismiss() }) {
         Surface(
@@ -39,6 +41,7 @@ fun CustomDialog(
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(10.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = Modifier.padding(20.dp).fillMaxWidth()) {
                 Text(
                     text = title,
@@ -48,6 +51,7 @@ fun CustomDialog(
                     modifier = Modifier.fillMaxWidth())
                 Text(
                     text = message,
+                    textAlign = TextAlign.Center,
                     fontSize = 18.sp,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -63,14 +67,18 @@ fun CustomDialog(
                             .weight(0.5f)
                             .height(40.dp),
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    OuterShadowFilledButton(
-                        text = "Từ chối",
-                        onClick = onDismiss,
-                        modifier = Modifier
-                            .weight(0.5f)
-                            .height(40.dp),
-                    )
+
+                    if (isHavingCancelButton) {
+                        Spacer(modifier = Modifier.width(10.dp))
+                        OuterShadowFilledButton(
+                            text = "Từ chối",
+                            onClick = onDismiss,
+                            modifier = Modifier
+                                .weight(0.5f)
+                                .height(40.dp),
+                        )
+                    }
+
 
                 }
 

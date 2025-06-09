@@ -18,7 +18,9 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import androidx.navigation.NavController
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.authentication.SendVerifyEmailRequest
 import com.example.mam.dto.authentication.SignInRequest
+import com.example.mam.dto.user.UserResponse
 import com.example.mam.services.BaseService
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -39,6 +41,8 @@ class SignInViewModel(
 
     private val _signInState = MutableStateFlow(SignInRequest())
     val signInState = _signInState.asStateFlow()
+
+    private val _me = MutableStateFlow(UserResponse())
 
     fun setUsername(it: String) {
         _signInState.update { state -> state.copy(credentialId = it) }
@@ -61,15 +65,22 @@ class SignInViewModel(
 
             if (response.isSuccessful) {
                 val token = response.body()
+                if (token != null) {
+                    _me.value = token.user
+                }
                 Log.d("LOGIN", "AccessToken: ${token?.accessToken}")
                 Log.d("LOGIN", "RefreshToken: ${token?.refreshToken}")
                 // Lưu access token và refresh token vào DataStore
                 userPreferencesRepository.saveAccessToken(token?.accessToken ?: "", token?.refreshToken ?:"")
                 Log.d("LOGIN", "DSAccessToken: ${accessToken.first()}")
                 Log.d("LOGIN", "DSRefreshToken: ${refreshToken.first()}")
-                val me = BaseService(userPreferencesRepository).authPrivateService.getUserInfo().body()!!
-                return if (me.role.id.toInt() == 1) 1
-                else 2
+
+                return if (_me.value.status == "DELETED") -1
+                else if (_me.value.status == "BLOCKED") -2
+                else if (_me.value.status == "PENDING") -3
+                else if (_me.value.role.name == "ADMIN") 1
+                else if (_me.value.role.name == "USER") 2
+                else 0
             }
             else{
                 Log.e("LOGIN", "Đăng nhập thất bại với mã lỗi: ${response.errorBody()?.string()}")
@@ -81,6 +92,25 @@ class SignInViewModel(
         }
     }
 
+    suspend fun resendVerificationEmail() : Int {
+        try {
+            val response = BaseService(userPreferencesRepository).authPublicService.sendVerifyEmail(
+                SendVerifyEmailRequest(
+                    email = _me.value.email
+                )
+            )
+            if (response.isSuccessful) {
+                Log.d("LOGIN", "Email xác thực đã được gửi lại thành công.")
+                return 1
+            } else {
+                Log.e("LOGIN", "Gửi lại email xác thực thất bại: ${response.errorBody()?.string()}")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.e("LOGIN", "Lỗi khi gửi lại email xác thực: ${e.message}")
+            return 0
+        }
+    }
     // Factory để khởi tạo ViewModel với tham số là UserPreferencesRepository
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

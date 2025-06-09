@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,6 +37,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
@@ -61,6 +63,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
@@ -79,7 +82,10 @@ import com.example.mam.ui.theme.Transparent
 import com.example.mam.ui.theme.WhiteDefault
 import kotlinx.coroutines.launch
 import coil.compose.AsyncImage
+import com.example.mam.R
 import com.example.mam.dto.product.ProductResponse
+import com.example.mam.dto.variation.VariationOptionRequest
+import com.example.mam.dto.variation.VariationOptionResponse
 
 @Composable
 fun UnderlinedClickableText(
@@ -187,7 +193,7 @@ fun InnerShadowFilledButton(
 @Composable
 fun OuterShadowFilledButton(
     text: String,
-    fontSize: TextUnit = 16.sp,
+    fontSize: TextUnit = 14.sp,
     isEnable: Boolean = true,
     color: Color = OrangeDefault,
     textColor: Color = WhiteDefault,
@@ -421,6 +427,7 @@ fun CircleIconButton(
     }
 }
 
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun QuantitySelectionButton(
     count: Int,
@@ -431,29 +438,33 @@ fun QuantitySelectionButton(
     Box(modifier = modifier
         .outerShadow() // Đổ bóng lên nền
         .background(OrangeDefault, shape = RoundedCornerShape(50))
-        .padding(0.dp)
-        .wrapContentHeight()) {
+    ) {
         Row(
             modifier = Modifier
                 .padding(0.dp)
+                .fillMaxHeight()
                 .wrapContentWidth(),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
         ) {
             // Nút Giảm (-)
-            CircleIconButton(
-                icon = Icons.Filled.Remove, // Thay bằng icon phù hợp
+            IconButton(
                 onClick = { if (count > 1) onValueDecr()},
-                modifier = Modifier
-            )
-
+                modifier = Modifier.wrapContentSize()
+            ){
+                Icon(
+                    imageVector = Icons.Filled.Remove,
+                    contentDescription = "Decrease",
+                    tint = WhiteDefault,
+                    modifier = Modifier.wrapContentSize()
+                )
+            }
             // Hiển thị số lượng
             Box(
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.BottomCenter,
                 modifier = Modifier
                     .background(Color.White, shape = RoundedCornerShape(50))
-                    .wrapContentSize()
-                    .padding(0.dp)
+                    .wrapContentWidth()
+                    .fillMaxHeight()
             ){
                 Text(
                     text = "$count",
@@ -462,17 +473,25 @@ fun QuantitySelectionButton(
                     textAlign = TextAlign.Center,
                     color = OrangeDefault,
                     modifier = Modifier
-                        .padding(10.dp)
-                        .wrapContentSize()
-                        .defaultMinSize(minWidth = 30.dp)
+                        .align(Alignment.Center)
+                        .padding(vertical = 5.dp)
+                        .fillMaxHeight()
+                        .wrapContentWidth()
+                        .defaultMinSize(minWidth = 30.dp, minHeight = 30.dp) // Đảm bảo nút có kích thước tối thiểu
                 )
             }
             // Nút Tăng (+)
-            CircleIconButton(
-                icon = Icons.Filled.Add, // Thay bằng icon phù hợp
-                onClick = { onValueIncr() },
-                modifier = Modifier
-            )
+            IconButton(
+                onClick = { if (count < 99) onValueIncr()},
+                modifier = Modifier.wrapContentSize()
+            ){
+                Icon(
+                    imageVector = Icons.Filled.Add,
+                    contentDescription = "Increase",
+                    tint = WhiteDefault,
+                    modifier = Modifier.wrapContentSize()
+                )
+            }
         }
     }
 }
@@ -500,9 +519,10 @@ fun ProductClientListItem(
                 .fillMaxSize()
         ) {
             AsyncImage(
-                model = item.imageUrl, // Đây là URL từ API
+                model = item.getRealURL(), // Đây là URL từ API
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
+                placeholder = painterResource(R.drawable.ic_mam_logo),
                 modifier = Modifier
                     .size(80.dp)
                     .clip(RoundedCornerShape(8.dp))
@@ -516,15 +536,26 @@ fun ProductClientListItem(
                 Text(
                     text = item.name,
                     textAlign = TextAlign.Start,
-                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp,
                     modifier = Modifier
                         .align(Alignment.Start)
                         .padding(top = 5.dp)
                 )
                 Text(
+                    text = item.shortDescription,
+                    textAlign = TextAlign.Start,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 14.sp,
+                    modifier = Modifier
+                        .align(Alignment.Start)
+                        .padding(bottom = 5.dp)
+                )
+                Text(
                     text = if (item.isAvailable) item.getPriceToString() else "Hết sản phẩm",
                     textAlign = TextAlign.Start,
-                    fontSize = 18.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier
                         .align(Alignment.Start)
@@ -578,11 +609,11 @@ fun CustomRadioButton(
 fun RadioOption(
     modifier: Modifier = Modifier,
     title: String,
-    options: List<VarianceOption>,
-    defaultOption: VarianceOption = options.first() ,
-    onClick: (VarianceOption) -> Unit,
+    options: List<VariationOptionResponse>,
+    defaultOption: VariationOptionResponse = options.first() ,
+    onClick: (VariationOptionResponse) -> Unit,
 ) {
-    var temp: VarianceOption by remember { mutableStateOf(defaultOption) }
+    var temp by remember { mutableStateOf(defaultOption) }
     Column(
         modifier = modifier.wrapContentHeight()
     ) {
@@ -622,14 +653,14 @@ fun RadioOption(
 fun PizzaSizeOption(
     modifier: Modifier = Modifier,
     title: String,
-    options: List<VarianceOption>,
-    defaultOption: VarianceOption = options.first() ,
+    options: List<VariationOptionResponse>,
+    defaultOption: VariationOptionResponse = options.first() ,
     @DrawableRes image: Int,
-    onClick: (VarianceOption) -> Unit,
+    onClick: (VariationOptionResponse) -> Unit,
     ) {
         val scope = rememberCoroutineScope()
         val state = rememberLazyListState()
-        var temp: VarianceOption by remember { mutableStateOf(defaultOption) }
+        var temp by remember { mutableStateOf(defaultOption) }
         Column(
             modifier = modifier.wrapContentHeight(),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -739,9 +770,9 @@ fun CustomToggleButton(
 fun MultiChoiceOption(
     modifier: Modifier = Modifier,
     title: String,
-    options: List<VarianceOption>,
-    onSelect: (VarianceOption) -> Unit,
-    onUnselect: (VarianceOption) -> Unit,
+    options: List<VariationOptionResponse>,
+    onSelect: (VariationOptionResponse) -> Unit,
+    onUnselect: (VariationOptionResponse) -> Unit,
 ) {
     Column(
         modifier = modifier.wrapContentHeight()

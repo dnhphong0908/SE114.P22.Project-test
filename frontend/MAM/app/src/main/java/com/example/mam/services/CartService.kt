@@ -1,10 +1,11 @@
 package com.example.mam.services
 
-import retrofit2.http.Body
-import retrofit2.http.POST
+import com.example.mam.dto.cart.CartResponse
+import retrofit2.Response
+import retrofit2.http.GET
 
 interface CartService {
-//    @POST("carts")
-//    suspend fun createNewCart(@Body cartRequest: CartRequest): CartResponse
+    @GET("carts/me")
+    suspend fun getMyCart(): Response<CartResponse>
 
 }

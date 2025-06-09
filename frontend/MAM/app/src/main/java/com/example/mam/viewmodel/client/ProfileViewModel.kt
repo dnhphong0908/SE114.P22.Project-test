@@ -47,7 +47,7 @@ class ProfileViewModel(
     private val _isEditing = MutableStateFlow(false)
     val isEditing: StateFlow<Boolean> = _isEditing
 
-    private var _userId = 0L
+    private var _userId = MutableStateFlow(0L)
 
     fun setEditing(value: Boolean) {
         _isEditing.value = value
@@ -81,7 +81,7 @@ class ProfileViewModel(
             if(response.isSuccessful){
                 if(response.body()!=null) {
                     _user.value = response.body()!!
-                    _userId = _user.value.id
+                    _userId.value = _user.value.id
                     Log.d("ME", "Lay nguoi dung thanh cong ${_user.value.id}")
                     Log.d("ME", "Avatar nguoi dung thanh cong ${_user.value.avatarUrl}")
                 }
@@ -101,31 +101,33 @@ class ProfileViewModel(
         Log.d("ME","bat dau chinh sua")
         try{
             val currentUser = _user.value
-            Log.d("ME", "Ma nguoi dung ${_user.value.id}, ${currentUser.id}")
+            Log.d("ME", "Ma nguoi dung ${_user.value.id}, ${currentUser.id}, ${_userId.value}")
             val fullname = currentUser.fullname.toRequestBody("text/plain".toMediaType())
             Log.d("ME", "ID: ${currentUser.fullname}")
             val username = currentUser.username.toRequestBody("text/plain".toMediaType())
             Log.d("ME", "ID: ${currentUser.username}")
             val email = currentUser.email.toRequestBody("text/plain".toMediaType())
             Log.d("ME", "ID: ${currentUser.email}")
-            val phone = currentUser.phone.replace("+84", "0").toRequestBody("text/plain".toMediaType())
+            val phone = currentUser.phone.toRequestBody("text/plain".toMediaType())
             Log.d("ME", "ID: ${currentUser.phone}")
             val roleId = currentUser.role.id.toString().toRequestBody("text/plain".toMediaType())
             Log.d("ME", "ID: ${currentUser.role.id}")
 
             val imageFile = _userAvatarFile.value
+            Log.d("ME", "Image file: $imageFile")
             val requestFile = imageFile?.asRequestBody("image/*".toMediaType())
-            val imagePart = requestFile?.let { MultipartBody.Part.createFormData("image", imageFile.name, it) }
+            val imagePart = requestFile?.let { MultipartBody.Part.createFormData("avatar", imageFile.name, it) }
+            Log.d("ME", "Image part: $imagePart")
 
             val response = BaseService(userPreferencesRepository).userService.updateUser(
-                _userId,
+                _userId.value,
                 fullname, username, email, phone, imagePart, roleId
             )
 
             Log.d("ME", "Status update code: ${response.code()}")
 
             return if (response.isSuccessful) {
-                Log.d("ME", "Cập nhật user thành công")
+                Log.d("ME", "Cập nhật user thành công. url: ${response.body()?.avatarUrl}")
                 1
             } else {
                 Log.d("ME", "Lỗi cập nhật user: ${response.errorBody()?.string()}")

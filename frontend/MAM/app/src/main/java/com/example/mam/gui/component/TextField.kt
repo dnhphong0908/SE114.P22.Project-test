@@ -220,7 +220,7 @@ fun ProfileInput(
         OutlinedTextField(
             value = value,
             textStyle = TextStyle(
-                fontSize = 20.sp, // <-- Chỉnh font size ở đây
+                fontSize = 16.sp, // <-- Chỉnh font size ở đây
                 color = textColor // Đảm bảo màu chữ vẫn đúng
             ),
             colors = TextFieldDefaults.colors(
@@ -464,21 +464,21 @@ fun OtpInputField(
 
 @Composable
 fun newOtpInputField(
-    number: Int?,
+    char: String?,
     index: Int,
     focusedIndex: Int?,
     focusRequester: FocusRequester,
     onFocusChanged: (Boolean) -> Unit,
-    onNumberChanged: (Int?) -> Unit,
+    onCharacterChanged: (String?) -> Unit,
     onKeyboardBack: () -> Unit,
     modifier: Modifier = Modifier,
     resetTrigger: Boolean
 ){
-    var text by remember(number) {
+    var text by remember(char) {
         mutableStateOf(
             TextFieldValue(
-                text = number?.toString().orEmpty(),
-                selection = TextRange(index = if (number != null) 1 else 0)
+                text = char.orEmpty(),
+                selection = TextRange(char?.length ?: 0)
             )
         )
     }
@@ -487,14 +487,14 @@ fun newOtpInputField(
     LaunchedEffect(resetTrigger) {
         if (resetTrigger) {
             text = TextFieldValue("") // Reset lại giá trị text khi resetTrigger thay đổi
-            onNumberChanged(null) // Reset giá trị của số
+            onCharacterChanged(null) // Reset giá trị của số
         }
     }
 
-    LaunchedEffect(number) {
+    LaunchedEffect(char) {
         text = TextFieldValue(
-            text = number?.toString().orEmpty(),
-            selection = TextRange(index = if (number != null) 1 else 0)
+            text = char?.toString().orEmpty(),
+            selection = TextRange(index = if (char != null) 1 else 0)
         )
     }
 
@@ -513,10 +513,10 @@ fun newOtpInputField(
         BasicTextField(
             value = text,
             onValueChange = { newText ->
-                val newNumber = newText.text
-                if(newNumber.length <= 1 && newNumber.isDigitsOnly()){
-                    onNumberChanged(newNumber.toIntOrNull())
+                val newChar = newText.text
+                if (newChar.length <= 1) {
                     text = newText
+                    onCharacterChanged(newChar) // Gửi bất kỳ ký tự nào: chữ hoặc số
                 }
             },
             singleLine = true,
@@ -526,7 +526,7 @@ fun newOtpInputField(
                 color = BrownDefault
             ),
             keyboardOptions = KeyboardOptions(
-                keyboardType = KeyboardType.Number,
+                keyboardType = KeyboardType.Ascii,
                 imeAction = ImeAction.Next),
             modifier = modifier
                 .focusRequester(focusRequester)
@@ -543,7 +543,7 @@ fun newOtpInputField(
                             onKeyboardBack()
                         } else {
                             text = TextFieldValue("")
-                            onNumberChanged(null)
+                            onCharacterChanged(null)
                         }
                         true
                     } else {

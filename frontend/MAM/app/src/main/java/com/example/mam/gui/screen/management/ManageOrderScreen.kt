@@ -467,11 +467,11 @@ fun ManageOrderScreen(
                             .fillMaxWidth()
                     )
                 }
-            items(order.orderItems){ item ->
-                OrderItemContainer(
-                    item= item
-                )
-            }
+//            items(order.orderItems){ item ->
+//                OrderItemContainer(
+//                    item= item
+//                )
+//            }
         }
     }
     }

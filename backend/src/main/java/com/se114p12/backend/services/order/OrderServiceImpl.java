@@ -9,6 +9,7 @@ import com.se114p12.backend.entities.order.OrderDetail;
 import com.se114p12.backend.entities.product.Product;
 import com.se114p12.backend.dtos.order.OrderRequestDTO;
 import com.se114p12.backend.dtos.order.OrderResponseDTO;
+import com.se114p12.backend.entities.promotion.Promotion;
 import com.se114p12.backend.entities.shipper.Shipper;
 import com.se114p12.backend.enums.OrderStatus;
 import com.se114p12.backend.enums.PaymentStatus;
@@ -20,7 +21,9 @@ import com.se114p12.backend.repositories.cart.CartItemRepository;
 import com.se114p12.backend.repositories.cart.CartRepository;
 import com.se114p12.backend.repositories.order.OrderDetailRepository;
 import com.se114p12.backend.repositories.order.OrderRepository;
+import com.se114p12.backend.repositories.promotion.PromotionRepository;
 import com.se114p12.backend.repositories.shipper.ShipperRepository;
+import com.se114p12.backend.services.promotion.UserPromotionService;
 import com.se114p12.backend.util.JwtUtil;
 import com.se114p12.backend.vo.PageVO;
 import jakarta.transaction.Transactional;
@@ -40,11 +43,17 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderDetailRepository orderDetailRepository;
     private final OrderMapper orderMapper;
+
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+
     private final CartRepository cartRepository;
     private final CartItemRepository cartItemRepository;
+
     private final ShipperRepository shipperRepository;
+
+    private final PromotionRepository promotionRepository;
+    private final UserPromotionService userPromotionService;
 
     @Override
     public PageVO<OrderResponseDTO> getAll(Specification<Order> specification, Pageable pageable) {
@@ -119,14 +128,29 @@ public class OrderServiceImpl implements OrderService {
             cartItemRepository.delete(cartItem);
         }
 
-        order.setTotalPrice(totalPrice);
+        // Trừ giá trị Order theo Promotion
+        if (orderRequestDTO.getPromotionId() != null) {
+            Promotion appliedPromotion = userPromotionService.applyPromotion(
+                    jwtUtil.getCurrentUserId(),
+                    orderRequestDTO.getPromotionId(),
+                    totalPrice
+            );
 
+            // Trừ giảm giá nếu có
+            BigDecimal discount = appliedPromotion.getDiscountValue();
+            totalPrice = totalPrice.subtract(discount);
+            userPromotionService.markPromotionAsUsed(jwtUtil.getCurrentUserId(), appliedPromotion.getId());
+        }
+
+        // Chọn shipper để giao hàng
         List<Shipper> availableShippers = shipperRepository.findByIsAvailableTrue();
         if (!availableShippers.isEmpty()) {
             Shipper selectedShipper = availableShippers.get(new Random().nextInt(availableShippers.size()));
             selectedShipper.setIsAvailable(false);
             order.setShipper(selectedShipper);
         }
+
+        order.setTotalPrice(totalPrice);
 
         orderRepository.save(order);
         orderDetailRepository.saveAll(orderDetails);

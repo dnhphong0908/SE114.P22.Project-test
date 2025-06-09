@@ -1,7 +1,9 @@
 package com.se114p12.backend.controllers.cart;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.dtos.cart.CartResponseDTO;
 import com.se114p12.backend.entities.cart.Cart;
+import com.se114p12.backend.mappers.cart.CartMapper;
 import com.se114p12.backend.repositories.cart.CartRepository;
 import com.se114p12.backend.services.cart.CartService;
 import com.se114p12.backend.util.JwtUtil;
@@ -24,7 +26,24 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
     private final CartRepository cartRepository;
     private final CartService cartService;
+    private final CartMapper cartMapper;
     private final JwtUtil jwtUtil;
+
+    @Operation(
+            summary = "Get current user's cart",
+            description = "Retrieve the cart that belongs to the currently authenticated user"
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved cart", content = @Content(schema = @Schema(implementation = Cart.class))),
+            @ApiResponse(responseCode = "404", description = "Cart not found for current user")
+    })
+    @ErrorResponse
+    @GetMapping("/me")
+    public ResponseEntity<CartResponseDTO> getMyCart() {
+        Long userId = jwtUtil.getCurrentUserId();
+        CartResponseDTO cartResponse = cartService.getCartResponseByUserId(userId);
+        return ResponseEntity.ok(cartResponse);
+    }
 
     @Operation(
             summary = "Get cart by ID",
@@ -36,12 +55,12 @@ public class CartController {
     })
     @ErrorResponse
     @GetMapping("/{id}")
-    public ResponseEntity<Cart> getCartById(
-            @Parameter(description = "ID of the cart to be retrieved")
-            @PathVariable("id") Long id) {
-        return cartRepository.existsById(id)
-                ? ResponseEntity.ok(cartService.getCartById(id))
-                : ResponseEntity.notFound().build();
+    public ResponseEntity<CartResponseDTO> getCartById(@PathVariable("id") Long id) {
+        if (!cartRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        CartResponseDTO cartResponse = cartMapper.toCartResponseDTO(cartService.getCartById(id));
+        return ResponseEntity.ok(cartResponse);
     }
 
     @Operation(

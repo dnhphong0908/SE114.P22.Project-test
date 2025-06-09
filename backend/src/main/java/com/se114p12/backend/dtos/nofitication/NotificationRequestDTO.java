@@ -8,11 +8,10 @@ import java.util.List;
 
 @Data
 public class NotificationRequestDTO {
+    @Nullable
     private List<Long> userIds;
+
     private NotificationType type;
     private String title;
     private String message;
-
-    @Nullable
-    private Integer status;
 }

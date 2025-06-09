@@ -24,7 +24,38 @@ class BaseService(userPreferencesRepository: UserPreferencesRepository) {
         privateRetrofit.create(ProductService::class.java)
     }
 
+    val variationService: VariationService by lazy {
+        privateRetrofit.create(VariationService::class.java)
+    }
+
+    val variationOptionService: VariationOptionService by lazy {
+        privateRetrofit.create(VariationOptionService::class.java)
+    }
+
+    val cartService: CartService by lazy {
+        privateRetrofit.create(CartService::class.java)
+    }
+
+    val cartItemService: CartItemService by lazy {
+        privateRetrofit.create(CartItemService::class.java)
+    }
+
+    val shipperService: ShipperService by lazy {
+        privateRetrofit.create(ShipperService::class.java)
+    }
     val userService: UserService by lazy {
         privateRetrofit.create(UserService::class.java)
+    }
+    val notificationService: NotificationService by lazy {
+        privateRetrofit.create(NotificationService::class.java)
+    }
+    val orderService: OrderService by lazy {
+        privateRetrofit.create(OrderService::class.java)
+    }
+    val promotionService: PromotionService by lazy {
+        privateRetrofit.create(PromotionService::class.java)
+    }
+    val userPromotionService: UserPromotionService by lazy {
+        privateRetrofit.create(UserPromotionService::class.java)
     }
 }

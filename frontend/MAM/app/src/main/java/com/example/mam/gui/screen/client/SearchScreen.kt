@@ -11,17 +11,21 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +43,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +58,6 @@ import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mam.dto.product.ProductResponse
-import com.example.mam.entity.Product
 import com.example.mam.gui.component.ProductClientListItem
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyLight
@@ -61,7 +65,7 @@ import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.client.SearchViewModel
-import com.example.mam.viewmodel.client.SortOptions
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,14 +74,21 @@ fun SearchScreen(
     onItemClicked: (ProductResponse) -> Unit = { ProductResponse -> },
     viewModel: SearchViewModel = viewModel()
 ){
-    LaunchedEffect(Unit) { viewModel.loadListProduct() }
-
-    val listProduct = viewModel.listProduct.collectAsStateWithLifecycle()
-    val searchQuery = viewModel.searchText.collectAsStateWithLifecycle()
-    val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle()
+    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
+    val listProduct = viewModel.products.collectAsStateWithLifecycle().value
+    val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle().value
+    val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
+    val scope = rememberCoroutineScope()
     var expanded by remember { mutableStateOf(false) }
     var sortExpanded by remember { mutableStateOf(false) }
-    val sortOption = viewModel.sortOption.collectAsStateWithLifecycle()
+    val sortOption = viewModel.sortingOptions.collectAsStateWithLifecycle().value
+    val selectedSortOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle().value
+    val asc = viewModel.asc.collectAsStateWithLifecycle().value
+
+    LaunchedEffect(Unit) {
+        viewModel.loadData()
+    }
+
     val focusManager = LocalFocusManager.current
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -90,10 +101,10 @@ fun SearchScreen(
         item {
             Box{
             OutlinedTextField(
-                value = searchQuery.value,
+                value = searchQuery,
                 onValueChange = {
-                    viewModel.setSearchText(it)
-                    if (searchHistory.value.isNotEmpty()) {
+                    viewModel.setSearch(it)
+                    if (searchHistory.isNotEmpty()) {
                         expanded = true // Chỉ mở nếu có lịch sử tìm kiếm
                     }},
                 colors = TextFieldDefaults.colors(
@@ -127,7 +138,7 @@ fun SearchScreen(
                                 disabledContentColor = BrownDefault,
                                 disabledContainerColor = WhiteDefault
                             ),
-                            onClick = { viewModel.setSearchText("") }) {
+                            onClick = { viewModel.setSearch("") }) {
                             Icon(Icons.Default.Close, contentDescription = "Clear")
                         }
                         IconButton(
@@ -139,7 +150,11 @@ fun SearchScreen(
                             ),
                             onClick = {
                                 focusManager.clearFocus()
-                                viewModel.search() }) {
+                                scope.launch {
+                                    viewModel.searchProduct()
+                                    expanded = false // Đóng menu khi tìm kiếm
+                                }
+                            }) {
                             Icon(Icons.Default.Search, contentDescription = "Search")
                         }
                     }
@@ -150,7 +165,7 @@ fun SearchScreen(
 
                 modifier = Modifier
                     .fillMaxWidth()
-                    .onFocusChanged { if(it.isFocused && searchHistory.value.isNotEmpty()) expanded = true },
+                    .onFocusChanged { if(it.isFocused && searchHistory.isNotEmpty()) expanded = true },
             )
             DropdownMenu(
                 expanded = expanded,
@@ -161,14 +176,14 @@ fun SearchScreen(
                     .zIndex(1f)
                     .fillParentMaxWidth()
             ) {
-                searchHistory.value.forEach() { query ->
+                searchHistory.forEach() { query ->
                     DropdownMenuItem(
                         text = { Text(query, color = BrownDefault) } ,
                         leadingIcon = {
                             Icon(Icons.Default.History, contentDescription = "History", tint = BrownDefault) },
                         contentPadding = PaddingValues(3.dp),
                         onClick = {
-                            viewModel.setSearchText(query)
+                            viewModel.setSearch(query)
                             expanded = false
                         },
                     )
@@ -179,51 +194,91 @@ fun SearchScreen(
                 modifier = Modifier,
                 color = BrownDefault
             )
-            Box(Modifier
-                .fillParentMaxWidth()
-                .padding(start = 8.dp)) {
-                FilterChip(
-                    selected = sortExpanded,
-                    onClick = { sortExpanded = !sortExpanded },
-                    label = { Text(sortOption.value) },
-                    leadingIcon = {
-                        Icon(Icons.Default.Sort, contentDescription = "Sort")
-                    },
-                    trailingIcon = {
-                        Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        containerColor = WhiteDefault,
-                        labelColor = BrownDefault,
-                        iconColor = BrownDefault,
-                        selectedContainerColor = OrangeDefault,
-                        selectedLabelColor = WhiteDefault,
-                        selectedLeadingIconColor = WhiteDefault,
-                        selectedTrailingIconColor = WhiteDefault
-                    ),
-                    modifier = Modifier
-                )
-
-                DropdownMenu(
-                    expanded = sortExpanded,
-                    onDismissRequest = { sortExpanded = false },
-                    containerColor = WhiteDefault,
-                    modifier = Modifier.padding(start = 8.dp)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .padding(start = 8.dp)) {
+                Box(
+                    Modifier
+                        .padding(start = 8.dp)
                 ) {
-                    SortOptions.entries.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option.value, color = BrownDefault) },
-                            onClick = {
-                                viewModel.setSortOption(option.value)
-                                viewModel.sortChange()
-                                sortExpanded = false
-                            }
-                        )
+                    FilterChip(
+                        selected = sortExpanded,
+                        onClick = { sortExpanded = !sortExpanded },
+                        label = { Text(selectedSortOption) },
+                        leadingIcon = {
+                            Icon(Icons.Default.Sort, contentDescription = "Sort")
+                        },
+                        trailingIcon = {
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            containerColor = WhiteDefault,
+                            labelColor = BrownDefault,
+                            iconColor = BrownDefault,
+                            selectedContainerColor = OrangeDefault,
+                            selectedLabelColor = WhiteDefault,
+                            selectedLeadingIconColor = WhiteDefault,
+                            selectedTrailingIconColor = WhiteDefault
+                        ),
+                        modifier = Modifier
+                    )
+
+                    DropdownMenu(
+                        expanded = sortExpanded,
+                        onDismissRequest = { sortExpanded = false },
+                        containerColor = WhiteDefault,
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        sortOption.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option, color = BrownDefault) },
+                                onClick = {
+                                    scope.launch {
+                                        viewModel.setSelectedSortingOption(option)
+                                        viewModel.sortProduct()
+                                        sortExpanded = false
+                                    }
+                                }
+                            )
+                        }
                     }
+                }
+                IconButton(
+                    colors = IconButtonColors(
+                        containerColor = WhiteDefault,
+                        contentColor = BrownDefault,
+                        disabledContentColor = BrownDefault,
+                        disabledContainerColor = WhiteDefault
+                    ),
+                    onClick = {
+                        scope.launch {
+                            viewModel.setASC()
+                            viewModel.sortProduct()
+                        }
+                    },
+                    modifier = Modifier.size(30.dp)
+                ) {
+                    Icon(
+                        if (asc) Icons.Default.ArrowUpward else Icons.Default.ArrowDownward,
+                        contentDescription = "ASC/DESC"
+                    )
                 }
             }
         }
-        items(listProduct.value){product ->
+        if (isLoading){
+            item{
+                CircularProgressIndicator(
+                    color = OrangeDefault,
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .size(40.dp)
+                )
+            }
+        }
+        else items(listProduct){product ->
             ProductClientListItem(
                 item = product,
                 onClick = {

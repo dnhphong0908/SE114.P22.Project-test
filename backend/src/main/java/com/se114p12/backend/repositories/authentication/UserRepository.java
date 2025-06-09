@@ -1,5 +1,6 @@
 package com.se114p12.backend.repositories.authentication;
 
+import com.se114p12.backend.entities.authentication.Role;
 import com.se114p12.backend.entities.user.User;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -20,4 +21,5 @@ public interface UserRepository extends JpaRepository<User, Long>,
     Optional<User> findByPhone(String phone);
     Optional<User> findByEmail(String username);
     Optional<User> findByUsername(String username);
+    List<User> findByRole(Role role);
 }

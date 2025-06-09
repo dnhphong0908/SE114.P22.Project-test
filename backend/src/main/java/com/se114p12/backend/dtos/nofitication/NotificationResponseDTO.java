@@ -13,4 +13,5 @@ public class NotificationResponseDTO extends BaseResponseDTO {
     private String message;
     private Integer status;
     private Long userId; // người nhận
+    private Boolean isRead;
 }

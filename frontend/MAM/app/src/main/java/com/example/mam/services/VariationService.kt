@@ -21,11 +21,11 @@ interface VariationService {
     @POST("variations")
     suspend fun createVariation(@Body variationRequest: VariationRequest): Response<VariationResponse>
     @GET("variations")
-    suspend fun getVariation(
+    suspend fun getVariationByProduct(
         @Query("productId") productId: Long = 0L,
-        @Query("name") name: String = "",
-        @Query("page") page: Int = 0,
-        @Query("size") size: Int = 20,
+        @Query("name") name: String ?= null,
+        @Query("page") page: Int ?= null,
+        @Query("size") size: Int ?= null,
         @Query("sort") sort: List<String>? = null
-    ): Response<PageVO<VariationOptionResponse>>
+    ): Response<PageVO<VariationResponse>>
 }
