@@ -150,6 +150,8 @@ public class OrderServiceImpl implements OrderService {
             order.setShipper(selectedShipper);
         }
 
+        order.setTotalPrice(totalPrice);
+
         orderRepository.save(order);
         orderDetailRepository.saveAll(orderDetails);
         cartRepository.delete(cart);

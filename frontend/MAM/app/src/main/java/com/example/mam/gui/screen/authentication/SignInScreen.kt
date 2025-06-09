@@ -224,10 +224,16 @@ fun SignInScreen(
                                 "Tài khoản của bạn đã bị xóa",
                                 Toast.LENGTH_SHORT
                             ).show()
+                            isShowDeletedDialog = true
                         } else if (result == -2) {
-
+                            Toast.makeText(
+                                context,
+                                "Tài khoản của bạn đã bị khóa",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            isShowBlockedDialog = true
                         } else if (result == -3) {
-
+                            isShowPendingDialog = true
                         }
                         else {
                             Toast.makeText(

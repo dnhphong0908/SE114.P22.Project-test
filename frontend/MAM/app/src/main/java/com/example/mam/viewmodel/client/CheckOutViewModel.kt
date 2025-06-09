@@ -172,7 +172,7 @@ class CheckOutViewModel(
         }
     }
 
-    suspend fun checkOut(){
+    suspend fun checkOut(): Int{
         try{
             val request = OrderRequest(
                 _address.value,
@@ -180,10 +180,21 @@ class CheckOutViewModel(
                 _paymentOption.value,
                 _discount.value?.id
             )
+            Log.d("CheckOutViewModel", "Checking out with request: $request")
+            val response = BaseService(userPreferencesRepository).orderService.createOrder(request)
+            Log.d("CheckOutViewModel", "Response Code: ${response.code()}")
+            if (response.isSuccessful) {
+                Log.d("CheckOutViewModel", "Order created successfully")
+                return 1 // Success
+            } else {
+                Log.d("CheckOutViewModel", "Failed to check out: ${response.errorBody()?.string()}")
+                return 0 // Failure
+            }
         }
         catch (e: Exception) {
             e.printStackTrace()
             Log.d("CheckOutViewModel", "Failed to check out: ${e.message}")
+            return 0
         }
     }
 

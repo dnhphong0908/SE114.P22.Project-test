@@ -90,6 +90,7 @@ import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.client.CheckOutViewModel
 import com.mapbox.geojson.Point
+import kotlinx.coroutines.launch
 
 @Composable
 fun CheckOutScreen(
@@ -274,7 +275,7 @@ fun CheckOutScreen(
                                     elevation = CardDefaults.cardElevation(
                                         defaultElevation = if (isSelected) 8.dp else 4.dp
                                     ),
-                                    modifier = Modifier.padding(8.dp)
+                                    modifier = Modifier
                                         .height(50.dp)
                                         .wrapContentWidth()
                                 ) {
@@ -462,7 +463,17 @@ fun CheckOutScreen(
                         OuterShadowFilledButton(
                             text = "Đặt hàng",
                             onClick = {
-                                onCheckOutClicked()
+                                scope.launch {
+                                    val result = viewModel.checkOut()
+                                    if (result == 1) {
+                                        Toast.makeText(context, "Đặt hàng thành công!", Toast.LENGTH_SHORT).show()
+                                        onCheckOutClicked()
+                                    } else {
+                                        Toast.makeText(context, "Đặt hàng thất bại. Vui lòng thử lại sau.", Toast.LENGTH_SHORT).show()
+                                    }
+                                    onCheckOutClicked()
+                                }
+
                                       },
                             modifier = Modifier.fillMaxWidth(0.8f)
                         )
