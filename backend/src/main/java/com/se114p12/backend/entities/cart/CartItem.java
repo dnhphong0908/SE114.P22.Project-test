@@ -35,9 +35,4 @@ public class CartItem extends BaseEntity {
   private Set<VariationOption> variationOptions;
 
   private Boolean available = false;
-
-  @PreRemove
-  public void preRemove() {
-    variationOptions.clear();
-  }
 }
