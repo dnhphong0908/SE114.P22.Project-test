@@ -250,7 +250,8 @@ public class OrderServiceImpl implements OrderService {
         orderRepository
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-    if (order.getOrderStatus().getCode() > status.getCode()) {
+    int flag = status.getCode() - order.getOrderStatus().getCode();
+    if (status != OrderStatus.CANCELLED && flag != 1) {
       throw new BadRequestException("Can't update order status to " + status);
     }
     if (status == OrderStatus.SHIPPING) {
