@@ -23,7 +23,7 @@ public class Promotion extends BaseEntity {
     private BigDecimal discountValue;
 
     @NotNull
-    private Double minValue;
+    private BigDecimal minValue;
 
     @NotNull
     private Instant startDate;
@@ -32,4 +32,7 @@ public class Promotion extends BaseEntity {
     private Instant endDate;
 
     private String code;
+
+    // true: toàn bộ người dùng, false: chỉ định người dùng
+    private Boolean isPublic = true;
 }

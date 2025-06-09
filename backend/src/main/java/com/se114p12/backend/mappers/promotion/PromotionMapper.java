@@ -11,9 +11,12 @@ import org.mapstruct.ReportingPolicy;
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface PromotionMapper extends GenericMapper<Promotion, PromotionRequestDTO, PromotionResponseDTO> {
 
+    @Override
     Promotion requestToEntity(PromotionRequestDTO dto);
 
+    @Override
     PromotionResponseDTO entityToResponse(Promotion entity);
 
+    @Override
     Promotion partialUpdate(PromotionRequestDTO dto, @MappingTarget Promotion entity);
 }

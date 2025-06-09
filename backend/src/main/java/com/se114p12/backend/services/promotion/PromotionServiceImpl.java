@@ -3,15 +3,22 @@ package com.se114p12.backend.services.promotion;
 import com.se114p12.backend.dtos.promotion.PromotionRequestDTO;
 import com.se114p12.backend.dtos.promotion.PromotionResponseDTO;
 import com.se114p12.backend.entities.promotion.Promotion;
+import com.se114p12.backend.entities.promotion.UserPromotion;
+import com.se114p12.backend.entities.promotion.UserPromotionId;
+import com.se114p12.backend.entities.user.User;
 import com.se114p12.backend.exceptions.ResourceNotFoundException;
 import com.se114p12.backend.mappers.promotion.PromotionMapper;
+import com.se114p12.backend.repositories.authentication.UserRepository;
 import com.se114p12.backend.repositories.promotion.PromotionRepository;
+import com.se114p12.backend.repositories.promotion.UserPromotionRepository;
 import com.se114p12.backend.vo.PageVO;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -19,7 +26,9 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PromotionServiceImpl implements PromotionService {
 
+    private final UserRepository userRepository;
     private final PromotionRepository promotionRepository;
+    private final UserPromotionRepository userPromotionRepository;
     private final PromotionMapper promotionMapper;
 
     @Override
@@ -44,12 +53,38 @@ public class PromotionServiceImpl implements PromotionService {
     }
 
     @Override
+    @Transactional
     public PromotionResponseDTO create(PromotionRequestDTO dto) {
-        if (dto.getCode() != null && promotionRepository.existsByCode(dto.getCode())) {
+        if (StringUtils.hasText(dto.getCode()) && promotionRepository.existsByCode(dto.getCode())) {
             throw new IllegalArgumentException("Promotion code already exists");
         }
+
         Promotion promotion = promotionMapper.requestToEntity(dto);
-        return promotionMapper.entityToResponse(promotionRepository.save(promotion));
+        promotion = promotionRepository.save(promotion);
+
+        // Nếu là promotion riêng tư và có danh sách người dùng
+        if (!dto.isPublic() && dto.getUserIds() != null && !dto.getUserIds().isEmpty()) {
+            List<User> users = userRepository.findAllById(dto.getUserIds());
+
+            if (users.size() != dto.getUserIds().size()) {
+                throw new IllegalArgumentException("One or more user IDs are invalid");
+            }
+
+            Promotion finalPromotion = promotion;
+            List<UserPromotion> userPromotions = users.stream()
+                    .map(user -> {
+                        UserPromotion up = new UserPromotion();
+                        up.setId(new UserPromotionId(user.getId(), finalPromotion.getId()));
+                        up.setUser(user);
+                        up.setPromotion(finalPromotion);
+                        up.setUsed(false);
+                        return up;
+                    }).toList();
+
+            userPromotionRepository.saveAll(userPromotions);
+        }
+
+        return promotionMapper.entityToResponse(promotion);
     }
 
     @Override

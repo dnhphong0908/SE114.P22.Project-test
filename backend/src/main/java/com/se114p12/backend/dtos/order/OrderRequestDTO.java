@@ -14,5 +14,5 @@ public class OrderRequestDTO {
     @NotNull
     private PaymentMethod paymentMethod;
 
-    private String promotionCodeId;
+    private Long promotionId;
 }
