@@ -13,68 +13,85 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 public class VariationOptionServiceImpl implements VariationOptionService {
 
-    private final VariationOptionRepository variationOptionRepository;
-    private final VariationRepository variationRepository;
-    private final VariationOptionMapper variationOptionMapper;
+  private final VariationOptionRepository variationOptionRepository;
+  private final VariationRepository variationRepository;
+  private final VariationOptionMapper variationOptionMapper;
 
-    @Override
-    public PageVO<VariationOptionResponseDTO> getByVariationId(Long variationId, Pageable pageable) {
-        var page = variationOptionRepository.findByVariationId(variationId, pageable);
-        return PageVO.<VariationOptionResponseDTO>builder()
-                .page(page.getNumber())
-                .size(page.getSize())
-                .totalElements(page.getTotalElements())
-                .totalPages(page.getTotalPages())
-                .numberOfElements(page.getNumberOfElements())
-                .content(page.map(variationOptionMapper::toDto).getContent())
-                .build();
+  @Override
+  public PageVO<VariationOptionResponseDTO> getByVariationId(Long variationId, Pageable pageable) {
+    var page = variationOptionRepository.findByVariationId(variationId, pageable);
+    return PageVO.<VariationOptionResponseDTO>builder()
+        .page(page.getNumber())
+        .size(page.getSize())
+        .totalElements(page.getTotalElements())
+        .totalPages(page.getTotalPages())
+        .numberOfElements(page.getNumberOfElements())
+        .content(page.map(variationOptionMapper::toDto).getContent())
+        .build();
+  }
+
+  @Override
+  public VariationOptionResponseDTO create(VariationOptionRequestDTO dto) {
+    Variation variation =
+        variationRepository
+            .findById(dto.getVariationId())
+            .orElseThrow(() -> new DataConflictException("Variation not found"));
+
+    if (variationOptionRepository.existsByValueAndVariationId(
+        dto.getValue(), dto.getVariationId())) {
+      throw new DataConflictException("Duplicate option value within the same variation.");
     }
 
-    @Override
-    public VariationOptionResponseDTO create(VariationOptionRequestDTO dto) {
-        Variation variation = variationRepository.findById(dto.getVariationId())
-                .orElseThrow(() -> new DataConflictException("Variation not found"));
+    VariationOption entity = variationOptionMapper.toEntity(dto);
+    entity.setVariation(variation);
 
-        if (variationOptionRepository.existsByValueAndVariationId(dto.getValue(), dto.getVariationId())) {
-            throw new DataConflictException("Duplicate option value within the same variation.");
-        }
+    return variationOptionMapper.toDto(variationOptionRepository.save(entity));
+  }
 
-        VariationOption entity = variationOptionMapper.toEntity(dto);
-        entity.setVariation(variation);
+  @Override
+  public VariationOptionResponseDTO update(Long id, VariationOptionRequestDTO dto) {
+    VariationOption existing =
+        variationOptionRepository
+            .findById(id)
+            .orElseThrow(() -> new DataConflictException("Variation option not found"));
 
-        return variationOptionMapper.toDto(variationOptionRepository.save(entity));
+    if (!existing.getValue().equals(dto.getValue())
+        && variationOptionRepository.existsByValueAndVariationId(
+            dto.getValue(), dto.getVariationId())) {
+      throw new DataConflictException("Duplicate option value within the same variation.");
     }
 
-    @Override
-    public VariationOptionResponseDTO update(Long id, VariationOptionRequestDTO dto) {
-        VariationOption existing = variationOptionRepository.findById(id)
-                .orElseThrow(() -> new DataConflictException("Variation option not found"));
+    existing.setValue(dto.getValue());
+    existing.setAdditionalPrice(dto.getAdditionalPrice());
 
-        if (!existing.getValue().equals(dto.getValue()) &&
-                variationOptionRepository.existsByValueAndVariationId(dto.getValue(), dto.getVariationId())) {
-            throw new DataConflictException("Duplicate option value within the same variation.");
-        }
+    Variation variation =
+        variationRepository
+            .findById(dto.getVariationId())
+            .orElseThrow(() -> new DataConflictException("Variation not found"));
+    existing.setVariation(variation);
 
-        existing.setValue(dto.getValue());
-        existing.setAdditionalPrice(dto.getAdditionalPrice());
+    existing
+        .getCartItems()
+        .forEach(
+            cartItem -> {
+              cartItem.setAvailable(false);
+            });
 
-        Variation variation = variationRepository.findById(dto.getVariationId())
-                .orElseThrow(() -> new DataConflictException("Variation not found"));
-        existing.setVariation(variation);
+    return variationOptionMapper.toDto(variationOptionRepository.save(existing));
+  }
 
-        return variationOptionMapper.toDto(variationOptionRepository.save(existing));
-    }
-
-    @Override
-    public void delete(Long id) {
-        VariationOption option = variationOptionRepository.findById(id)
-                .orElseThrow(() -> new DataConflictException("Variation option not found"));
-        variationOptionRepository.delete(option);
-    }
+  @Override
+  public void delete(Long id) {
+    VariationOption option =
+        variationOptionRepository
+            .findById(id)
+            .orElseThrow(() -> new DataConflictException("Variation option not found"));
+    option.getCartItems().forEach(cartItem -> cartItem.setAvailable(false));
+    option = variationOptionRepository.save(option);
+    variationOptionRepository.delete(option);
+  }
 }
