@@ -25,7 +25,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
@@ -38,7 +42,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mam.R
+import com.example.mam.dto.authentication.SendVerifyEmailRequest
 import com.example.mam.gui.component.CircleIconButton
+import com.example.mam.gui.component.CustomDialog
 import com.example.mam.gui.component.EditField
 import com.example.mam.gui.component.OuterShadowFilledButton
 import com.example.mam.gui.component.PasswordField
@@ -67,6 +73,11 @@ fun SignInScreen(
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    var isShowDeletedDialog by remember { mutableStateOf(false)}
+    var isShowBlockedDialog by remember { mutableStateOf(false)}
+    var isShowPendingDialog by remember { mutableStateOf(false)}
+
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -77,6 +88,38 @@ fun SignInScreen(
             //.padding(WindowInsets.ime.asPaddingValues())
             .verticalScroll(scrollState),
     ) {
+        if (isShowDeletedDialog) {
+            CustomDialog(
+                title = "Thông báo",
+                message = "Tài khoản của bạn đã bị xóa. Vui lòng liên hệ với quản trị viên để biết thêm chi tiết.",
+                onDismiss = { isShowDeletedDialog = false },
+                onConfirm = { isShowDeletedDialog = false },
+                isHavingCancelButton = false
+            )
+        }
+        if (isShowBlockedDialog) {
+            CustomDialog(
+                title = "Thông báo",
+                message = "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ với quản trị viên để biết thêm chi tiết.",
+                onDismiss = { isShowBlockedDialog = false },
+                onConfirm = { isShowBlockedDialog = false },
+                isHavingCancelButton = false
+            )
+        }
+        if (isShowPendingDialog) {
+            CustomDialog(
+                title = "Thông báo",
+                message = "Tài khoản của bạn chưa được kích hoạt.\nVui lòng kiểm tra email để kích hoạt tài khoản\nhoặc\nXác nhận gửi lại email kích hoạt.",
+                onDismiss = { isShowPendingDialog = false },
+                onConfirm = {
+                    scope.launch {
+                        viewModel.resendVerificationEmail()
+                        isShowPendingDialog = false
+                    }
+                },
+                isHavingCancelButton = true
+            )
+        }
         Box(
             contentAlignment = Alignment.TopStart
         ) {
@@ -154,11 +197,13 @@ fun SignInScreen(
                         .align(Alignment.Start)
                     )
             }
+
             OuterShadowFilledButton(
                 text = "Đăng nhập",
                 onClick = {
                     scope.launch {
-                        if (viewModel.SignIn() == 2) {
+                        val result = viewModel.SignIn()
+                        if (result == 2) {
                             Toast.makeText(
                             context,
                             "Đăng nhập thành công",
@@ -166,15 +211,25 @@ fun SignInScreen(
                         ).show()
                             onSignInClicked()
 
-                        } else if (viewModel.SignIn() == 1) {
+                        } else if (result == 1) {
                             Toast.makeText(
                             context,
                             "Đăng nhập thành công",
                             Toast.LENGTH_SHORT
                         ).show()
                             onSignInManager()
+                        } else if (result == -1) {
+                            Toast.makeText(
+                                context,
+                                "Tài khoản của bạn đã bị xóa",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        } else if (result == -2) {
 
-                        }else {
+                        } else if (result == -3) {
+
+                        }
+                        else {
                             Toast.makeText(
                                 context,
                                 "Đăng nhập thất bại",

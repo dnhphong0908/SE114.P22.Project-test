@@ -275,6 +275,8 @@ fun CheckOutScreen(
                                         defaultElevation = if (isSelected) 8.dp else 4.dp
                                     ),
                                     modifier = Modifier.padding(8.dp)
+                                        .height(50.dp)
+                                        .wrapContentWidth()
                                 ) {
                                     Text(
                                         text = promo.code,
@@ -284,7 +286,7 @@ fun CheckOutScreen(
                                         fontWeight = FontWeight.SemiBold,
                                         maxLines = 1,
                                         overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier.weight(1f).padding(start = 8.dp, end = 8.dp, top = 4.dp, bottom = 4.dp)
                                     )
                                     Text(
                                         text = promo.getDiscountAmount(),
@@ -292,7 +294,7 @@ fun CheckOutScreen(
                                         color = if (isSelected) WhiteDefault else OrangeDefault,
                                         fontSize = 14.sp,
                                         fontWeight = FontWeight.Medium,
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier.weight(1f).padding(start = 8.dp, end = 8.dp, bottom = 4.dp)
                                     )
                                 }
                             }

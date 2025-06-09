@@ -28,7 +28,8 @@ fun CustomDialog(
     title: String,
     message: String,
     onDismiss: () -> Unit,
-    onConfirm: () -> Unit
+    onConfirm: () -> Unit,
+    isHavingCancelButton: Boolean = true,
 ) {
     Dialog(onDismissRequest = { onDismiss() }) {
         Surface(
@@ -63,14 +64,18 @@ fun CustomDialog(
                             .weight(0.5f)
                             .height(40.dp),
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    OuterShadowFilledButton(
-                        text = "Từ chối",
-                        onClick = onDismiss,
-                        modifier = Modifier
-                            .weight(0.5f)
-                            .height(40.dp),
-                    )
+
+                    if (isHavingCancelButton) {
+                        Spacer(modifier = Modifier.width(10.dp))
+                        OuterShadowFilledButton(
+                            text = "Từ chối",
+                            onClick = onDismiss,
+                            modifier = Modifier
+                                .weight(0.5f)
+                                .height(40.dp),
+                        )
+                    }
+
 
                 }
 
