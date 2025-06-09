@@ -5,9 +5,12 @@ import androidx.compose.material.icons.filled.DoneAll
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.notification.NotificationResponse
 import com.example.mam.entity.Notification
+import com.example.mam.services.BaseService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import java.time.Instant
 
@@ -17,10 +20,13 @@ class ListNotificationViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _notiList = MutableStateFlow<MutableList<Notification>>(mutableListOf())
-    val notiList: StateFlow<List<Notification>> = _notiList
+    private val _notiList = MutableStateFlow<MutableList<NotificationResponse>>(mutableListOf())
+    val notiList: StateFlow<List<NotificationResponse>> = _notiList
 
-    private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf())
+    private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf(
+        "Tất cả",
+        "Ngày"
+    ))
     val sortingOptions: StateFlow<List<String>> = _sortingOptions
 
     private val _selectedSortingOption = MutableStateFlow<String>("")
@@ -35,6 +41,9 @@ class ListNotificationViewModel(
     private val _isDeleting = MutableStateFlow(false)
     val isDeleting: StateFlow<Boolean> = _isDeleting
 
+    private val _desc = MutableStateFlow(true)
+    val desc = _desc.asStateFlow()
+
     //update search history if search query is not blank and not in history
     fun setSearchHistory(query: String) {
         if (query.isNotBlank() && !_searchHistory.value.contains(query)) {
@@ -47,14 +56,51 @@ class ListNotificationViewModel(
         _searchQuery.value = query
     }
 
-    fun searchNotification() {
-        _notiList.value = _notiList.value.filter {
-            it.title.contains(searchQuery.value, ignoreCase = true) }.toMutableList()
-        setSearchHistory(searchQuery.value)
+    suspend fun searchNotification() {
+        _isLoading.value = true
+        var currentPage = 0
+        val allNotifications = mutableListOf<NotificationResponse>()
+        val sortOption = when(_selectedSortingOption.value){
+            "Ngày" -> "created_at"
+            else -> "id"
+        }
+        try{
+            while(true){
+                val response = BaseService(userPreferencesRepository)
+                    .notificationService.getAllNotifications(filter = "type ~~ '*${_searchQuery.value}*' or title ~~ '*${_searchQuery.value}*' or message ~~ '*${_searchQuery.value}*'", page = currentPage)
+                if(response.isSuccessful){
+                    setSearchHistory(_searchQuery.value)
+                    val page = response.body()
+                    if(page != null){
+                        allNotifications.addAll(page.content)
+                        if(page.page >= (page.totalPages - 1)){
+                            break
+                        }
+                        currentPage++
+                        _notiList.value = allNotifications.toMutableList()
+                    }
+                    else break
+                } else{
+                    break
+                }
+            }
+            _notiList.value = allNotifications.toMutableList()
+        } catch(e: Exception){
+
+        } finally {
+
+        }
+//        _notiList.value = _notiList.value.filter {
+//            it.title.contains(searchQuery.value, ignoreCase = true) }.toMutableList()
+//        setSearchHistory(searchQuery.value)
     }
 
     fun setSelectedSortingOption(option: String) {
         _selectedSortingOption.value = option
+    }
+
+    fun setDESC(){
+        _desc.value = !_desc.value
     }
 
     fun loadSortingOptions() {
@@ -70,40 +116,69 @@ class ListNotificationViewModel(
         }
     }
 
-    fun loadData() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate network call
-                _notiList.value = mutableListOf(
-                    Notification(
-                        id = "1",
-                        title = "Test Notification",
-                        content = "This is a test notification",
-                        timestamp = Instant.now(),
-                        isRead = false,
-                        icon = Icons.Default.DoneAll,
-                        createAt = Instant.now(),
-                        updateAt = Instant.now(),
-                        type = "ORDER_DELIVERING"
-                    ),
-                    Notification(
-                        id = "2",
-                        title = "Test Notification 2",
-                        content = "This is a test notification 2",
-                        timestamp = Instant.now(),
-                        isRead = false,
-                        icon = Icons.Default.DoneAll,
-                        createAt = Instant.now(),
-                        updateAt = Instant.now(),
-                        type = "ORDER_DELIVERING"
-                    )
-                )
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
-            }
+    suspend fun loadData() {
+        _isLoading.value = true
+        var currentPage = 0
+        val allNotifications = mutableListOf<NotificationResponse>()
+
+        try{
+            while(true){
+                val response = BaseService(userPreferencesRepository)
+                    .notificationService.getAllNotifications(filter = "",page = currentPage)
+                if(response.isSuccessful){
+                    val page = response.body()
+                    if(page != null){
+                        allNotifications.addAll(page.content)
+                        if(page.page >= (page.totalPages - 1)){
+                            break
+                        }
+                        currentPage++
+                        _notiList.value = allNotifications.toMutableList()
+                    }
+                    else break
+                } else{
+                    break
+                    }
+                }
+                _notiList.value = allNotifications.toMutableList()
+            } catch (e: Exception){
+
+        } finally {
+            _isLoading.value = false
         }
+//        viewModelScope.launch {
+//            try {
+//                _isLoading.value = true
+//                // Simulate network call
+//                _notiList.value = mutableListOf(
+////                    Notification(
+////                        id = "1",
+////                        title = "Test Notification",
+////                        content = "This is a test notification",
+////                        timestamp = Instant.now(),
+////                        isRead = false,
+////                        icon = Icons.Default.DoneAll,
+////                        createAt = Instant.now(),
+////                        updateAt = Instant.now(),
+////                        type = "ORDER_DELIVERING"
+////                    ),
+////                    Notification(
+////                        id = "2",
+////                        title = "Test Notification 2",
+////                        content = "This is a test notification 2",
+////                        timestamp = Instant.now(),
+////                        isRead = false,
+////                        icon = Icons.Default.DoneAll,
+////                        createAt = Instant.now(),
+////                        updateAt = Instant.now(),
+////                        type = "ORDER_DELIVERING"
+////                    )
+//                )
+//            } catch (e: Exception) {
+//                // Handle error
+//            } finally {
+//                _isLoading.value = false
+//            }
+//        }
     }
 }

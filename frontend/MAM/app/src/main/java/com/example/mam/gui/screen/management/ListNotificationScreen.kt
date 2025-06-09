@@ -53,12 +53,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -75,6 +77,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.core.app.NotificationManagerCompat.NotificationWithIdAndTag
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mam.dto.notification.NotificationResponse
 import com.example.mam.entity.Notification
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.outerShadow
@@ -87,6 +90,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListNotificationViewModel
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -98,7 +102,7 @@ fun ListNotificationScreen(
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onAddNotificationClick : () -> Unit = {},
-    mockData: List<Notification> ?= null,
+    mockData: List<NotificationResponse> ?= null,
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
     val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
@@ -106,6 +110,8 @@ fun ListNotificationScreen(
     val notiList = viewModel.notiList.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         viewModel.loadSortingOptions()
@@ -244,7 +250,7 @@ fun ListNotificationScreen(
                                             disabledContainerColor = WhiteDefault
                                         ),
                                         onClick = {
-                                            viewModel.searchNotification()
+                                            scope.launch { viewModel.searchNotification() }
                                             focusManager.clearFocus()
                                         }) {
                                         Icon(Icons.Default.Search, contentDescription = "Search")
@@ -389,7 +395,7 @@ fun ListNotificationScreen(
 
 @Composable
 fun NotificationItem(
-    notification: Notification,
+    notification: NotificationResponse,
 ) {
     var expand by remember { mutableStateOf(false) }
     Surface(
@@ -415,7 +421,7 @@ fun NotificationItem(
                     modifier = Modifier
                         .weight(1f)
                 ) {
-                    notification.timestamp.atZone(ZoneId.systemDefault())?.let {
+                    Instant.parse(notification.createdAt).atZone(ZoneId.systemDefault())?.let {
                         Text(
                             text = buildAnnotatedString {
                                 withStyle(
@@ -477,7 +483,7 @@ fun NotificationItem(
             }
             if (expand) {
                 Text(
-                    text = notification.content,
+                    text = notification.message,
                     textAlign = TextAlign.Start,
                     color = BrownDefault,
                     fontSize = 16.sp,
@@ -487,7 +493,7 @@ fun NotificationItem(
                         .fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                notification.createAt.atZone(ZoneId.systemDefault())?.let {
+                Instant.parse(notification.createdAt).atZone(ZoneId.systemDefault())?.let {
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -504,7 +510,7 @@ fun NotificationItem(
                     )
                 }
 
-                notification.updateAt.atZone(ZoneId.systemDefault())?.let {
+                Instant.parse(notification.updatedAt).atZone(ZoneId.systemDefault())?.let {
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -525,24 +531,24 @@ fun NotificationItem(
     }
 }
 
-@Preview
-@Composable
-fun NotificationItemPreview() {
-    NotificationItem(
-        notification = Notification(
-            id = "1",
-            title = "Test Notification",
-            content = "This is a test notification",
-            timestamp = Instant.now(),
-            isRead = false,
-            icon = Icons.Default.DoneAll,
-            createAt = Instant.now(),
-            updateAt = Instant.now(),
-            type = "ORDER_DELIVERING"
-
-        ),
-    )
-}
+//@Preview
+//@Composable
+//fun NotificationItemPreview() {
+//    NotificationItem(
+//        notification = Notification(
+//            id = "1",
+//            title = "Test Notification",
+//            content = "This is a test notification",
+//            timestamp = Instant.now(),
+//            isRead = false,
+//            icon = Icons.Default.DoneAll,
+//            createAt = Instant.now(),
+//            updateAt = Instant.now(),
+//            type = "ORDER_DELIVERING"
+//
+//        ),
+//    )
+//}
 
 //@Preview
 //@Composable
