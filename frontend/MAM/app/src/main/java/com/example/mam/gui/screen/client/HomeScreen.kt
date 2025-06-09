@@ -301,13 +301,6 @@ fun HomeScreen(
                 CircleIconButton(
                     backgroundColor = OrangeLight,
                     foregroundColor = OrangeDefault,
-                    icon = Icons.Outlined.LocalShipping,
-                    onClick = onShippingClicked,
-                    modifier = Modifier
-                )
-                CircleIconButton(
-                    backgroundColor = OrangeLight,
-                    foregroundColor = OrangeDefault,
                     icon = Icons.Filled.Person,
                     onClick = onProfileClicked,
                     modifier = Modifier
