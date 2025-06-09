@@ -12,6 +12,7 @@ import com.se114p12.backend.services.general.StorageService;
 import com.se114p12.backend.vo.PageVO;
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -112,10 +113,19 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public void delete(Long id) {
-    if (!productRepository.existsById(id)) {
+    Optional<Product> productOptional = productRepository.findById(id);
+    if (productOptional.isEmpty() || !productOptional.get().getDeleted()) {
       throw new ResourceNotFoundException("Product not found");
     }
-    productRepository.deleteById(id);
+    Product product = productOptional.get();
+    product.setDeleted(true);
+    product
+        .getCartItems()
+        .forEach(
+            v -> {
+              v.setAvailable(false);
+            });
+    productRepository.save(product);
   }
 
   @Override
