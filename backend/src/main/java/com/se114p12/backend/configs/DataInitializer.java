@@ -84,6 +84,15 @@ public class DataInitializer implements ApplicationRunner {
   }
 
   private void createAdminUser() {
+    if (userRepository.existsByUsername(adminUsername)) {
+      return;
+    }
+    if (userRepository.existsByEmail(adminEmail)) {
+      return;
+    }
+    if (userRepository.existsByPhone(adminPhone)) {
+      return;
+    }
     User adminUser = new User();
     adminUser.setRole(roleRepository.findByName(RoleName.ADMIN.getValue()).orElseThrow());
     adminUser.setUsername(adminUsername);

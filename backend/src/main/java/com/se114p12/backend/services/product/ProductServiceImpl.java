@@ -76,6 +76,7 @@ public class ProductServiceImpl implements ProductService {
             .detailDescription(dto.getDetailDescription())
             .originalPrice(dto.getOriginalPrice())
             .isAvailable(true)
+            .deleted(false)
             .build();
 
     product.setImageUrl(storageService.store(dto.getImage(), "product-items"));
