@@ -544,37 +544,37 @@ fun NotificationItemPreview() {
     )
 }
 
-@Preview
-@Composable
-fun ListNotificationScreenPreview() {
-    ListNotificationScreen(
-        viewModel = ListNotificationViewModel(),
-        onBackClick = {},
-        onAddNotificationClick = {},
-        onHomeClick = {},
-        mockData = listOf(
-            Notification(
-                id = "1",
-                title = "Test Notification",
-                content = "This is a test notification",
-                timestamp = Instant.now(),
-                isRead = false,
-                icon = Icons.Default.DoneAll,
-                createAt = Instant.now(),
-                updateAt = Instant.now(),
-                type = "ORDER_DELIVERING"
-            ),
-            Notification(
-                id = "2",
-                title = "Test Notification 2",
-                content = "This is a test notification 2",
-                timestamp = Instant.now(),
-                isRead = false,
-                icon = Icons.Default.DoneAll,
-                createAt = Instant.now(),
-                updateAt = Instant.now(),
-                type = "ORDER_DELIVERING"
-            )
-        )
-    )
-}
+//@Preview
+//@Composable
+//fun ListNotificationScreenPreview() {
+//    ListNotificationScreen(
+//        viewModel = ListNotificationViewModel(factory = ListNotificationViewModel.Factory),
+//        onBackClick = {},
+//        onAddNotificationClick = {},
+//        onHomeClick = {},
+//        mockData = listOf(
+//            Notification(
+//                id = "1",
+//                title = "Test Notification",
+//                content = "This is a test notification",
+//                timestamp = Instant.now(),
+//                isRead = false,
+//                icon = Icons.Default.DoneAll,
+//                createAt = Instant.now(),
+//                updateAt = Instant.now(),
+//                type = "ORDER_DELIVERING"
+//            ),
+//            Notification(
+//                id = "2",
+//                title = "Test Notification 2",
+//                content = "This is a test notification 2",
+//                timestamp = Instant.now(),
+//                isRead = false,
+//                icon = Icons.Default.DoneAll,
+//                createAt = Instant.now(),
+//                updateAt = Instant.now(),
+//                type = "ORDER_DELIVERING"
+//            )
+//        )
+//    )
+//}
