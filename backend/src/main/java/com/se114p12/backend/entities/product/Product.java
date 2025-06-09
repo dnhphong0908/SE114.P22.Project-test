@@ -21,7 +21,7 @@ import org.hibernate.annotations.SQLRestriction;
 @AllArgsConstructor
 @ToString
 @Builder
-@SQLRestriction("deleted != false")
+@SQLRestriction("deleted = false")
 public class Product extends BaseEntity {
   @ManyToOne
   @JoinColumn(name = "category_id", nullable = false)
