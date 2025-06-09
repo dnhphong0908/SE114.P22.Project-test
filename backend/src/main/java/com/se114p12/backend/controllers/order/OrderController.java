@@ -144,7 +144,7 @@ public class OrderController {
   @ApiResponse(responseCode = "200", description = "Order status updated")
   @ErrorResponse
   @PreAuthorize("hasRole('ADMIN')")
-  @GetMapping("/{orderId}")
+  @GetMapping("/{orderId}/status")
   public ResponseEntity<Void> updateStatus(
       @PathVariable("orderId") Long orderId, @RequestParam("status") OrderStatus status) {
     orderService.updateStatus(orderId, status);
