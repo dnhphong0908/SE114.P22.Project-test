@@ -30,6 +30,8 @@ import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -209,18 +211,24 @@ public class OrderServiceImpl implements OrderService {
   }
 
   private String extractVariationInfo(CartItem cartItem) {
-    ObjectMapper objectMapper = new ObjectMapper();
-    List<Map<String, String>> variations =
-        cartItem.getVariationOptions().stream()
-            .map(
-                variationOption ->
-                    Map.of(variationOption.getVariation().getName(), variationOption.getValue()))
-            .toList();
-    try {
-      return objectMapper.writeValueAsString(variations);
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException("Error serializing variation info", e);
+    if (cartItem.getVariationOptions() == null || cartItem.getVariationOptions().isEmpty()) {
+      return null;
     }
+
+    // Đảm bảo thứ tự Variation
+    return cartItem.getVariationOptions().stream()
+            .filter(vo -> vo.getVariation() != null)
+            .collect(Collectors.groupingBy(vo -> vo.getVariation()))
+            .entrySet().stream()
+            .sorted(Comparator.comparing(entry -> entry.getKey().getId())) // Đảm bảo thứ tự Variation
+            .map(entry -> {
+              String variationName = entry.getKey().getName();
+              String values = entry.getValue().stream()
+                      .map(variationOption -> variationOption.getValue())
+                      .collect(Collectors.joining(", "));
+              return variationName + ": " + values;
+            })
+            .collect(Collectors.joining(", "));
   }
 
   @Override
