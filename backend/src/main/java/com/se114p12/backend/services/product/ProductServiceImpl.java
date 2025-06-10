@@ -87,15 +87,21 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public ProductResponseDTO update(Long id, ProductRequestDTO dto) {
-    Product existingProduct =
-        productRepository
-            .findById(id)
+    Product existingProduct = productRepository.findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-    existingProduct.setName(dto.getName());
-    existingProduct.setShortDescription(dto.getShortDescription());
-    existingProduct.setDetailDescription(dto.getDetailDescription());
-    existingProduct.setOriginalPrice(dto.getOriginalPrice());
+    existingProduct.setName((dto.getName() == null || dto.getName().isEmpty())
+            ? existingProduct.getName() : dto.getName());
+
+    existingProduct.setShortDescription((dto.getShortDescription() == null || dto.getShortDescription().isEmpty())
+            ? existingProduct.getShortDescription() : dto.getShortDescription() );
+
+    existingProduct.setDetailDescription((dto.getDetailDescription() == null || dto.getDetailDescription().isEmpty())
+            ? existingProduct.getDetailDescription() : dto.getDetailDescription());
+
+    existingProduct.setOriginalPrice((dto.getOriginalPrice() == null)
+            ? existingProduct.getOriginalPrice() : dto.getOriginalPrice());
+
     existingProduct.setUpdatedAt(Instant.now());
 
     if (dto.getCategoryId() != 0) {
