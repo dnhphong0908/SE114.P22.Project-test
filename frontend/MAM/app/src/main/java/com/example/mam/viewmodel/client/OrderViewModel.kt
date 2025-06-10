@@ -1,92 +1,118 @@
 package com.example.mam.viewmodel.client
 
+import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
 import com.example.mam.R
+import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.order.OrderResponse
+import com.example.mam.dto.shipper.ShipperResponse
+import com.example.mam.dto.user.UserResponse
 import com.example.mam.entity.Shipper
 import com.example.mam.entity.OrderItem
 import com.example.mam.entity.PaymentType
 import com.example.mam.entity.Product
 import com.example.mam.entity.User
+import com.example.mam.services.BaseService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.text.DecimalFormat
 
-class OrderViewModel(): ViewModel() {
-    private val _items = MutableStateFlow<MutableList<OrderItem>>(mutableListOf())
-    val items = _items.asStateFlow()
+class OrderViewModel(
+    savedStateHandle: SavedStateHandle,
+    private val userPreferencesRepository: UserPreferencesRepository
+): ViewModel() {
+    private val orderId = savedStateHandle.get<Long>("orderId") ?: 0L
 
-    private val _user = MutableStateFlow(User())
+    private val _order = MutableStateFlow<OrderResponse>(OrderResponse())
+    val order = _order.asStateFlow()
+
+    private val _user = MutableStateFlow(UserResponse())
     val user = _user.asStateFlow()
 
-    var address: String = "Hàn Thuyên, khu phố 6 P, Thủ Đức, Hồ Chí Minh."
+    private val _shipper = MutableStateFlow<ShipperResponse?>(null)
+    val shipper = _shipper.asStateFlow()
 
-    private val _discount = MutableStateFlow(0)
-    var discount = _discount.asStateFlow()
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
 
-    private val _note = MutableStateFlow("")
-    var note = _note.asStateFlow()
-
-    private val _status = MutableStateFlow(0)
-    var status = _status.asStateFlow()
-
-    private val _paymentType = MutableStateFlow(PaymentType())
-    var paymentType = _paymentType.asStateFlow()
-
-    private val _totalPrice = MutableStateFlow(0)
-    var totalPrice  = _totalPrice.asStateFlow()
-
-    private val _shipper = MutableStateFlow(Shipper())
-    var shipper =_shipper.asStateFlow()
-
-    fun getUser(): User{
-        return _user.value
+    suspend fun cancelOrder() {
+        try {
+            val response = BaseService(userPreferencesRepository).orderService.cancelOrder(orderId)
+            Log.d("OrderViewModel", "Canceling order with ID: $orderId, Response Code: ${response.code()}")
+            if (response.isSuccessful) {
+                Log.d("OrderViewModel", "Order canceled successfully")
+                // Optionally, you can reload the order or update the UI accordingly
+            } else {
+                Log.d("OrderViewModel", "Failed to cancel order: ${response.errorBody()?.string()}")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Handle exception
+        }
     }
 
-    fun getShipper(): Shipper{
-        return _shipper.value
-    }
-    fun getDiscountToString(): String {
-        return getPriceToString(_discount.value)
-    }
+    suspend fun maskAsDeliveried() {
+        try {
 
-
-    fun getTotalToString(): String {
-        return getPriceToString(_totalPrice.value)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            // Handle exception
+        }
     }
 
-    fun getPaymentType(): String {
-        return _paymentType.value.name
-    }
-    fun getPriceToString(price: Int): String{
-        val formatter = DecimalFormat("#,###")
-        return "${formatter.format(price)} VND"
-    }
+    suspend fun loadOrder(){
+        _isLoading.value = true
+        try {
+            val response = BaseService(userPreferencesRepository).orderService.getOrderById(orderId)
+            Log.d("OrderViewModel", "Loading order with ID: $orderId, Response Code: ${response.code()}")
+            if (response.isSuccessful) {
+                _order.value = response.body() ?: OrderResponse()
+                Log.d("OrderViewModel", "Order loaded successfully: ${_order.value.orderDetails.size} items")
 
-    fun loadOrder(){
-        _user.value = User("001", "Đinh Thanh Tùng", "0904599204", "dinhthanhtung0312@gmail.com","ThanhTungDepTrai", "123456")
-        _paymentType.value = PaymentType("PT001", "Tiền mặt" )
-        _discount.value = 20000
-        _note.value = "Lấy thêm tương ớt"
-        _items.value =mutableListOf(
-            OrderItem(
-                name = "Pizza hải sản",
-                image = "",
-                id = "P001",
-                quantity = 2,
-                options = "25cm, Hành tây",
-                price = 120000 * 2 + 10000 + 5000
-            ),
-            OrderItem(
-                name = "Pizza hải sản",
-                image = "",
-                id = "P001",
+                val userResponse = BaseService(userPreferencesRepository).userService.getUserById(_order.value.userId)
+                if (userResponse.isSuccessful && userResponse.body() != null) {
+                    _user.value = userResponse.body()!!
+                } else {
+                    Log.d("OrderViewModel", "Failed to load user: ${userResponse.errorBody()?.string()}")
+                    _user.value = UserResponse(username = "Unknown User")
+                }
+                Log.d("OrderViewModel", "User loaded successfully: ${_user.value.username}")
 
-                quantity = 1,
-                options = "30cm",
-                price = 80000 + 15000
-            )
-        )
-        _totalPrice.value = 345000
-        _shipper.value = Shipper("Nguyễn Văn A", "0904599202", "59-G2 123.45")
+
+                _shipper.value = _order.value.shipperId?.let {
+                    BaseService(userPreferencesRepository).shipperService.getShipperById(
+                        it
+                    ).body()
+                }
+
+                Log.d("OrderViewModel", "Shipper loaded successfully: ${_shipper.value?.fullname ?: "No shipper assigned"}")
+
+
+            } else {
+                Log.d("OrderViewModel", "Failed to load order: ${response.errorBody()?.string()}")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("OrderViewModel", "Failed to load order: ${e.message}")
+        } finally {
+            _isLoading.value = false
+        }
+    }
+    companion object {
+        val Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                OrderViewModel(
+                    savedStateHandle = this.createSavedStateHandle(),
+                    application.userPreferencesRepository)
+            }
+        }
     }
 }

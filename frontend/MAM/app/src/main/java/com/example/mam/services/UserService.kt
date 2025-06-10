@@ -16,10 +16,10 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface UserService {
-    @GET("users/{userId}")
-    suspend fun getUserById(@Path("id") userId: String): Response<UserResponse>
+    @GET("users/{id}")
+    suspend fun getUserById(@Path("id") userId: Long): Response<UserResponse>
     @Multipart
-    @PUT("users/{userId}")
+    @PUT("users/{id}")
     suspend fun updateUser(
         @Path("userId") id: Long,
         @Part("fullname") fullname: RequestBody,
@@ -30,7 +30,7 @@ interface UserService {
         @Part("roleId") roleId: RequestBody,
     ): Response<UserResponse>
 
-    @DELETE("users/{userId}")
+    @DELETE("users/{id}")
     suspend fun deleteUser(@Path("id") userId: String): Response<Unit>
 
     @POST("users/{id}/assign-role/{roleId}")

@@ -405,16 +405,16 @@ fun MainNavHost(
                 )
             }
             composable(
-                route = "Order",
+                route = "Order/{orderId}",
+                arguments = listOf(navArgument("orderId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ){ backStackEntry ->
-                val viewModel: OrderViewModel = viewModel(backStackEntry)
+                val viewModel: OrderViewModel = viewModel(backStackEntry, factory = OrderViewModel.Factory)
                 OrderScreen(
                     onBackClicked = {navController.popBackStack()},
-                    onVerifyClicked = {},
                     viewModel = viewModel
                 )
             }
@@ -428,6 +428,9 @@ fun MainNavHost(
                 val viewModel: OrderHistoryViewModel = viewModel(backStackEntry, factory = OrderHistoryViewModel.Factory)
                 OrderHistoryScreen(
                     onBackClicked = {navController.popBackStack()},
+                    onClick = { orderId ->
+                        navController.navigate("Order/${orderId}")
+                    },
                     viewModel = viewModel
                 )
             }

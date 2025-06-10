@@ -14,13 +14,13 @@ import retrofit2.http.Query
 interface OrderService {
     @PUT("orders/update/{id}")
     suspend fun updateOrderStatus(
-        @Path("id") id: String,
+        @Path("id") id: Long,
         @Body orderRequest: OrderRequest
     ): Response<OrderResponse>
     @POST("orders/create")
     suspend fun createOrder(@Body orderRequest: OrderRequest): Response<OrderResponse>
     @POST("orders/cancel/{id}")
-    suspend fun cancelOrder(@Path("id") id: String): Response<Void>
+    suspend fun cancelOrder(@Path("id") id: Long): Response<Void>
     @GET("orders")
     suspend fun getAllOrders(
         @Query("page") page: Int = 0,
@@ -29,7 +29,7 @@ interface OrderService {
         @Query("filter") filter: String
     ): Response<PageVO<OrderResponse>>
     @GET("orders/{id}")
-    suspend fun getOrderById(@Path("id") id: String): Response<OrderResponse>
+    suspend fun getOrderById(@Path("id") id: Long): Response<OrderResponse>
     @GET("orders/me")
     suspend fun getMyOrders(
         @Query("page") page: Int = 0,
@@ -39,11 +39,11 @@ interface OrderService {
     ): Response<PageVO<OrderResponse>>
     @PUT("orders/{orderId}/delivered")
     suspend fun markOrderAsDelivered(
-        @Path("orderId") orderId: String
+        @Path("orderId") orderId: Long
     ): Response<Void>
     @GET("orders/{orderId}/status")
     suspend fun getOrderStatus(
-        @Path("orderId") orderId: String,
+        @Path("orderId") orderId: Long,
         @Query("status") status: String
     ): Response<String>
 
