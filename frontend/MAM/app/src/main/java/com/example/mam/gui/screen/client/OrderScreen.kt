@@ -1,5 +1,6 @@
 package com.example.mam.gui.screen.client
 
+import android.widget.Toast
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,8 +18,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -83,6 +86,7 @@ import com.example.mam.gui.component.OuterShadowFilledButton
 import com.example.mam.gui.component.QuantitySelectionButton
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
+import com.example.mam.ui.theme.GreyAvaDefault
 import com.example.mam.ui.theme.GreyDark
 import com.example.mam.ui.theme.GreyDefault
 import com.example.mam.ui.theme.GreyLight
@@ -100,7 +104,7 @@ fun OrderScreen(
     onBackClicked: () -> Unit = {},
     viewModel: OrderViewModel = viewModel(),
     modifier: Modifier = Modifier
-){
+) {
     val order = viewModel.order.collectAsStateWithLifecycle().value
     val shipper = viewModel.shipper.collectAsStateWithLifecycle().value
     val user = viewModel.user.collectAsStateWithLifecycle().value
@@ -144,12 +148,171 @@ fun OrderScreen(
                     .padding(top = 17.dp)
             )
         }
-
-        LazyColumn(
+        Column(
             verticalArrangement = Arrangement.spacedBy(20.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxWidth()
+                .wrapContentHeight()
+        ) {
+            Column(
+                Modifier.fillMaxWidth(0.9f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.95f)
+                        .background(OrangeLight, RoundedCornerShape(50))
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .align(Alignment.Center)
+                            .zIndex(1f)
+                    ) {
+                        CircleIconButton(
+                            backgroundColor = when (order.orderStatus) {
+                                "CONFIRMED", "PROCESSING", "SHIPPING", "COMPLETED" -> OrangeDefault
+                                "CANCELED" -> GreyDefault
+                                else -> WhiteDefault
+                            },
+                            foregroundColor = when (order.orderStatus) {
+                                "CONFIRMED", "PROCESSING", "SHIPPING", "COMPLETED", "CANCELED" -> WhiteDefault
+                                else -> OrangeDefault
+                            },
+                            icon = if (order.orderStatus == "CANCELED") Icons.Default.ContentPasteOff else Icons.Outlined.Inventory,
+                            shadow = "outer",
+                            onClick = onBackClicked,
+                            modifier = Modifier
+                                .padding(vertical = 5.dp)
+                        )
+                        CircleIconButton(
+                            backgroundColor = when (order.orderStatus) {
+                                "PROCESSING", "SHIPPING", "COMPLETED" -> OrangeDefault
+                                else -> WhiteDefault
+                            },
+                            foregroundColor = when (order.orderStatus) {
+                                "PROCESSING", "SHIPPING", "COMPLETED" -> WhiteDefault
+                                else -> OrangeDefault
+                            },
+                            icon = Icons.Outlined.LocalFireDepartment,
+                            shadow = "outer",
+                            onClick = onBackClicked,
+                            modifier = Modifier
+                                .padding(vertical = 5.dp)
+                        )
+                        CircleIconButton(
+                            backgroundColor = when (order.orderStatus) {
+                                "SHIPPING", "COMPLETED" -> OrangeDefault
+                                else -> WhiteDefault
+                            },
+                            foregroundColor = when (order.orderStatus) {
+                                "SHIPPING", "COMPLETED" -> WhiteDefault
+                                else -> OrangeDefault
+                            },
+                            icon = Icons.Outlined.LocalShipping,
+                            shadow = "outer",
+                            onClick = onBackClicked,
+                            modifier = Modifier
+                                .padding(vertical = 5.dp)
+                        )
+                        CircleIconButton(
+                            backgroundColor = when (order.orderStatus) {
+                                "COMPLETED" -> OrangeDefault
+                                else -> WhiteDefault
+                            },
+                            foregroundColor = when (order.orderStatus) {
+                                "COMPLETED" -> WhiteDefault
+                                else -> OrangeDefault
+                            },
+                            icon = Icons.Outlined.HowToReg,
+                            shadow = "outer",
+                            onClick = onBackClicked,
+                            modifier = Modifier
+                                .padding(vertical = 5.dp)
+                        )
+                    }
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .height(10.dp)
+                            .background(GreyLight, RoundedCornerShape(50))
+                            .align(Alignment.Center)
+                    ) {
+
+                    }
+                }
+                Text(
+                    text = when (order.orderStatus) {
+                        "PENDING" -> "Đơn hàng chờ được xác nhận"
+                        "CONFIRMED" -> "Đơn hàng đã được tiếp nhận"
+                        "PROCESSING" -> "Đơn hàng đang được chế biến"
+                        "SHIPPING" -> "Đơn hàng đang được giao tới bạn"
+                        "COMPLETED" -> "Đơn hàng đã được giao tới bạn"
+                        "CANCELED" -> "Đơn hàng đã bị hủy"
+                        else -> "Đơn hàng không xác định"
+                    },
+                    fontSize = 16.sp,
+                    color = WhiteDefault,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                        .padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 10.dp)
+                )
+            }
+            if (shipper != null) {
+                Column(
+                    Modifier.fillMaxWidth(0.9f)
+                ) {
+                    Text(
+                        text = "Người giao hàng:",
+                        fontSize = 16.sp,
+                        color = WhiteDefault,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.padding(start = 10.dp).fillMaxWidth()
+                    )
+                    Text(
+                        text = shipper.fullname + " - " + shipper.phone,
+                        fontSize = 14.sp,
+                        color = WhiteDefault,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.padding(start = 10.dp).fillMaxWidth()
+                    )
+                    Text(
+                        text = "Biển số xe: " + shipper.licensePlate,
+                        fontSize = 14.sp,
+                        color = WhiteDefault,
+                        textAlign = TextAlign.Start,
+                        modifier = Modifier.padding(start = 10.dp).fillMaxWidth()
+                    )
+                }
+            }
+        }
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .outerShadow(
+                    color = GreyDark,
+                    bordersRadius = 50.dp,
+                    blurRadius = 4.dp,
+                    offsetX = 0.dp,
+                    offsetY = -4.dp,
+                )
+                .background(
+                    color = OrangeLighter,
+                    shape = RoundedCornerShape(
+                        topStart = 50.dp,
+                        topEnd = 50.dp,
+                        bottomStart = 0.dp,
+                        bottomEnd = 0.dp
+                    )
+                )
+                .fillMaxWidth()
+                .height(LocalConfiguration.current.screenHeightDp.dp)
                 .clip(
                     shape = RoundedCornerShape(
                         topStart = 50.dp,
@@ -160,289 +323,157 @@ fun OrderScreen(
                 )
         )
         {
-            item{
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                ){
-                    Column(
-                        Modifier.fillMaxWidth(0.9f)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(0.95f)
-                                .background(OrangeLight, RoundedCornerShape(50))) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                modifier = Modifier
-                                    .fillMaxWidth(0.8f)
-                                    .align(Alignment.Center)
-                                    .zIndex(1f)
-                            ) {
-                                CircleIconButton(
-                                    backgroundColor = when (order.orderStatus) {
-                                        "CONFIRMED", "PROCESSING", "SHIPPING", "COMPLETED"-> OrangeDefault
-                                        "CANCELED" -> GreyDark
-                                        else -> WhiteDefault
-                                    },
-                                    foregroundColor = when (order.orderStatus) {
-                                        "CONFIRMED", "PROCESSING", "SHIPPING", "COMPLETED","CANCELED" -> WhiteDefault
-                                        else -> OrangeDefault
-                                    },
-                                    icon = if(order.orderStatus == "CANCELED") Icons.Default.ContentPasteOff else Icons.Outlined.Inventory,
-                                    shadow = "outer",
-                                    onClick = onBackClicked,
-                                    modifier = Modifier
-                                        .padding(vertical = 5.dp)
-                                )
-                                CircleIconButton(
-                                    backgroundColor = when (order.orderStatus) {
-                                        "PROCESSING", "SHIPPING", "COMPLETED"-> OrangeDefault
-                                        else -> WhiteDefault
-                                    },
-                                    foregroundColor = when (order.orderStatus) {
-                                        "PROCESSING", "SHIPPING", "COMPLETED" -> WhiteDefault
-                                        else -> OrangeDefault
-                                    },
-                                    icon = Icons.Outlined.LocalFireDepartment,
-                                    shadow = "outer",
-                                    onClick = onBackClicked,
-                                    modifier = Modifier
-                                        .padding(vertical = 5.dp)
-                                )
-                                CircleIconButton(
-                                    backgroundColor = when (order.orderStatus) {
-                                        "SHIPPING", "COMPLETED"-> OrangeDefault
-                                        else -> WhiteDefault
-                                    },
-                                    foregroundColor = when (order.orderStatus) {
-                                        "SHIPPING", "COMPLETED" -> WhiteDefault
-                                        else -> OrangeDefault
-                                    },
-                                    icon = Icons.Outlined.LocalShipping,
-                                    shadow = "outer",
-                                    onClick = onBackClicked,
-                                    modifier = Modifier
-                                        .padding(vertical = 5.dp)
-                                )
-                                CircleIconButton(
-                                    backgroundColor = when (order.orderStatus) {
-                                        "COMPLETED"-> OrangeDefault
-                                        else -> WhiteDefault
-                                    },
-                                    foregroundColor = when (order.orderStatus) {
-                                        "COMPLETED" -> WhiteDefault
-                                        else -> OrangeDefault
-                                    },
-                                    icon = Icons.Outlined.HowToReg,
-                                    shadow = "outer",
-                                    onClick = onBackClicked,
-                                    modifier = Modifier
-                                        .padding(vertical = 5.dp)
-                                )
-                            }
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth(0.8f)
-                                    .height(10.dp)
-                                    .background(GreyLight, RoundedCornerShape(50))
-                                    .align(Alignment.Center)
-                            ) {
-
-                            }
-                        }
-                        Text(
-                            text = when (order.orderStatus) {
-                                "PENDING" -> "Đơn hàng chờ được xác nhận"
-                                "CONFIRMED" -> "Đơn hàng đã được tiếp nhận"
-                                "PROCESSING" -> "Đơn hàng đang được chế biến"
-                                "SHIPPING" -> "Đơn hàng đang được giao tới bạn"
-                                "COMPLETED" -> "Đơn hàng đã được giao tới bạn"
-                                "CANCELED" -> "Đơn hàng đã bị hủy"
-                                else -> "Đơn hàng không xác định"
-                            },
-                            fontSize = 16.sp,
-                            color = WhiteDefault,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                    if (shipper != null) {
-                        Column(
-                            Modifier.fillMaxWidth(0.9f)
-                        ) {
-                            Text(
-                                text = "Người giao hàng:",
-                                fontSize = 16.sp,
-                                color = WhiteDefault,
-                                fontWeight = FontWeight.Bold,
-                                textAlign = TextAlign.Start,
-                                modifier = Modifier.padding(start = 10.dp).fillMaxWidth()
-                            )
-                            Text(
-                                text = shipper.fullname + " - " + shipper.phone,
-                                fontSize = 14.sp,
-                                color = WhiteDefault,
-                                textAlign = TextAlign.Start,
-                                modifier = Modifier.padding(start = 10.dp).fillMaxWidth()
-                            )
-                            Text(
-                                text = "Biển số xe: " + shipper.licensePlate,
-                                fontSize = 14.sp,
-                                color = WhiteDefault,
-                                textAlign = TextAlign.Start,
-                                modifier = Modifier.padding(start = 10.dp).fillMaxWidth()
-                            )
-                        }
-                    }
-                }
+            item {
+                Spacer(Modifier.height(20.dp))
             }
             item {
                 Column(
-                    verticalArrangement = Arrangement.spacedBy(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
                     modifier = Modifier
-                        .outerShadow(
-                            color = GreyDark,
-                            bordersRadius = 50.dp,
-                            blurRadius = 4.dp,
-                            offsetX = 0.dp,
-                            offsetY = -4.dp,
-                        )
+                        .fillMaxWidth(0.9f)
                         .background(
-                            color = OrangeLighter,
-                            shape = RoundedCornerShape(
-                                topStart = 50.dp,
-                                topEnd = 50.dp,
-                                bottomStart = 0.dp,
-                                bottomEnd = 0.dp
-                            )
+                            OrangeLight,
+                            RoundedCornerShape(10.dp)
                         )
-                        .fillMaxWidth()
-                        .height(LocalConfiguration.current.screenHeightDp.dp)
-                        .clip(
-                            shape = RoundedCornerShape(
-                                topStart = 50.dp,
-                                topEnd = 50.dp,
-                                bottomStart = 0.dp,
-                                bottomEnd = 0.dp
-                            )
-                        )
+                        .padding(5.dp)
                 ) {
-                    Spacer(Modifier.height(20.dp))
-                    order.orderDetails.forEach{item ->
-                        OrderItem(
-                            item = item
-                        )
-                    }
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                    Text(
+                        text = user.fullname + " " + user.phone,
+                        fontSize = 16.sp,
+                        color = BrownDefault,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(start = 10.dp)
+                    )
+                    Text(
+                        text = "Địa chỉ giao hàng: " + order.shippingAddress,
+                        fontSize = 14.sp,
+                        color = BrownDefault,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(start = 10.dp)
+                    )
+                    Text(
+                        text = "Phương thức thanh toán: ",
+                        fontSize = 14.sp,
+                        color = BrownDefault,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(start = 10.dp)
+                    )
+
+                    Text(
+                        text = "Ghi chú: \n" + if (order.note.isNullOrEmpty()) {
+                            "Không có ghi chú"
+                        } else {
+                            order.note
+                        },
+                        fontSize = 14.sp,
+                        color = BrownDefault,
+                        fontWeight = FontWeight.Medium,
                         modifier = Modifier
-                            .fillMaxWidth(0.9f)
-                            .background(
-                                OrangeLight,
-                                RoundedCornerShape(10.dp))
-                            .padding(5.dp)
-                    ) {
-                        Text(
-                            text = user.fullname + " " + user.phone,
-                            fontSize = 16.sp,
-                            color = BrownDefault,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(start = 10.dp)
-                        )
-                        Text(
-                            text = "Địa chỉ giao hàng: " + order.shippingAddress,
-                            fontSize = 14.sp,
-                            color = BrownDefault,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(start = 10.dp)
-                        )
-                        Text(
-                            text = "Phương thức thanh toán: " ,
-                            fontSize = 14.sp,
-                            color = BrownDefault,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier.padding(start = 10.dp)
-                        )
+                            .fillMaxWidth()
+                            .padding(start = 10.dp)
 
-                        Text(
-                            text = "Ghi chú: \n" + if(order.note.isNullOrEmpty()) { "Không có ghi chú" } else { order.note },
-                            fontSize = 14.sp,
-                            color = BrownDefault,
-                            fontWeight = FontWeight.Medium,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(start = 10.dp)
-
-                        )
-                    }
-                    Box (Modifier
+                    )
+                }
+            }
+            item {
+                Box(
+                    Modifier
                         .outerShadow()
                         .padding(bottom = 5.dp)
                         .fillMaxWidth(0.9f)
                         .wrapContentHeight()
                         .background(OrangeLight, shape = RoundedCornerShape(50))
 
-                    ){
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Absolute.SpaceBetween,
-                            modifier = Modifier.padding(10.dp).fillMaxWidth()
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Absolute.SpaceBetween,
+                        modifier = Modifier.padding(10.dp).fillMaxWidth()
 
-                        ) {
-                            Column {
-                                Text(
-                                    text = "Tổng cộng",
-                                    fontSize = 16.sp,
-                                    color = BrownDefault,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                                Text(
-                                    text = order.getPriceToString(),
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = OrangeDefault,
-                                )
-                            }
-                            if (order.orderStatus == "SHIPPING") {
-                                OuterShadowFilledButton(
-                                    text = "Đã nhận hàng",
-                                    icon = Icons.Outlined.CheckCircle,
-                                    onClick = {
-                                        scope.launch {
-                                            viewModel.maskAsDeliveried()
+                    ) {
+                        Column {
+                            Text(
+                                text = "Tổng cộng",
+                                fontSize = 16.sp,
+                                color = BrownDefault,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = order.getPriceToString(),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = OrangeDefault,
+                            )
+                        }
+                        if (order.orderStatus == "SHIPPING") {
+                            OuterShadowFilledButton(
+                                text = "Xác nhận nhận hàng",
+                                icon = Icons.Outlined.CheckCircle,
+                                onClick = {
+                                    scope.launch {
+                                        if (viewModel.maskAsDeliveried() == 1) {
+                                            Toast.makeText(
+                                                context,
+                                                "Đã xác nhận đã nhận hàng. Chúc bạn ngon miệng!",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Không thể xác nhận đã nhận hàng",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth(0.4f)
-                                        .wrapContentHeight()
-                                )
-                            } else if( order.orderStatus == "PENDING") {
-                                OuterShadowFilledButton(
-                                    text = "Hủy đơn hàng",
-                                    icon = Icons.Default.Delete,
-                                    onClick = {
-                                        scope.launch {
-                                            viewModel.cancelOrder()
+                                    }
+                                },
+                                modifier = Modifier
+                                    .wrapContentSize()
+                            )
+                        } else if (order.orderStatus == "PENDING") {
+                            OuterShadowFilledButton(
+                                text = "Hủy đơn hàng",
+                                icon = Icons.Default.Delete,
+                                onClick = {
+                                    scope.launch {
+                                        if (viewModel.cancelOrder() == 1) {
+                                            Toast.makeText(
+                                                context,
+                                                "Đã hủy đơn hàng thành công",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Không thể hủy đơn hàng này",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth(0.4f)
-                                        .wrapContentHeight()
-                                )
-                            }
+                                    }
+                                },
+                                modifier = Modifier
+                                    .wrapContentSize()
+                            )
                         }
                     }
                 }
             }
-
+            item {
+                Text(
+                    text = "Danh sách sản phẩm",
+                    fontSize = 20.sp,
+                    color = BrownDefault,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .padding(start = 10.dp)
+                        .fillMaxWidth()
+                )
+            }
+            items(order.orderDetails) { item ->
+                OrderItem(
+                    item = item
+                )
+            }
         }
     }
 }
@@ -487,7 +518,7 @@ fun OrderItem(
                         modifier = Modifier.fillMaxWidth().padding(0.dp, 8.dp, 8.dp, 8.dp)
                     ) {
                         Text(
-                            text = item.productName,
+                            text = item.productName + " *" + item.quantity,
                             textAlign = TextAlign.Start,
                             color = BrownDefault,
                             fontSize = 16.sp,

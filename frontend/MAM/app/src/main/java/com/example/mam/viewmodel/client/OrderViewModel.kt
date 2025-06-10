@@ -10,6 +10,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.R
+import com.example.mam.data.Constant
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.order.OrderResponse
 import com.example.mam.dto.shipper.ShipperResponse
@@ -42,28 +43,45 @@ class OrderViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    suspend fun cancelOrder() {
+    suspend fun cancelOrder() :Int {
         try {
             val response = BaseService(userPreferencesRepository).orderService.cancelOrder(orderId)
             Log.d("OrderViewModel", "Canceling order with ID: $orderId, Response Code: ${response.code()}")
             if (response.isSuccessful) {
                 Log.d("OrderViewModel", "Order canceled successfully")
-                // Optionally, you can reload the order or update the UI accordingly
+                loadOrder()
+                return 1
             } else {
                 Log.d("OrderViewModel", "Failed to cancel order: ${response.errorBody()?.string()}")
+                return 0
             }
         } catch (e: Exception) {
             e.printStackTrace()
+            Log.d("OrderViewModel", "Exception while canceling order: ${e.message}")
+            return 0
             // Handle exception
         }
     }
 
-    suspend fun maskAsDeliveried() {
+    suspend fun maskAsDeliveried(): Int {
         try {
+            val response = BaseService(userPreferencesRepository).orderService.markOrderAsDelivered(orderId)
+            Log.d("OrderViewModel", "Marking order as delivered with ID: $orderId, Response Code: ${response.code()}")
+            if (response.isSuccessful) {
+                Log.d("OrderViewModel", "Order marked as delivered successfully")
+                loadOrder()
+                return 1 // Successfully marked as delivered
+                // Optionally, you can reload the order or update the UI accordingly
+            } else {
+                Log.d("OrderViewModel", "Failed to mark order as delivered: ${response.errorBody()?.string()}")
+                return 0 // Failed to mark as delivered
+            }
 
         } catch (e: Exception) {
             e.printStackTrace()
             // Handle exception
+            Log.d("OrderViewModel", "Exception while marking order as delivered: ${e.message}")
+            return 0 // Failed due to exception
         }
     }
 
@@ -105,6 +123,8 @@ class OrderViewModel(
             _isLoading.value = false
         }
     }
+
+
     companion object {
         val Factory = viewModelFactory {
             initializer {

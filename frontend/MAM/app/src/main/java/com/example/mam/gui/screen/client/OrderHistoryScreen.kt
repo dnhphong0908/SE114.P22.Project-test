@@ -38,12 +38,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
@@ -59,6 +63,7 @@ import coil.compose.AsyncImage
 import com.example.mam.dto.order.OrderResponse
 import com.example.mam.entity.Order
 import com.example.mam.entity.OrderItem
+import com.example.mam.gui.component.BasicOutlinedButton
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
@@ -69,6 +74,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Variables
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.client.OrderHistoryViewModel
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -88,9 +94,14 @@ val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
 val scrollState = rememberScrollState()
 val orders = viewModel.orders.collectAsStateWithLifecycle().value
 val asc = viewModel.asc.collectAsStateWithLifecycle().value
+val orderStatus = viewModel.orderStatus.collectAsStateWithLifecycle().value
+val scope = rememberCoroutineScope()
+
+
 
 LaunchedEffect(asc) {
     viewModel.loadOrders()
+    viewModel.loadOrderStatus()
 }
     Column(
         verticalArrangement = Arrangement.SpaceBetween,
@@ -160,11 +171,32 @@ LaunchedEffect(asc) {
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             item {
-               LazyRow(
-
-               ) {
-
-               }
+                var selectedStatus by remember { mutableStateOf("") }
+                LazyRow(
+                    modifier = Modifier
+                        .clipToBounds()
+                        .background(OrangeLighter)
+                ) {
+                    items(orderStatus) { status ->
+                        Spacer(Modifier.width(5.dp))
+                        BasicOutlinedButton(
+                            text = status,
+                            onClick = {
+                                scope.launch {
+                                    selectedStatus = if (selectedStatus == status) {
+                                        ""
+                                    } else {
+                                        status
+                                    }
+                                    viewModel.loadOrders(status = selectedStatus)
+                                }
+                            },
+                            isEnable = selectedStatus != status,
+                            modifier = Modifier
+                        )
+                        Spacer(Modifier.width(5.dp))
+                    }
+                }
             }
             if(orders.isEmpty() ) {
                 item {
