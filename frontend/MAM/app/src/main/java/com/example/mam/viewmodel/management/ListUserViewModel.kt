@@ -1,21 +1,41 @@
 package com.example.mam.viewmodel.management
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
+import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.product.CategoryResponse
+import com.example.mam.dto.user.UserResponse
 import com.example.mam.entity.Product
-import com.example.mam.entity.User
+import com.example.mam.services.BaseService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class ListUserViewModel(): ViewModel() {
+class ListUserViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository
+): ViewModel() {
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _user = MutableStateFlow<MutableList<User>>(mutableListOf())
-    val user: StateFlow<List<User>> = _user
+    private val _isDeleting = MutableStateFlow(false)
+    val isDeleting: StateFlow<Boolean> = _isDeleting
 
-    private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf())
+    private val _user = MutableStateFlow<MutableList<UserResponse>>(mutableListOf())
+    val user: StateFlow<List<UserResponse>> = _user
+
+    private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf(
+        "Tất cả",
+        "Tên người dùng", //Fullname
+        "Tên hiển thị" //Username
+    ))
     val sortingOptions: StateFlow<List<String>> = _sortingOptions
 
     private val _selectedSortingOption = MutableStateFlow<String>("")
@@ -26,6 +46,9 @@ class ListUserViewModel(): ViewModel() {
 
     private val _searchHistory = MutableStateFlow<List<String>>(mutableListOf())
     val searchHistory: StateFlow<List<String>> get() = _searchHistory
+
+    private val _asc = MutableStateFlow(true)
+    val asc = _asc.asStateFlow()
 
     //update search history if search query is not blank and not in history
     fun setSearchHistory(query: String) {
@@ -39,14 +62,83 @@ class ListUserViewModel(): ViewModel() {
         _searchQuery.value = query
     }
 
-    fun searchUser() {
-        _user.value = _user.value.filter {
-            it.fullName.contains(searchQuery.value, ignoreCase = true) }.toMutableList()
-        setSearchHistory(searchQuery.value)
+    suspend fun searchUser() {
+        _isLoading.value = true
+        var currentPage = 0
+        val allUsers = mutableListOf<UserResponse>()
+
+        try {
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .userService.getAllUsers(filter = "username ~~ '*${_searchQuery.value}*' or fullname ~~ '*${_searchQuery.value}*' or email ~~ '*${_searchQuery.value}*' or phone ~~ '*${_searchQuery.value}*'", page = currentPage)
+                if (response.isSuccessful) {
+                    setSearchHistory(_searchQuery.value)
+                    val page = response.body()
+                    if (page != null){
+                        allUsers.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        _user.value = allUsers.toMutableList()
+                    }
+                    else break
+                } else {
+                    break // Stop loop on failure
+                }
+            }
+            _user.value = allUsers.toMutableList() // Update UI with all categories
+        } catch (e: Exception) {
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
+    suspend fun sortUser(){
+        _isLoading.value = true
+        var currentPage = 0
+        val allUsers = mutableListOf<UserResponse>()
+        val sortOption = when(_selectedSortingOption.value){
+            "Tên hiển thị" -> "username"
+            "Tên người dùng" -> "fullname"
+            else -> "id"
+        }
+        try {
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .userService.getAllUsers(
+                        filter = "",
+                        page = currentPage,
+                        sort = listOf("${sortOption}," + if (_asc.value) "asc" else "desc"))
+
+                if (response.isSuccessful) {
+                    val page = response.body()
+                    if (page != null){
+                        allUsers.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        _user.value = allUsers.toMutableList()
+                    }
+                    else break
+                } else {
+                    break // Stop loop on failure
+                }
+            }
+            _user.value = allUsers.toMutableList() // Update UI with all categories
+        } catch (e: Exception) {
+        } finally {
+            _isLoading.value = false
+        }
     }
 
     fun setSelectedSortingOption(option: String) {
         _selectedSortingOption.value = option
+    }
+
+    fun setASC(){
+        _asc.value = !_asc.value
     }
 
     fun loadSortingOptions() {
@@ -61,42 +153,70 @@ class ListUserViewModel(): ViewModel() {
             }
         }
     }
+    suspend fun loadData() {
+        _isLoading.value = true
+        var currentPage = 0
+        val allUsers = mutableListOf<UserResponse>()
 
-    fun loadData() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate network call
-                _user.value = mutableListOf(
-                    User(
-                        id = "1",
-                        fullName = "Nguyen Van A",
-                        username = "nguyenvana",
-                        phoneNumber = "0123456789",
-                        avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
-                        role = "Admin"
-                    ),
-                    User(
-                        id = "2",
-                        fullName = "Nguyen Van B",
-                        username = "nguyenvanb",
-                        phoneNumber = "0123456789",
-                        avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
-                        role = "User"
-                    ),
-                    User(
-                        id = "3",
-                        fullName = "Nguyen Van C",
-                        username = "nguyenvanc",
-                        phoneNumber = "0123456789",
-                        avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
-                        role = "User"
-                    )
-                )
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
+        try {
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .userService.getAllUsers(filter = "", page = currentPage)
+                if (response.isSuccessful) {
+                    val page = response.body()
+                    if (page != null){
+                        allUsers.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        _user.value = allUsers.toMutableList()
+                    }
+                    else break
+                } else {
+                    break // Stop loop on failure
+                }
+            }
+            _user.value = allUsers.toMutableList() // Update UI with all categories
+        } catch (e: Exception) {
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
+    suspend fun deleteUser(id: Long): Int{
+
+        _isDeleting.value = true
+        try {
+            Log.d("User", "Bắt đầu xóa Nguoi dung")
+            Log.d(
+                "User",
+                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+            )
+            val response =
+                BaseService(userPreferencesRepository).productCategoryService.deleteCategory(id)
+            Log.d("User", "User code: ${response.code()}")
+            if (response.isSuccessful) {
+                _user.value = _user.value.filterNot { it.id == id }.toMutableList()
+                return 1
+            } else {
+                Log.d("User", "Xóa thất bại: ${response.errorBody()}")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.d("User", "Không thể xóa: ${e.message}")
+            return -1
+        } finally {
+            _isDeleting.value = false
+            Log.d("User", "Kết thúc xóa")
+        }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                ListUserViewModel(application.userPreferencesRepository)
             }
         }
     }

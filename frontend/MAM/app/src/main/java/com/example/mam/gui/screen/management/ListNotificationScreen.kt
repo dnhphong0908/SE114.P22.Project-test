@@ -22,7 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DoneAll
@@ -112,6 +114,7 @@ fun ListNotificationScreen(
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val desc = viewModel.desc.collectAsStateWithLifecycle().value
 
     LaunchedEffect(Unit) {
         viewModel.loadSortingOptions()
@@ -263,7 +266,10 @@ fun ListNotificationScreen(
                             shape = RoundedCornerShape(50.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .onFocusChanged { if(it.isFocused && searchHistory.isNotEmpty()) expanded.value = true },
+                                .onFocusChanged {
+                                    if (it.isFocused && searchHistory.isNotEmpty()) expanded.value =
+                                        true
+                                },
                         )
                         DropdownMenu(
                             expanded = expanded.value,
@@ -290,47 +296,76 @@ fun ListNotificationScreen(
                     }
                 }
                 item {
-                    Box(Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(start = 8.dp)) {
-                        var sortExpanded by remember { mutableStateOf(false) }
-                        FilterChip(
-                            selected = sortExpanded,
-                            onClick = { sortExpanded = !sortExpanded },
-                            label = { selectedSortingOption.value },
-                            leadingIcon = {
-                                Icon(Icons.Default.Sort, contentDescription = "Sort")
-                            },
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                containerColor = WhiteDefault,
-                                labelColor = BrownDefault,
-                                iconColor = BrownDefault,
-                                selectedContainerColor = OrangeDefault,
-                                selectedLabelColor = WhiteDefault,
-                                selectedLeadingIconColor = WhiteDefault,
-                                selectedTrailingIconColor = WhiteDefault
-                            ),
-                            modifier = Modifier
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .padding(start = 8.dp)
+                    ) {
+                        Box() {
+                            var sortExpanded by remember { mutableStateOf(false) }
+                            FilterChip(
+                                selected = sortExpanded,
+                                onClick = { sortExpanded = !sortExpanded },
+                                label = { selectedSortingOption.value },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Sort, contentDescription = "Sort")
+                                },
+                                trailingIcon = {
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = WhiteDefault,
+                                    labelColor = BrownDefault,
+                                    iconColor = BrownDefault,
+                                    selectedContainerColor = OrangeDefault,
+                                    selectedLabelColor = WhiteDefault,
+                                    selectedLeadingIconColor = WhiteDefault,
+                                    selectedTrailingIconColor = WhiteDefault
+                                ),
+                                modifier = Modifier
+                            )
 
-                        DropdownMenu(
-                            expanded = sortExpanded,
-                            onDismissRequest = { sortExpanded = false },
-                            containerColor = WhiteDefault,
-                            modifier = Modifier
-                        ) {
-                            sortOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option, color = BrownDefault) },
-                                    onClick = {
-                                        viewModel.setSelectedSortingOption(option)
-                                        sortExpanded = false
-                                    }
-                                )
+                            DropdownMenu(
+                                expanded = sortExpanded,
+                                onDismissRequest = { sortExpanded = false },
+                                containerColor = WhiteDefault,
+                                modifier = Modifier
+                            ) {
+                                sortOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option, color = BrownDefault) },
+                                        onClick = {
+                                            sortExpanded = false
+                                            scope.launch {
+                                                viewModel.setSelectedSortingOption(option)
+                                                viewModel.sortNotification()
+                                            }
+                                        }
+                                    )
+                                }
                             }
+                        }
+                        IconButton(
+                            colors = IconButtonColors(
+                                containerColor = WhiteDefault,
+                                contentColor = BrownDefault,
+                                disabledContentColor = BrownDefault,
+                                disabledContainerColor = WhiteDefault
+                            ),
+                            onClick = {
+                                scope.launch {
+                                    viewModel.setDESC()
+                                    viewModel.sortNotification()
+                                }
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(
+                                if (desc) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                                contentDescription = "DESC/ASC"
+                            )
                         }
                     }
                 }
@@ -358,7 +393,7 @@ fun ListNotificationScreen(
                                 Text(
                                     text = "Không có thông báo nào",
                                     color = GreyDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(16.dp)
                                 )
@@ -371,8 +406,6 @@ fun ListNotificationScreen(
                                 )
                             }
                 }
-
-
             }
         }
         IconButton(
@@ -443,7 +476,7 @@ fun NotificationItem(
                         text = notification.title,
                         textAlign = TextAlign.Start,
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -453,7 +486,7 @@ fun NotificationItem(
                         text = "ID: " + notification.id,
                         textAlign = TextAlign.Start,
                         color = GreyDefault,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -463,7 +496,7 @@ fun NotificationItem(
                         text = notification.title,
                         textAlign = TextAlign.Start,
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -486,7 +519,7 @@ fun NotificationItem(
                     text = notification.message,
                     textAlign = TextAlign.Start,
                     color = BrownDefault,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -502,7 +535,7 @@ fun NotificationItem(
                             append(it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")))
                         },
                         color = GreyDefault,
-                        fontSize = 16.sp,
+                        fontSize = 14.sp,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
@@ -519,7 +552,7 @@ fun NotificationItem(
                             append(it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")))
                         },
                         color = GreyDefault,
-                        fontSize = 16.sp,
+                        fontSize = 14.sp,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .padding(start = 16.dp, bottom = 16.dp, end = 16.dp)

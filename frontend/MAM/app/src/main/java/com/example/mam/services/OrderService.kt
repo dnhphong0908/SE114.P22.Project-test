@@ -23,8 +23,20 @@ interface OrderService {
     suspend fun cancelOrder(@Path("id") id: String): Response<OrderResponse>
     @GET("orders")
     suspend fun getAllOrders(
-        @Query("pageable") pageable: String,
-        @Query("specification") specification: String
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 24,
+        @Query("sort") sort: List<String>? = null,
+        @Query("filter") filter: String
     ): Response<PageVO<OrderResponse>>
-    //Chưa xongg
+    @GET("orders/{id}")
+    suspend fun getOrderById(@Path("id") id: String): Response<OrderResponse>
+    @GET("orders/me")
+    suspend fun getCurrentUserOrders(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20,
+        @Query("sort") sort: List<String>? = null,
+        @Query("filter") filter: String
+    ): Response<PageVO<OrderResponse>>
+    @GET("orders/delete/{id}")
+    suspend fun deleteOrder(@Path("id") id: String): Response<OrderResponse>
 }

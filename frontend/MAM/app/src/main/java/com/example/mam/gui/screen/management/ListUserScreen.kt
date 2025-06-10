@@ -1,5 +1,7 @@
  package com.example.mam.gui.screen.management
 
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,7 +24,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -49,6 +53,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -72,8 +77,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.mam.R
-import com.example.mam.entity.User
+import com.example.mam.dto.user.UserResponse
 import com.example.mam.gui.component.CircleIconButton
+import com.example.mam.gui.component.CustomDialog
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyDark
@@ -84,17 +90,18 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListUserViewModel
+import kotlinx.coroutines.launch
 
-@Composable
+ @Composable
 fun ListUserScreen(
     viewModel: ListUserViewModel,
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
-    onUserClick: (String) -> Unit = {},
+    onUserClick: (Long) -> Unit = {},
     onAddUserClick: () -> Unit = {},
-    onEditUserClick: (String) -> Unit = {},
-    onDeleteUserClick: (String) -> Unit = {},
-    mockData: List<User>? = null
+    onEditUserClick: (Long) -> Unit = {},
+    onDeleteUserClick: (Long) -> Unit = {},
+    mockData: List<UserResponse>? = null
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
     val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
@@ -102,8 +109,12 @@ fun ListUserScreen(
     val userList = viewModel.user.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
+    val asc = viewModel.asc.collectAsStateWithLifecycle().value
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val isDeleting = viewModel.isDeleting.collectAsStateWithLifecycle().value
 
-    LaunchedEffect(Unit) {
+     LaunchedEffect(Unit) {
         viewModel.loadSortingOptions()
         viewModel.loadData()
     }
@@ -240,7 +251,7 @@ fun ListUserScreen(
                                             disabledContainerColor = WhiteDefault
                                         ),
                                         onClick = {
-                                            viewModel.searchUser()
+                                            scope.launch { viewModel.searchUser() }
                                             focusManager.clearFocus()
                                         }) {
                                         Icon(Icons.Default.Search, contentDescription = "Search")
@@ -253,7 +264,10 @@ fun ListUserScreen(
                             shape = RoundedCornerShape(50.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .onFocusChanged { if(it.isFocused && searchHistory.isNotEmpty()) expanded.value = true },
+                                .onFocusChanged {
+                                    if (it.isFocused && searchHistory.isNotEmpty()) expanded.value =
+                                        true
+                                },
                         )
                         DropdownMenu(
                             expanded = expanded.value,
@@ -280,48 +294,113 @@ fun ListUserScreen(
                     }
                 }
                 item {
-                    Box(Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(start = 8.dp)) {
-                        var sortExpanded by remember { mutableStateOf(false) }
-                        FilterChip(
-                            selected = sortExpanded,
-                            onClick = { sortExpanded = !sortExpanded },
-                            label = { selectedSortingOption.value },
-                            leadingIcon = {
-                                Icon(Icons.Default.Sort, contentDescription = "Sort")
-                            },
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                containerColor = WhiteDefault,
-                                labelColor = BrownDefault,
-                                iconColor = BrownDefault,
-                                selectedContainerColor = OrangeDefault,
-                                selectedLabelColor = WhiteDefault,
-                                selectedLeadingIconColor = WhiteDefault,
-                                selectedTrailingIconColor = WhiteDefault
-                            ),
-                            modifier = Modifier
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .padding(start = 8.dp)
+                    ) {
+                        Box() {
+                            var sortExpanded by remember { mutableStateOf(false) }
+                            FilterChip(
+                                selected = sortExpanded,
+                                onClick = { sortExpanded = !sortExpanded },
+                                label = { selectedSortingOption.value },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Sort, contentDescription = "Sort")
+                                },
+                                trailingIcon = {
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = WhiteDefault,
+                                    labelColor = BrownDefault,
+                                    iconColor = BrownDefault,
+                                    selectedContainerColor = OrangeDefault,
+                                    selectedLabelColor = WhiteDefault,
+                                    selectedLeadingIconColor = WhiteDefault,
+                                    selectedTrailingIconColor = WhiteDefault
+                                ),
+                                modifier = Modifier
+                            )
 
-                        DropdownMenu(
-                            expanded = sortExpanded,
-                            onDismissRequest = { sortExpanded = false },
-                            containerColor = WhiteDefault,
-                            modifier = Modifier
-                        ) {
-                            sortOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option, color = BrownDefault) },
-                                    onClick = {
-                                        viewModel.setSelectedSortingOption(option)
-                                        sortExpanded = false
-                                    }
-                                )
+                            DropdownMenu(
+                                expanded = sortExpanded,
+                                onDismissRequest = { sortExpanded = false },
+                                containerColor = WhiteDefault,
+                                modifier = Modifier
+                            ) {
+                                sortOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option, color = BrownDefault) },
+                                        onClick = {
+                                            viewModel.setSelectedSortingOption(option)
+                                            sortExpanded = false
+                                        }
+                                    )
+                                }
                             }
                         }
+                        IconButton(
+                            colors = IconButtonColors(
+                                containerColor = WhiteDefault,
+                                contentColor = BrownDefault,
+                                disabledContentColor = BrownDefault,
+                                disabledContainerColor = WhiteDefault
+                            ),
+                            onClick = {
+                                scope.launch {
+                                    viewModel.setASC()
+                                    viewModel.sortUser()
+                                }
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(if(asc)Icons.Default.ArrowUpward else Icons.Default.ArrowDownward, contentDescription = "ASC/DESC")
+                        }
+                    }
+                }
+                userList.let {
+                    items(userList) { user ->
+                        var isShowDialog by remember { mutableStateOf(false) }
+                        if (isShowDialog){
+                            CustomDialog(
+                                title = "Xác nhận xóa",
+                                message = "Bạn có chắc muốn xóa Người dùng ${user.username}",
+                                onDismiss = {isShowDialog = false},
+                                onConfirm = {
+                                    scope.launch {
+                                        val result = viewModel.deleteUser(user.id)
+                                        Toast.makeText(
+                                            context,
+                                            when(result){
+                                                -1 -> "Không thể kết nối Server"
+                                                1 -> "Xóa thành công"
+                                                else -> "Xóa thất bại"
+                                            },
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        isShowDialog = false
+                                    }
+                                }
+
+                            )
+                        }
+                        if (isDeleting)
+                            CircularProgressIndicator(
+                                color = OrangeDefault,
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .size(40.dp)
+                            )
+                        else
+                            UserItem(
+                                user = user,
+                                onUserClick = onUserClick,
+                                onEditUserClick = onEditUserClick,
+                                onDeleteUserClick = { isShowDialog = true }
+                            )
                     }
                 }
                 if (mockData != null) {
@@ -351,7 +430,7 @@ fun ListUserScreen(
                                 Text(
                                     text = "Không có tài khoản nào",
                                     color = GreyDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(16.dp)
                                 )
@@ -367,8 +446,6 @@ fun ListUserScreen(
                                 )
                             }
                 }
-
-
             }
         }
         IconButton(
@@ -390,10 +467,10 @@ fun ListUserScreen(
 
 @Composable
 fun UserItem(
-    user: User,
-    onUserClick: (String) -> Unit,
-    onEditUserClick: (String) -> Unit,
-    onDeleteUserClick: (String) -> Unit,
+    user: UserResponse,
+    onUserClick: (Long) -> Unit,
+    onEditUserClick: (Long) -> Unit,
+    onDeleteUserClick: (Long) -> Unit,
 ) {
     Card(
         onClick = { onUserClick(user.id) },
@@ -433,7 +510,7 @@ fun UserItem(
                     text = "#${user.role}",
                     textAlign = TextAlign.Start,
                     color = OrangeDefault,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -443,17 +520,17 @@ fun UserItem(
                     text = user.username,
                     textAlign = TextAlign.Start,
                     color = BrownDefault,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier.fillMaxWidth()
                 )
                 Text(
-                    text = user.phoneNumber,
+                    text = user.phone,
                     textAlign = TextAlign.Start,
                     color = BrownDefault,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -470,59 +547,59 @@ fun UserItem(
     }
 }
 
-@Preview
-@Composable
-fun UserItemPreview() {
-    UserItem(
-        user = User(
-            id = "1",
-            fullName = "Nguyen Van A",
-            username = "nguyenvana",
-            phoneNumber = "0123456789",
-            avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
-            role = "Admin"
-        ),
-        onUserClick = {},
-        onEditUserClick = {},
-        onDeleteUserClick = {}
-    )
-}
-
-@Preview
-@Composable
-fun ListUserScreenPreview() {
-    ListUserScreen(
-        viewModel = ListUserViewModel(),
-        onBackClick = {},
-        onUserClick = {},
-        onAddUserClick = {},
-        onEditUserClick = {},
-        onDeleteUserClick = {},
-        mockData = listOf(
-            User(
-                id = "1",
-                fullName = "Nguyen Van A",
-                username = "nguyenvana",
-                phoneNumber = "0123456789",
-                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
-                role = "Admin"
-            ),
-            User(
-                id = "2",
-                fullName = "Nguyen Van B",
-                username = "nguyenvanb",
-                phoneNumber = "0123456789",
-                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
-                role = "User"
-            ),
-            User(
-                id = "3",
-                fullName = "Nguyen Van C",
-                username = "nguyenvanc",
-                phoneNumber = "0123456789",
-                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
-                role = "User"
-            )
-        )
-    )
-}
+//@Preview
+//@Composable
+//fun UserItemPreview() {
+//    UserItem(
+//        user = User(
+//            id = "1",
+//            fullName = "Nguyen Van A",
+//            username = "nguyenvana",
+//            phoneNumber = "0123456789",
+//            avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
+//            role = "Admin"
+//        ),
+//        onUserClick = {},
+//        onEditUserClick = {},
+//        onDeleteUserClick = {}
+//    )
+//}
+//
+//@Preview
+//@Composable
+//fun ListUserScreenPreview() {
+//    ListUserScreen(
+//        viewModel = ListUserViewModel(),
+//        onBackClick = {},
+//        onUserClick = {},
+//        onAddUserClick = {},
+//        onEditUserClick = {},
+//        onDeleteUserClick = {},
+//        mockData = listOf(
+//            User(
+//                id = "1",
+//                fullName = "Nguyen Van A",
+//                username = "nguyenvana",
+//                phoneNumber = "0123456789",
+//                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
+//                role = "Admin"
+//            ),
+//            User(
+//                id = "2",
+//                fullName = "Nguyen Van B",
+//                username = "nguyenvanb",
+//                phoneNumber = "0123456789",
+//                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
+//                role = "User"
+//            ),
+//            User(
+//                id = "3",
+//                fullName = "Nguyen Van C",
+//                username = "nguyenvanc",
+//                phoneNumber = "0123456789",
+//                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
+//                role = "User"
+//            )
+//        )
+//    )
+//}

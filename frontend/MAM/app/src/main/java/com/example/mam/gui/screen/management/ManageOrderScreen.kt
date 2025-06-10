@@ -479,12 +479,13 @@ fun ManageOrderScreen(
 
 fun getStatusMessage(status: Int): String {
     return when (status) {
-        0 -> "Chờ xác nhận"
-        1 -> "Đã xác nhận"
-        2 -> "Đang chế biến"
-        3 -> "Đang giao hàng"
-        4 -> "Đã giao hàng"
-        else -> "Không xác định"
+        0 -> "Chờ xác nhận" //PENDING
+        1 -> "Đã xác nhận" //CONFIRMED
+        2 -> "Đang chế biến" //PROCESSING
+        3 -> "Đang giao hàng" //SHIPPING
+        4 -> "Đã giao hàng" //COMPLETED
+        5 -> "Hủy đơn hàng" //CANCEL
+        else -> "Không xác định" //CANCEL
     }
 }
 

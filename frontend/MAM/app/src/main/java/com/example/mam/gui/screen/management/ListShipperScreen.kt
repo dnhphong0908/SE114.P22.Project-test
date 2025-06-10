@@ -23,7 +23,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -223,7 +225,7 @@ fun ListShipperScreen(
                                 Text(
                                     text = "Tìm kiếm Shipper",
                                     color = GreyDefault,
-                                    fontSize = 16.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Normal
                                 )
                             },
@@ -262,7 +264,10 @@ fun ListShipperScreen(
                             shape = RoundedCornerShape(50.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .onFocusChanged { if(it.isFocused && searchHistory.isNotEmpty()) expanded.value = true },
+                                .onFocusChanged {
+                                    if (it.isFocused && searchHistory.isNotEmpty()) expanded.value =
+                                        true
+                                },
                         )
                         DropdownMenu(
                             expanded = expanded.value,
@@ -289,96 +294,118 @@ fun ListShipperScreen(
                     }
                 }
                 item {
-                    Box(
-                        Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(start = 8.dp)) {
-                        var sortExpanded by remember { mutableStateOf(false) }
-                        FilterChip(
-                            selected = sortExpanded,
-                            onClick = { sortExpanded = !sortExpanded },
-                            label = { selectedSortingOption.value },
-                            leadingIcon = {
-                                Icon(Icons.Default.Sort, contentDescription = "Sort")
-                            },
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                containerColor = WhiteDefault,
-                                labelColor = BrownDefault,
-                                iconColor = BrownDefault,
-                                selectedContainerColor = OrangeDefault,
-                                selectedLabelColor = WhiteDefault,
-                                selectedLeadingIconColor = WhiteDefault,
-                                selectedTrailingIconColor = WhiteDefault
-                            ),
-                            modifier = Modifier
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .padding(start = 8.dp)
+                    ) {
+                        Box() {
+                            var sortExpanded by remember { mutableStateOf(false) }
+                            FilterChip(
+                                selected = sortExpanded,
+                                onClick = { sortExpanded = !sortExpanded },
+                                label = { selectedSortingOption.value },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Sort, contentDescription = "Sort")
+                                },
+                                trailingIcon = {
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = WhiteDefault,
+                                    labelColor = BrownDefault,
+                                    iconColor = BrownDefault,
+                                    selectedContainerColor = OrangeDefault,
+                                    selectedLabelColor = WhiteDefault,
+                                    selectedLeadingIconColor = WhiteDefault,
+                                    selectedTrailingIconColor = WhiteDefault
+                                ),
+                                modifier = Modifier
+                            )
 
-                        DropdownMenu(
-                            expanded = sortExpanded,
-                            onDismissRequest = { sortExpanded = false },
-                            containerColor = WhiteDefault,
-                            modifier = Modifier
-                        ) {
-                            sortOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option, color = BrownDefault) },
-                                    onClick = {
-                                        sortExpanded = false
-                                        scope.launch {
-                                            viewModel.setSelectedSortingOption(option)
-                                            viewModel.sortShipper()
+                            DropdownMenu(
+                                expanded = sortExpanded,
+                                onDismissRequest = { sortExpanded = false },
+                                containerColor = WhiteDefault,
+                                modifier = Modifier
+                            ) {
+                                sortOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option, color = BrownDefault) },
+                                        onClick = {
+                                            sortExpanded = false
+                                            scope.launch {
+                                                viewModel.setSelectedSortingOption(option)
+                                                viewModel.sortShipper()
+                                            }
                                         }
-                                    }
-                                )
+                                    )
+                                }
                             }
+                        }
+                        IconButton(
+                            colors = IconButtonColors(
+                                containerColor = WhiteDefault,
+                                contentColor = BrownDefault,
+                                disabledContentColor = BrownDefault,
+                                disabledContainerColor = WhiteDefault
+                            ),
+                            onClick = {
+                                scope.launch {
+                                    viewModel.setASC()
+                                    viewModel.sortShipper()
+                                }
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(if(asc)Icons.Default.ArrowUpward else Icons.Default.ArrowDownward, contentDescription = "ASC/DESC")
                         }
                     }
                 }
-//                if (mockData != null) {
-//                    items(mockData) { shipper ->
-//                        ShipperItem(
-//                            shipper = shipper,
-//                            onClick = onShipperClick,
-//                            onEditClick = onEditShipperClick,
-//                            onDeleteClick = {}
-//                        )
-//                    }
-//                }
-//                else {
-//                    if (isLoading.value) {
-//                        item {
-//                            CircularProgressIndicator(
-//                                color = OrangeDefault,
-//                                modifier = Modifier
-//                                    .padding(16.dp)
-//                                    .size(40.dp)
-//                            )
-//                        }
-//                    } else
-//                        if (shipperList.isEmpty()) {
-//                            item {
-//                                Text(
-//                                    text = "Không có shipper nào",
-//                                    color = GreyDefault,
-//                                    fontSize = 18.sp,
-//                                    fontWeight = FontWeight.Medium,
-//                                    modifier = Modifier.padding(16.dp)
-//                                )
-//                            }
-//                        } else {
-//                            items(shipperList) { shipper ->
-//                                ShipperItem(
-//                                    shipper = shipper,
-//                                    onClick = onShipperClick,
-//                                    onEditClick = onEditShipperClick,
-//                                    onDeleteClick = {}
-//                                )
-//                            }
-//                        }
-//                }
+                if (mockData != null) {
+                    items(mockData) { shipper ->
+                        ShipperItem(
+                            shipper = shipper,
+                            onClick = onShipperClick,
+                            onEditClick = onEditShipperClick,
+                            onDeleteClick = {}
+                        )
+                    }
+                }
+                else {
+                    if (isLoading.value) {
+                        item {
+                            CircularProgressIndicator(
+                                color = OrangeDefault,
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .size(40.dp)
+                            )
+                        }
+                    } else
+                        if (shipperList.isEmpty()) {
+                            item {
+                                Text(
+                                    text = "Không có shipper nào",
+                                    color = GreyDefault,
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(16.dp)
+                                )
+                            }
+                        } else {
+                            items(shipperList) { shipper ->
+                                ShipperItem(
+                                    shipper = shipper,
+                                    onClick = onShipperClick,
+                                    onEditClick = onEditShipperClick,
+                                    onDeleteClick = {}
+                                )
+                            }
+                        }
+                }
             }
         }
         IconButton(
@@ -434,7 +461,7 @@ fun ShipperItem(
                         text = shipper.fullname,
                         textAlign = TextAlign.Start,
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
@@ -444,7 +471,7 @@ fun ShipperItem(
                         text = "ID: " + shipper.id,
                         textAlign = TextAlign.Start,
                         color = GreyDefault,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -479,7 +506,7 @@ fun ShipperItem(
                         append(shipper.phone)},
                     textAlign = TextAlign.Start,
                     color = BrownDefault,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
@@ -495,7 +522,7 @@ fun ShipperItem(
                         append(shipper.licensePlate)},
                     textAlign = TextAlign.Start,
                     color = BrownDefault,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     modifier = Modifier

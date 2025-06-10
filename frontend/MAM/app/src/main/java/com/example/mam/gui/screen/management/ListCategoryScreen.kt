@@ -436,7 +436,7 @@ fun ListCategoryScreen(
                         Text(
                             text = "Không có danh mục nào",
                             color = GreyDefault,
-                            fontSize = 18.sp,
+                            fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier.padding(16.dp)
                         )
@@ -500,7 +500,7 @@ fun CategoryItem(
                         text = category.name,
                         textAlign = TextAlign.Start,
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,
@@ -510,7 +510,7 @@ fun CategoryItem(
                         text = "ID: " + category.id,
                         textAlign = TextAlign.Start,
                         color = GreyDefault,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -546,7 +546,7 @@ fun CategoryItem(
                         }
                         append(category.description)},
                     color = BrownDefault,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     textAlign = TextAlign.Start,
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -562,7 +562,7 @@ fun CategoryItem(
                             append(it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")))
                         },
                         color = GreyDefault,
-                        fontSize = 16.sp,
+                        fontSize = 14.sp,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
@@ -579,7 +579,7 @@ fun CategoryItem(
                             append(it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")))
                         },
                         color = GreyDefault,
-                        fontSize = 16.sp,
+                        fontSize = 14.sp,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .padding(start = 16.dp, bottom = 16.dp, end = 16.dp)
