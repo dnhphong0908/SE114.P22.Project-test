@@ -76,11 +76,12 @@ class ListUserViewModel(
                     val page = response.body()
                     if (page != null){
                         allUsers.addAll(page.content)
+                        _user.value = allUsers.toMutableList()
                         if (page.page >= (page.totalPages - 1)) {
                             break // Stop looping when the last page is reached
                         }
                         currentPage++ // Move to the next page
-                        _user.value = allUsers.toMutableList()
+
                     }
                     else break
                 } else {

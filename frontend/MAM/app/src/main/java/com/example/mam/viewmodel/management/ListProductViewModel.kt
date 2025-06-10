@@ -90,6 +90,8 @@ class ListProductViewModel(
             _product.value = allProducts.toMutableList() // Update UI with all categories
 
         } catch (e: Exception) {
+            Log.e("ListProductViewModel", "Error searching products: ${e.message}")
+            // Handle error, maybe show a message to the user
         } finally {
             _isLoading.value = false
         }
@@ -130,6 +132,8 @@ class ListProductViewModel(
             _product.value = allProducts.toMutableList() // Update UI with all categories
 
         } catch (e: Exception) {
+            Log.e("ListProductViewModel", "Error sorting products: ${e.message}")
+            // Handle error, maybe show a message to the user
         } finally {
             _isLoading.value = false
         }
@@ -143,18 +147,6 @@ class ListProductViewModel(
         _asc.value = !_asc.value
     }
 
-    fun loadSortingOptions() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate network call
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
 
     suspend fun loadData() {
         _isLoading.value = true
@@ -169,11 +161,12 @@ class ListProductViewModel(
                     val page = response.body()
                     if (page != null){
                         allProducts.addAll(page.content)
+                        _product.value = allProducts.toMutableList()
                         if (page.page >= (page.totalPages - 1)) {
                             break // Stop looping when the last page is reached
                         }
                         currentPage++ // Move to the next page
-                        _product.value = allProducts.toMutableList()
+
                     }
                     else break
                 } else {
@@ -184,10 +177,13 @@ class ListProductViewModel(
             _product.value = allProducts.toMutableList() // Update UI with all categories
 
         } catch (e: Exception) {
+            Log.e("ListProductViewModel", "Error loading products: ${e.message}")
+            // Handle error, maybe show a message to the user
         } finally {
             _isLoading.value = false
         }
     }
+
     suspend fun deleteProduct(id: Long): Int{
 
         _isDeleting.value = true

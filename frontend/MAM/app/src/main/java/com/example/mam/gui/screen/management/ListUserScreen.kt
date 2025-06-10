@@ -63,6 +63,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -77,6 +78,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.example.mam.R
+import com.example.mam.data.Constant.BASE_AVT
 import com.example.mam.dto.user.UserResponse
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.CustomDialog
@@ -361,48 +363,6 @@ fun ListUserScreen(
                         }
                     }
                 }
-                userList.let {
-                    items(userList) { user ->
-                        var isShowDialog by remember { mutableStateOf(false) }
-                        if (isShowDialog){
-                            CustomDialog(
-                                title = "Xác nhận xóa",
-                                message = "Bạn có chắc muốn xóa Người dùng ${user.username}",
-                                onDismiss = {isShowDialog = false},
-                                onConfirm = {
-                                    scope.launch {
-                                        val result = viewModel.deleteUser(user.id)
-                                        Toast.makeText(
-                                            context,
-                                            when(result){
-                                                -1 -> "Không thể kết nối Server"
-                                                1 -> "Xóa thành công"
-                                                else -> "Xóa thất bại"
-                                            },
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                        isShowDialog = false
-                                    }
-                                }
-
-                            )
-                        }
-                        if (isDeleting)
-                            CircularProgressIndicator(
-                                color = OrangeDefault,
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .size(40.dp)
-                            )
-                        else
-                            UserItem(
-                                user = user,
-                                onUserClick = onUserClick,
-                                onEditUserClick = onEditUserClick,
-                                onDeleteUserClick = { isShowDialog = true }
-                            )
-                    }
-                }
                 if (mockData != null) {
                     items(mockData) { user ->
                         UserItem(
@@ -488,11 +448,8 @@ fun UserItem(
                 .padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(user.avatarUrl)
-                    .crossfade(true)
-                    .build(),
-                placeholder = coil.compose.rememberImagePainter(R.drawable.ic_mam_logo),
+                model = user.getRealURL(),
+                placeholder = painterResource(R.drawable.ic_mam_logo),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -507,7 +464,7 @@ fun UserItem(
                     .padding(10.dp)
             ) {
                 Text(
-                    text = "#${user.role}",
+                    text = "#${user.role.name}",
                     textAlign = TextAlign.Start,
                     color = OrangeDefault,
                     fontSize = 14.sp,
@@ -540,66 +497,6 @@ fun UserItem(
             IconButton(onClick = { onEditUserClick(user.id) }) {
                 Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
             }
-//            IconButton(onClick = { onDeleteUserClick(user.id) }) {
-//                Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
-//            }
         }
     }
 }
-
-//@Preview
-//@Composable
-//fun UserItemPreview() {
-//    UserItem(
-//        user = User(
-//            id = "1",
-//            fullName = "Nguyen Van A",
-//            username = "nguyenvana",
-//            phoneNumber = "0123456789",
-//            avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
-//            role = "Admin"
-//        ),
-//        onUserClick = {},
-//        onEditUserClick = {},
-//        onDeleteUserClick = {}
-//    )
-//}
-//
-//@Preview
-//@Composable
-//fun ListUserScreenPreview() {
-//    ListUserScreen(
-//        viewModel = ListUserViewModel(),
-//        onBackClick = {},
-//        onUserClick = {},
-//        onAddUserClick = {},
-//        onEditUserClick = {},
-//        onDeleteUserClick = {},
-//        mockData = listOf(
-//            User(
-//                id = "1",
-//                fullName = "Nguyen Van A",
-//                username = "nguyenvana",
-//                phoneNumber = "0123456789",
-//                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
-//                role = "Admin"
-//            ),
-//            User(
-//                id = "2",
-//                fullName = "Nguyen Van B",
-//                username = "nguyenvanb",
-//                phoneNumber = "0123456789",
-//                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
-//                role = "User"
-//            ),
-//            User(
-//                id = "3",
-//                fullName = "Nguyen Van C",
-//                username = "nguyenvanc",
-//                phoneNumber = "0123456789",
-//                avatarUrl = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg",
-//                role = "User"
-//            )
-//        )
-//    )
-//}

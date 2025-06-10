@@ -473,7 +473,7 @@ fun OrderItem(
                         )
                     }
                     Text(
-                        text = order.getTotalToString(),
+                        text = order.getPriceToString(),
                         textAlign = TextAlign.End,
                         color = OrangeDefault,
                         fontSize = 16.sp,
