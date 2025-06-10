@@ -195,7 +195,7 @@ public class OrderServiceImpl implements OrderService {
     if (order.getOrderStatus().getCode() > 1) {
       throw new BadRequestException("Can't cancel order because order is confirm");
     }
-    order.setOrderStatus(OrderStatus.CANCELLED);
+    order.setOrderStatus(OrderStatus.CANCELED);
     orderRepository.save(order);
   }
 
@@ -255,7 +255,7 @@ public class OrderServiceImpl implements OrderService {
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
     int flag = status.getCode() - order.getOrderStatus().getCode();
-    if (status != OrderStatus.CANCELLED && flag != 1) {
+    if (status != OrderStatus.CANCELED && flag != 1) {
       throw new BadRequestException("Can't update order status to " + status);
     }
     if (status == OrderStatus.SHIPPING) {

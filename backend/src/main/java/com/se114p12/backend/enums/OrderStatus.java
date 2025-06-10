@@ -11,7 +11,7 @@ public enum OrderStatus {
     PROCESSING(3),
     SHIPPING(4),
     COMPLETED(5),
-    CANCELLED(6);
+    CANCELED(6);
 
     private Integer code;
 }
