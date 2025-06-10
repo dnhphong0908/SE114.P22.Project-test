@@ -106,7 +106,11 @@ public class ProductServiceImpl implements ProductService {
       existingProduct.setCategory(category);
     }
 
-    existingProduct.setImageUrl(storageService.store(dto.getImage(), "product-items"));
+    if (dto.getImage() != null && !dto.getImage().isEmpty()) {
+      String fileUrl = storageService.store(dto.getImage(), "product-items");
+      existingProduct.setImageUrl(fileUrl);
+    }
+
     existingProduct = productRepository.save(existingProduct);
 
     return productMapper.entityToResponse(existingProduct);
