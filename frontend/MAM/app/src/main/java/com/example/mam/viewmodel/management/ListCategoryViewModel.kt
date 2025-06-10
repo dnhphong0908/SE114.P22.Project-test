@@ -59,7 +59,7 @@ class ListCategoryViewModel(
 
     suspend fun searchCategory() {
         //search and save history
-        _isLoading.value = true
+
         var currentPage = 0
         val allCategories = mutableListOf<CategoryResponse>()
 
@@ -68,6 +68,7 @@ class ListCategoryViewModel(
             Log.d("Category", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
 
             while (true) { // Loop until the last page
+                _isLoading.value = true
                 val response = BaseService(userPreferencesRepository)
                     .productCategoryService.getCategories(filter = "name ~~ '*${_searchQuery.value}*' or description ~~ '*${_searchQuery.value}*'", page = currentPage)
 
@@ -84,7 +85,7 @@ class ListCategoryViewModel(
                         currentPage++ // Move to the next page
                         Log.d("Category", "Lấy trang ${page.page}")
                         _categories.value = allCategories.toMutableList()
-
+                        _isLoading.value = false // Stop loading after each page fetch
                     }
                     else break
                 } else {

@@ -33,6 +33,7 @@ import com.example.mam.gui.screen.client.CheckOutScreen
 import com.example.mam.gui.screen.client.HomeScreen
 import com.example.mam.gui.screen.client.ItemScreen
 import com.example.mam.gui.screen.client.MapScreen
+import com.example.mam.gui.screen.client.OrderHistoryScreen
 import com.example.mam.gui.screen.client.OrderScreen
 import com.example.mam.gui.screen.client.ProfileScreen
 import com.example.mam.gui.screen.client.SearchScreen
@@ -60,6 +61,7 @@ import com.example.mam.viewmodel.client.CartViewModel
 import com.example.mam.viewmodel.client.CheckOutViewModel
 import com.example.mam.viewmodel.client.HomeScreenViewModel
 import com.example.mam.viewmodel.client.ItemViewModel
+import com.example.mam.viewmodel.client.OrderHistoryViewModel
 import com.example.mam.viewmodel.client.OrderViewModel
 import com.example.mam.viewmodel.client.ProfileViewModel
 import com.example.mam.viewmodel.client.SearchViewModel
@@ -305,6 +307,9 @@ fun MainNavHost(
                     onChangePasswordClicked = {
                         navController.navigate("ChangePassword")
                     },
+                    onHistoryClicked = {
+                        navController.navigate("OrderHistory")
+                    },
                     viewModel = viewModel
                 )
             }
@@ -410,6 +415,19 @@ fun MainNavHost(
                 OrderScreen(
                     onBackClicked = {navController.popBackStack()},
                     onVerifyClicked = {},
+                    viewModel = viewModel
+                )
+            }
+            composable(
+                route = "OrderHistory",
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
+            ){ backStackEntry ->
+                val viewModel: OrderHistoryViewModel = viewModel(backStackEntry, factory = OrderHistoryViewModel.Factory)
+                OrderHistoryScreen(
+                    onBackClicked = {navController.popBackStack()},
                     viewModel = viewModel
                 )
             }

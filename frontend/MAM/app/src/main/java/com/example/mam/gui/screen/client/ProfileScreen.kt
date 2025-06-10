@@ -272,7 +272,8 @@ fun ProfileScreen(
                     icon = Icons.Outlined.ArrowForwardIos,
                     color = OrangeLight,
                     textColor = BrownDefault,
-                    tintIcon = BrownDefault
+                    tintIcon = BrownDefault,
+
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),) 

@@ -19,12 +19,32 @@ interface OrderService {
     ): Response<OrderResponse>
     @POST("orders/create")
     suspend fun createOrder(@Body orderRequest: OrderRequest): Response<OrderResponse>
-    @PUT("orders/cancel/{id}")
-    suspend fun cancelOrder(@Path("id") id: String): Response<OrderResponse>
+    @POST("orders/cancel/{id}")
+    suspend fun cancelOrder(@Path("id") id: String): Response<Void>
     @GET("orders")
     suspend fun getAllOrders(
-        @Query("pageable") pageable: String,
-        @Query("specification") specification: String
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int ? = null,
+        @Query("sort") sort: List<String>? = null,
+        @Query("filter") filter: String
     ): Response<PageVO<OrderResponse>>
-    //Chưa xongg
+    @GET("orders/{id}")
+    suspend fun getOrderById(@Path("id") id: String): Response<OrderResponse>
+    @GET("orders/me")
+    suspend fun getMyOrders(
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int ? = null,
+        @Query("sort") sort: List<String>? = null,
+        @Query("filter") filter: String
+    ): Response<PageVO<OrderResponse>>
+    @PUT("orders/{orderId}/delivered")
+    suspend fun markOrderAsDelivered(
+        @Path("orderId") orderId: String
+    ): Response<Void>
+    @GET("orders/{orderId}/status")
+    suspend fun getOrderStatus(
+        @Path("orderId") orderId: String,
+        @Query("status") status: String
+    ): Response<String>
+
 }

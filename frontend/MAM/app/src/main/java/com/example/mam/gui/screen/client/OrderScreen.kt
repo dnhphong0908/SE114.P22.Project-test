@@ -454,7 +454,7 @@ fun OrderScreen(
                                 )
                                 Text(
                                     text = viewModel.getTotalToString(),
-                                    fontSize = 24.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = OrangeDefault,
                                 )

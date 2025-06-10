@@ -11,6 +11,7 @@ import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.cart.CartResponse
 import com.example.mam.dto.cart.CartItemRequest
 import com.example.mam.dto.cart.CartItemResponse
+import com.example.mam.dto.order.OrderResponse
 import com.example.mam.dto.product.ProductResponse
 import com.example.mam.services.BaseService
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,8 +30,12 @@ class CartViewModel(
     private val _total = MutableStateFlow("0 VND")
     val total = _total.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
     suspend fun getCart(){
         try {
+            _isLoading.value = true
             Log.d("CartViewModel", "Loading Cart details")
             val response = BaseService(userPreferencesRepository).cartService.getMyCart()
             Log.d("CartViewModel", "Response Code: ${response.code()}")
@@ -54,8 +59,10 @@ class CartViewModel(
             e.printStackTrace()
             Log.d("CartViewModel", "Failed to load cart: ${e.message}")
         }
+        finally {
+            _isLoading.value = false
+        }
     }
-
 
     suspend fun loadAdditionalProduct(){
         try {

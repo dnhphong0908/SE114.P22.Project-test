@@ -32,6 +32,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.MonetizationOn
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
@@ -92,6 +93,7 @@ fun CartScreen(
     val cart = viewModel.cart.collectAsStateWithLifecycle().value
     val recommendedProducts = viewModel.recommendedProducts.collectAsStateWithLifecycle().value
     val total = viewModel.total.collectAsStateWithLifecycle().value
+    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
 
     val scope = rememberCoroutineScope()
     LaunchedEffect(LocalLifecycleOwner.current) {
@@ -199,6 +201,16 @@ fun CartScreen(
                         },
                     )
                 }
+                if (isLoading) {
+                    item {
+                        CircularProgressIndicator(
+                            color = OrangeDefault,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .size(40.dp)
+                        )
+                    }
+                }
                 if (recommendedProducts.isNotEmpty()) {
                     item {
                         Text(
@@ -260,7 +272,7 @@ fun CartScreen(
                     )
                     Text(
                         text = total,
-                        fontSize = 24.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = OrangeDefault,
                     )

@@ -313,7 +313,7 @@ fun ItemScreen(
                     )
                     Text(
                         text = total,
-                        fontSize = 24.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
                         color = OrangeDefault,
                     )
