@@ -1,5 +1,6 @@
 package com.example.mam.viewmodel.management
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -8,10 +9,13 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
-import com.example.mam.entity.Product
-import com.example.mam.viewmodel.authentication.SignInViewModel
+import com.example.mam.dto.product.CategoryResponse
+import com.example.mam.dto.product.ProductResponse
+import com.example.mam.services.BaseService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class ListProductViewModel(
@@ -20,11 +24,21 @@ class ListProductViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    private val _product = MutableStateFlow<MutableList<Product>>(mutableListOf())
-    val product: StateFlow<List<Product>> = _product
+    private val _isDeleting = MutableStateFlow(false)
+    val isDeleting: StateFlow<Boolean> = _isDeleting
 
-    private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf())
+    private val _product = MutableStateFlow<MutableList<ProductResponse>>(mutableListOf())
+    val product: StateFlow<List<ProductResponse>> = _product
+
+    private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf(
+        "Tất cả",
+        "Tên",
+        "Giá"
+    ))
     val sortingOptions: StateFlow<List<String>> = _sortingOptions
+
+    private val _asc = MutableStateFlow(true)
+    val asc = _asc.asStateFlow()
 
     private val _selectedSortingOption = MutableStateFlow<String>("")
     val selectedSortingOption: StateFlow<String> = _selectedSortingOption
@@ -47,14 +61,86 @@ class ListProductViewModel(
         _searchQuery.value = query
     }
 
-    fun searchProduct() {
-        _product.value = _product.value.filter {
-            it.name.contains(searchQuery.value, ignoreCase = true) }.toMutableList()
-        setSearchHistory(searchQuery.value)
+    suspend fun searchProduct() {
+        _isLoading.value = true
+        var currentPage = 0
+        val allProducts = mutableListOf<ProductResponse>()
+
+        try {
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .productService.getAllProducts(filter = "name ~~ '*${_searchQuery.value}*' or shortDescription ~~ '*${_searchQuery.value}*' or detailDescription ~~ '*${_searchQuery.value}*'", page = currentPage)
+
+                if (response.isSuccessful) {
+                    setSearchHistory(_searchQuery.value)
+                    val page = response.body()
+                    if (page != null){
+                        allProducts.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        _product.value = allProducts.toMutableList()
+                    }
+                    else break
+                } else {
+                    break // Stop loop on failure
+                }
+            }
+            _product.value = allProducts.toMutableList() // Update UI with all categories
+
+        } catch (e: Exception) {
+        } finally {
+            _isLoading.value = false
+        }
     }
+
+    suspend fun sortProduct(){
+        _isLoading.value = true
+        var currentPage = 0
+        val allProducts = mutableListOf<ProductResponse>()
+        val sortOption = when(_selectedSortingOption.value){
+            "Tên" -> "name"
+            else -> "id"
+        }
+        try {
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .productService.getAllProducts(
+                        filter = "",
+                        page = currentPage,
+                        sort = listOf("${sortOption}," + if (_asc.value) "asc" else "desc"))
+
+                if (response.isSuccessful) {
+                    val page = response.body()
+                    if (page != null){
+                        allProducts.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        _product.value = allProducts.toMutableList()
+                    }
+                    else break
+                } else {
+                    break // Stop loop on failure
+                }
+            }
+
+            _product.value = allProducts.toMutableList() // Update UI with all categories
+
+        } catch (e: Exception) {
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
 
     fun setSelectedSortingOption(option: String) {
         _selectedSortingOption.value = option
+    }
+    fun setASC(){
+        _asc.value = !_asc.value
     }
 
     fun loadSortingOptions() {
@@ -70,38 +156,57 @@ class ListProductViewModel(
         }
     }
 
-    fun loadData() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate network call
-                _product.value = mutableListOf(
-                    Product(
-                        id = "1",
-                        name = "Burger Bacon & Cheese",
-                        shortDescription = "Short description",
-                        longDescription = "Long description",
-                        originalPrice = 100000,
-                        isAvailable = true,
-                        idCategory = "1",
-                    ),
-                    Product(
-                        id = "2",
-                        name = "Burger Bacon & Cheese",
-                        shortDescription = "Short description",
-                        longDescription = "Long description",
-                        originalPrice = 100000,
-                        isAvailable = true,
-                        idCategory = "1",
-                    )
-                )
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
+    suspend fun loadData() {
+        _isLoading.value = true
+        var currentPage = 0
+        val allProducts = mutableListOf<ProductResponse>()
+
+        try {
+            while (true) { // Loop until the last page
+                val response = BaseService(userPreferencesRepository)
+                    .productService.getAllProducts(filter = "", page = currentPage)
+                if (response.isSuccessful) {
+                    val page = response.body()
+                    if (page != null){
+                        allProducts.addAll(page.content)
+                        if (page.page >= (page.totalPages - 1)) {
+                            break // Stop looping when the last page is reached
+                        }
+                        currentPage++ // Move to the next page
+                        _product.value = allProducts.toMutableList()
+                    }
+                    else break
+                } else {
+                    break // Stop loop on failure
+                }
             }
+
+            _product.value = allProducts.toMutableList() // Update UI with all categories
+
+        } catch (e: Exception) {
+        } finally {
+            _isLoading.value = false
         }
     }
+    suspend fun deleteProduct(id: Long): Int{
+
+        _isDeleting.value = true
+        try {
+            val response =
+                BaseService(userPreferencesRepository).productCategoryService.deleteCategory(id)
+            if (response.isSuccessful) {
+                _product.value = _product.value.filterNot { it.id == id }.toMutableList()
+                return 1
+            } else {
+                return 0
+            }
+        } catch (e: Exception) {
+            return -1
+        } finally {
+            _isDeleting.value = false
+        }
+    }
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {

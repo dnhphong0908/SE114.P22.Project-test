@@ -14,6 +14,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.util.fastCbrt
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavBackStackEntry
@@ -526,7 +527,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ListProductViewModel = viewModel()
+                val viewModel: ListProductViewModel = viewModel(backStackEntry, factory = ListProductViewModel.Factory)
                 ListProductScreen(
                     onBackClick = {navController.popBackStack()},
                     onAddProductClick = {
@@ -601,7 +602,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ListOrderViewModel = viewModel()
+                val viewModel: ListOrderViewModel = viewModel(backStackEntry, factory = ListOrderViewModel.Factory)
                 ListOrderScreen(
                     onBackClick = {navController.popBackStack()},
                     onEditOrderClick = { orderId ->
@@ -639,7 +640,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ListNotificationViewModel = viewModel()
+                val viewModel: ListNotificationViewModel = viewModel(backStackEntry, factory = ListNotificationViewModel.Factory)
                 ListNotificationScreen(
                     onBackClick = {navController.popBackStack()},
                     onAddNotificationClick = {
@@ -674,7 +675,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ListPromotionViewModel = viewModel()
+                val viewModel: ListPromotionViewModel = viewModel(backStackEntry, factory = ListPromotionViewModel.Factory)
                 ListPromotionScreen(
                     onBackClick = {navController.popBackStack()},
                     onAddClick = {
@@ -709,7 +710,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ListShipperViewModel = viewModel()
+                val viewModel: ListShipperViewModel = viewModel(backStackEntry, factory = ListShipperViewModel.Factory)
                 ListShipperScreen(
                     onBackClick = {navController.popBackStack()},
                     onAddShipperClick = {
@@ -765,7 +766,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ListUserViewModel = viewModel()
+                val viewModel: ListUserViewModel = viewModel(backStackEntry, factory = ListUserViewModel.Factory)
                 ListUserScreen(
                     onBackClick = {navController.popBackStack()},
                     onAddUserClick = {

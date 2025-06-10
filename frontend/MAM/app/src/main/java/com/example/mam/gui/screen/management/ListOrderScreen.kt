@@ -21,7 +21,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
@@ -40,6 +42,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -47,6 +50,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -54,6 +58,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -67,7 +72,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import com.example.mam.entity.Order
+import com.example.mam.dto.order.OrderResponse
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
@@ -79,6 +84,8 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListOrderViewModel
+import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -87,16 +94,19 @@ fun ListOrderScreen(
     viewModel: ListOrderViewModel,
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
-    onEditOrderClick: (String) -> Unit = {},
-    mockData: List<Order>? = null,
+    onEditOrderClick: (Long) -> Unit = {},
+    mockData: List<OrderResponse>? = null,
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
     val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
-    val orderList = viewModel.order.collectAsStateWithLifecycle().value
+    val orderList = viewModel.orders.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
+    val asc = viewModel.asc.collectAsStateWithLifecycle().value
 
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     LaunchedEffect(Unit){
         viewModel.loadSortingOptions()
         viewModel.loadData()
@@ -208,7 +218,7 @@ fun ListOrderScreen(
                                 Text(
                                     text = "Tìm kiếm đơn hàng",
                                     color = GreyDefault,
-                                    fontSize = 16.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.Normal
                                 )
                             },
@@ -234,7 +244,7 @@ fun ListOrderScreen(
                                             disabledContainerColor = WhiteDefault
                                         ),
                                         onClick = {
-                                            viewModel.searchOrder()
+                                            scope.launch {viewModel.searchOrder()}
                                             focusManager.clearFocus()
                                         }) {
                                         Icon(Icons.Default.Search, contentDescription = "Search")
@@ -247,7 +257,10 @@ fun ListOrderScreen(
                             shape = RoundedCornerShape(50.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .onFocusChanged { if(it.isFocused && searchHistory.isNotEmpty()) expanded.value = true },
+                                .onFocusChanged {
+                                    if (it.isFocused && searchHistory.isNotEmpty()) expanded.value =
+                                        true
+                                },
                         )
                         DropdownMenu(
                             expanded = expanded.value,
@@ -274,55 +287,76 @@ fun ListOrderScreen(
                     }
                 }
                 item {
-                    Box(Modifier
+                    Row(Modifier
                         .fillMaxWidth(0.9f)
-                        .padding(start = 8.dp)) {
-                        var sortExpanded by remember { mutableStateOf(false) }
-                        FilterChip(
-                            selected = sortExpanded,
-                            onClick = { sortExpanded = !sortExpanded },
-                            label = { selectedSortingOption.value },
-                            leadingIcon = {
-                                Icon(Icons.Default.Sort, contentDescription = "Sort")
-                            },
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                containerColor = WhiteDefault,
-                                labelColor = BrownDefault,
-                                iconColor = BrownDefault,
-                                selectedContainerColor = OrangeDefault,
-                                selectedLabelColor = WhiteDefault,
-                                selectedLeadingIconColor = WhiteDefault,
-                                selectedTrailingIconColor = WhiteDefault
-                            ),
-                            modifier = Modifier
-                        )
+                        .padding(start = 8.dp)
+                    ) {
+                        Box() {
+                            var sortExpanded by remember { mutableStateOf(false) }
+                            FilterChip(
+                                selected = sortExpanded,
+                                onClick = { sortExpanded = !sortExpanded },
+                                label = { selectedSortingOption.value },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Sort, contentDescription = "Sort")
+                                },
+                                trailingIcon = {
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = WhiteDefault,
+                                    labelColor = BrownDefault,
+                                    iconColor = BrownDefault,
+                                    selectedContainerColor = OrangeDefault,
+                                    selectedLabelColor = WhiteDefault,
+                                    selectedLeadingIconColor = WhiteDefault,
+                                    selectedTrailingIconColor = WhiteDefault
+                                ),
+                                modifier = Modifier
+                            )
 
-                        DropdownMenu(
-                            expanded = sortExpanded,
-                            onDismissRequest = { sortExpanded = false },
-                            containerColor = WhiteDefault,
-                            modifier = Modifier
-                        ) {
-                            sortOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option, color = BrownDefault) },
-                                    onClick = {
-                                        viewModel.setSelectedSortingOption(option)
-                                        sortExpanded = false
-                                    }
-                                )
+                            DropdownMenu(
+                                expanded = sortExpanded,
+                                onDismissRequest = { sortExpanded = false },
+                                containerColor = WhiteDefault,
+                                modifier = Modifier
+                            ) {
+                                sortOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option, color = BrownDefault) },
+                                        onClick = {
+                                            viewModel.setSelectedSortingOption(option)
+                                            sortExpanded = false
+                                        }
+                                    )
+                                }
                             }
+                        }
+                        IconButton(
+                            colors = IconButtonColors(
+                                containerColor = WhiteDefault,
+                                contentColor = BrownDefault,
+                                disabledContentColor = BrownDefault,
+                                disabledContainerColor = WhiteDefault
+                            ),
+                            onClick = {
+                                scope.launch {
+                                    viewModel.setASC()
+                                    viewModel.sortOrder()
+                                }
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(if(asc)Icons.Default.ArrowUpward else Icons.Default.ArrowDownward, contentDescription = "ASC/DESC")
                         }
                     }
                 }
                 if (mockData != null) {
                     items(mockData) { order ->
-                        com.example.mam.gui.screen.management.OrderItem(
+                        OrderItem(
                             order = order,
                             onEditClick = onEditOrderClick,
+                            viewModel = viewModel,
                         )
                     }
                 }
@@ -342,22 +376,20 @@ fun ListOrderScreen(
                                 Text(
                                     text = "Không có đơn hàng nào",
                                     color = GreyDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(16.dp)
                                 )
                             }
                         } else
                             items(orderList) { order ->
-                                com.example.mam.gui.screen.management.OrderItem(
+                                OrderItem(
                                     order = order,
                                     onEditClick = onEditOrderClick,
+                                    viewModel = viewModel
                                 )
                             }
-
                 }
-
-
             }
         }
     }
@@ -365,173 +397,179 @@ fun ListOrderScreen(
 
 @Composable
 fun OrderItem(
-    order: Order,
+    order: OrderResponse,
+    viewModel: ListOrderViewModel,
     isViewOnly: Boolean = false,
-    onEditClick: (String) -> Unit,
+    onEditClick: (Long) -> Unit,
 ) {
-    val viewModel: ListOrderViewModel = ListOrderViewModel()
     val owner = viewModel.loadOwnerOfOrder(order.userId)
-    Card(
-        onClick = { },
-        colors = CardDefaults.cardColors(
-            containerColor = WhiteDefault
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 4.dp
-        ),
+    var expand by remember { mutableStateOf(false) }
+    Surface(
+        shadowElevation = 4.dp,
+        shape = RoundedCornerShape(12.dp),
         modifier = Modifier.padding(8.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 8.dp)
+        Card(
+            onClick = { },
+            colors = CardDefaults.cardColors(
+                containerColor = WhiteDefault
+            ),
+            elevation = CardDefaults.cardElevation(
+                defaultElevation = 4.dp
+            ),
+            modifier = Modifier.padding(8.dp)
         ) {
-            AsyncImage(
-                model = owner.avatarUrl,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .size(50.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(GreyLight)
-            )
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(10.dp)
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
             ) {
-                Text(
-                    text = getStatusMessage(order.orderStatus),
-                    textAlign = TextAlign.Start,
-                    color = OrangeDefault,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
+                AsyncImage(
+                    model = owner.avatarUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(GreyLight)
                 )
-                Text(
-                    text = owner.fullName,
-                    textAlign = TextAlign.Start,
-                    color = BrownDefault,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                order.orderDate?.atZone(ZoneId.systemDefault())?.let {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(10.dp)
+                ) {
                     Text(
-                        text = it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")),
+                        text = order.orderStatus,
+                        textAlign = TextAlign.Start,
+                        color = OrangeDefault,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = owner.fullname,
                         textAlign = TextAlign.Start,
                         color = BrownDefault,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Medium,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Instant.parse(order.actualDeliveryTime).atZone(ZoneId.systemDefault())?.let {
+                        Text(
+                            text = it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")),
+                            textAlign = TextAlign.Start,
+                            color = BrownDefault,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                    Text(
+                        text = order.getTotalToString(),
+                        textAlign = TextAlign.End,
+                        color = OrangeDefault,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-                Text(
-                    text = order.getTotalToString(),
-                    textAlign = TextAlign.End,
-                    color = OrangeDefault,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-            if (!isViewOnly) {
-                if (order.orderStatus<4)IconButton(onClick = { onEditClick(order.id) }) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
+                if (!isViewOnly) {
+                    if (order.orderStatus == "PENDING" &&
+                        order.orderStatus == "CONFIRMED" &&
+                        order.orderStatus == "PROCESSING") IconButton(onClick = { onEditClick(order.id) }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
+                    }
+                    //                IconButton(onClick = { onDeleteClick(order.id) }) {
+                    //                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
+                    //                }
                 }
-//                IconButton(onClick = { onDeleteClick(order.id) }) {
-//                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
-//                }
             }
         }
     }
 }
-
-
-
-@Preview
-@Composable
-fun PreviewOrderItem() {
-    val order = Order(
-        id = "1",
-        userId = "1",
-        orderDate = java.time.Instant.now(),
-        paymentId = "1",
-        shippingAddress = "123 Street",
-        orderItems = mutableListOf(),
-        totalPrice = 100000,
-        note = "Note",
-        orderStatus = 1,
-        expectDeliveryTime = java.time.Instant.now(),
-        actualDeliveryTime = java.time.Instant.now(),
-        shipperId = "1"
-    )
-    OrderItem(
-        order = order,
-        onEditClick = {},
-    )
-}
-
-@Preview
-@Composable
-fun PreviewListOrderScreen() {
-    ListOrderScreen(
-        viewModel = ListOrderViewModel(),
-        onBackClick = {},
-        onEditOrderClick = {},
-        mockData = listOf(
-            Order(
-                id = "1",
-                userId = "1",
-                orderDate = java.time.Instant.now(),
-                paymentId = "1",
-                shippingAddress = "123 Street",
-                orderItems = mutableListOf(),
-                totalPrice = 100000,
-                note = "Note",
-                orderStatus = 4,
-                expectDeliveryTime = java.time.Instant.now(),
-                actualDeliveryTime = java.time.Instant.now(),
-                shipperId = "1"
-            ),
-            Order(
-                id = "1",
-                userId = "1",
-                orderDate = java.time.Instant.now(),
-                paymentId = "1",
-                shippingAddress = "123 Street",
-                orderItems = mutableListOf(),
-                totalPrice = 100000,
-                note = "Note",
-                orderStatus = 1,
-                expectDeliveryTime = java.time.Instant.now(),
-                actualDeliveryTime = java.time.Instant.now(),
-                shipperId = "1"
-            ),
-            Order(
-                id = "1",
-                userId = "1",
-                orderDate = java.time.Instant.now(),
-                paymentId = "1",
-                shippingAddress = "123 Street",
-                orderItems = mutableListOf(),
-                totalPrice = 100000,
-                note = "Note",
-                orderStatus = 1,
-                expectDeliveryTime = java.time.Instant.now(),
-                actualDeliveryTime = java.time.Instant.now(),
-                shipperId = "1"
-            )
-        )
-    )
-}
+//@Preview
+//@Composable
+//fun PreviewOrderItem() {
+//    val order = Order(
+//        id = "1",
+//        userId = "1",
+//        orderDate = Instant.now(),
+//        paymentId = "1",
+//        shippingAddress = "123 Street",
+//        orderItems = mutableListOf(),
+//        totalPrice = 100000,
+//        note = "Note",
+//        orderStatus = 1,
+//        expectDeliveryTime = Instant.now(),
+//        actualDeliveryTime = Instant.now(),
+//        shipperId = "1"
+//    )
+//    OrderItem(
+//        order = order,
+//        onEditClick = {},
+//    )
+//}
+//
+//@Preview
+//@Composable
+//fun PreviewListOrderScreen() {
+//    ListOrderScreen(
+//        viewModel = ListOrderViewModel(),
+//        onBackClick = {},
+//        onEditOrderClick = {},
+//        mockData = listOf(
+//            Order(
+//                id = "1",
+//                userId = "1",
+//                orderDate = Instant.now(),
+//                paymentId = "1",
+//                shippingAddress = "123 Street",
+//                orderItems = mutableListOf(),
+//                totalPrice = 100000,
+//                note = "Note",
+//                orderStatus = 4,
+//                expectDeliveryTime = Instant.now(),
+//                actualDeliveryTime = Instant.now(),
+//                shipperId = "1"
+//            ),
+//            Order(
+//                id = "1",
+//                userId = "1",
+//                orderDate = Instant.now(),
+//                paymentId = "1",
+//                shippingAddress = "123 Street",
+//                orderItems = mutableListOf(),
+//                totalPrice = 100000,
+//                note = "Note",
+//                orderStatus = 1,
+//                expectDeliveryTime = Instant.now(),
+//                actualDeliveryTime = Instant.now(),
+//                shipperId = "1"
+//            ),
+//            Order(
+//                id = "1",
+//                userId = "1",
+//                orderDate = Instant.now(),
+//                paymentId = "1",
+//                shippingAddress = "123 Street",
+//                orderItems = mutableListOf(),
+//                totalPrice = 100000,
+//                note = "Note",
+//                orderStatus = 1,
+//                expectDeliveryTime = Instant.now(),
+//                actualDeliveryTime = Instant.now(),
+//                shipperId = "1"
+//            )
+//        )
+//    )
+//}

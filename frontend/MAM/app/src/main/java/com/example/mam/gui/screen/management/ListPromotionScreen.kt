@@ -22,7 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -51,12 +53,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -72,7 +76,8 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.mam.entity.Promotion
+import com.example.mam.dto.promotion.PromotionRequest
+import com.example.mam.dto.promotion.PromotionResponse
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
@@ -84,7 +89,10 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListPromotionViewModel
+import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import java.text.DecimalFormat
+import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -94,7 +102,7 @@ fun ListPromotionScreen(
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onAddClick: () -> Unit = {},
-    mockData: List<Promotion>? = null,
+    mockData: List<PromotionResponse>? = null,
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
     val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
@@ -102,7 +110,9 @@ fun ListPromotionScreen(
     val promoList = viewModel.promoList.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
-
+    val asc = viewModel.asc.collectAsStateWithLifecycle().value
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     LaunchedEffect(Unit){
         viewModel.loadSortingOptions()
         viewModel.loadData()
@@ -240,7 +250,7 @@ fun ListPromotionScreen(
                                             disabledContainerColor = WhiteDefault
                                         ),
                                         onClick = {
-                                            viewModel.searchPromotion()
+                                            scope.launch { viewModel.searchPromotion() }
                                             focusManager.clearFocus()
                                         }) {
                                         Icon(Icons.Default.Search, contentDescription = "Search")
@@ -253,7 +263,10 @@ fun ListPromotionScreen(
                             shape = RoundedCornerShape(50.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .onFocusChanged { if(it.isFocused && searchHistory.isNotEmpty()) expanded.value = true },
+                                .onFocusChanged {
+                                    if (it.isFocused && searchHistory.isNotEmpty()) expanded.value =
+                                        true
+                                },
                         )
                         DropdownMenu(
                             expanded = expanded.value,
@@ -280,47 +293,73 @@ fun ListPromotionScreen(
                     }
                 }
                 item {
-                    Box(Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(start = 8.dp)) {
-                        var sortExpanded by remember { mutableStateOf(false) }
-                        FilterChip(
-                            selected = sortExpanded,
-                            onClick = { sortExpanded = !sortExpanded },
-                            label = { selectedSortingOption.value },
-                            leadingIcon = {
-                                Icon(Icons.Default.Sort, contentDescription = "Sort")
-                            },
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                containerColor = WhiteDefault,
-                                labelColor = BrownDefault,
-                                iconColor = BrownDefault,
-                                selectedContainerColor = OrangeDefault,
-                                selectedLabelColor = WhiteDefault,
-                                selectedLeadingIconColor = WhiteDefault,
-                                selectedTrailingIconColor = WhiteDefault
-                            ),
-                            modifier = Modifier
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .padding(start = 8.dp)
+                    ) {
+                        Box() {
+                            var sortExpanded by remember { mutableStateOf(false) }
+                            FilterChip(
+                                selected = sortExpanded,
+                                onClick = { sortExpanded = !sortExpanded },
+                                label = { selectedSortingOption.value },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Sort, contentDescription = "Sort")
+                                },
+                                trailingIcon = {
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = WhiteDefault,
+                                    labelColor = BrownDefault,
+                                    iconColor = BrownDefault,
+                                    selectedContainerColor = OrangeDefault,
+                                    selectedLabelColor = WhiteDefault,
+                                    selectedLeadingIconColor = WhiteDefault,
+                                    selectedTrailingIconColor = WhiteDefault
+                                ),
+                                modifier = Modifier
+                            )
 
-                        DropdownMenu(
-                            expanded = sortExpanded,
-                            onDismissRequest = { sortExpanded = false },
-                            containerColor = WhiteDefault,
-                            modifier = Modifier
-                        ) {
-                            sortOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option, color = BrownDefault) },
-                                    onClick = {
-                                        viewModel.setSelectedSortingOption(option)
-                                        sortExpanded = false
-                                    }
-                                )
+                            DropdownMenu(
+                                expanded = sortExpanded,
+                                onDismissRequest = { sortExpanded = false },
+                                containerColor = WhiteDefault,
+                                modifier = Modifier
+                            ) {
+                                sortOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option, color = BrownDefault) },
+                                        onClick = {
+                                            sortExpanded = false
+                                            scope.launch {
+                                                viewModel.setSelectedSortingOption(option)
+                                                viewModel.sortPromotion()
+                                            }
+                                        }
+                                    )
+                                }
                             }
+                        }
+                        IconButton(
+                            colors = IconButtonColors(
+                                containerColor = WhiteDefault,
+                                contentColor = BrownDefault,
+                                disabledContentColor = BrownDefault,
+                                disabledContainerColor = WhiteDefault
+                            ),
+                            onClick = {
+                                scope.launch {
+                                    viewModel.setASC()
+                                    viewModel.sortPromotion()
+                                }
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(if(asc)Icons.Default.ArrowUpward else Icons.Default.ArrowDownward, contentDescription = "ASC/DESC")
                         }
                     }
                 }
@@ -349,7 +388,7 @@ fun ListPromotionScreen(
                                 Text(
                                     text = "Không có khuyến mãi nào",
                                     color = GreyDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(16.dp)
                                 )
@@ -362,8 +401,6 @@ fun ListPromotionScreen(
                                     onDeleteClick = {}                                )
                             }
                 }
-
-
             }
         }
         IconButton(
@@ -385,7 +422,7 @@ fun ListPromotionScreen(
 
 @Composable
 fun PromotionItem(
-    promo: Promotion,
+    promo: PromotionResponse,
     onDeleteClick: (String) -> Unit,
 ){
     var expand by remember { mutableStateOf(false) }
@@ -415,7 +452,7 @@ fun PromotionItem(
                     text = promo.code,
                     textAlign = TextAlign.Start,
                     color = BrownDefault,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -423,10 +460,10 @@ fun PromotionItem(
                 )
 
                 Text(
-                    text = promo.getValueToString(),
+                    text = promo.getDiscountAmount(),
                     textAlign = TextAlign.End,
                     color = OrangeDefault,
-                    fontSize = 18.sp,
+                    fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -463,24 +500,24 @@ fun PromotionItem(
                     append(promo.description)},
                 textAlign = TextAlign.Start,
                 color = BrownDefault,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 modifier = Modifier
                     .padding(horizontal = 16.dp)
                     .fillMaxWidth()
             )
-            promo.createAt.atZone(ZoneId.systemDefault())?.let {
+            Instant.parse(promo.createdAt).atZone(ZoneId.systemDefault())?.let {
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.SemiBold)) {
                             append("Hạn sử dụng: ")
                         }
                         append(it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")) + " - "
-                                + promo.endDate.atZone(ZoneId.systemDefault())?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))!!)
+                                + Instant.parse(promo.endDate).atZone(ZoneId.systemDefault())?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))!!)
                     },
                     textAlign = TextAlign.Start,
                     color = BrownDefault,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
@@ -497,7 +534,7 @@ fun PromotionItem(
                     append(parsePrice(promo.minValue))},
                 textAlign = TextAlign.Start,
                 color = BrownDefault,
-                fontSize = 16.sp,
+                fontSize = 14.sp,
                 fontWeight = FontWeight.Normal,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
@@ -506,7 +543,7 @@ fun PromotionItem(
                     .fillMaxWidth()
             )
             Spacer(modifier = Modifier.size(8.dp))
-            promo.createAt.atZone(ZoneId.systemDefault())?.let {
+            Instant.parse(promo.createdAt).atZone(ZoneId.systemDefault())?.let {
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -515,7 +552,7 @@ fun PromotionItem(
                         append(it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")))
                     },
                     color = GreyDefault,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     textAlign = TextAlign.Start,
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
@@ -523,7 +560,7 @@ fun PromotionItem(
                 )
             }
 
-            promo.updateAt.atZone(ZoneId.systemDefault())?.let {
+            Instant.parse(promo.updatedAt).atZone(ZoneId.systemDefault())?.let {
                 Text(
                     text = buildAnnotatedString {
                         withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -532,7 +569,7 @@ fun PromotionItem(
                         append(it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")))
                     },
                     color = GreyDefault,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     textAlign = TextAlign.Start,
                     modifier = Modifier
                         .padding(start = 16.dp, bottom = 16.dp, end = 16.dp)
@@ -543,31 +580,31 @@ fun PromotionItem(
     }
 }
 
-fun parsePrice(value: Int): String {
+fun parsePrice(value: BigDecimal): String {
     val formatter = DecimalFormat("#,###")
     return "${formatter.format(value)} VND"
 }
 
-@Preview
-@Composable
-fun PromotionItemPreview() {
-    PromotionItem(
-        promo = Promotion("PROMO123", 10000),
-        onDeleteClick = {}
-    )
-}
-
-@Preview
-@Composable
-fun ListPromotionScreenPreview() {
-    ListPromotionScreen(
-        viewModel = ListPromotionViewModel(),
-        onBackClick = {},
-        onAddClick = {},
-        mockData = listOf(
-            Promotion("PROMO123", 10000),
-            Promotion("PROMO456", 20000),
-            Promotion("PROMO789", 30000)
-        )
-    )
-}
+//@Preview
+//@Composable
+//fun PromotionItemPreview() {
+//    PromotionItem(
+//        promo = Promotion("PROMO123", 10000),
+//        onDeleteClick = {}
+//    )
+//}
+//
+//@Preview
+//@Composable
+//fun ListPromotionScreenPreview() {
+//    ListPromotionScreen(
+//        viewModel = ListPromotionViewModel(),
+//        onBackClick = {},
+//        onAddClick = {},
+//        mockData = listOf(
+//            Promotion("PROMO123", 10000),
+//            Promotion("PROMO456", 20000),
+//            Promotion("PROMO789", 30000)
+//        )
+//    )
+//}

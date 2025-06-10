@@ -22,7 +22,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DoneAll
@@ -53,12 +55,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -75,6 +79,7 @@ import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.core.app.NotificationManagerCompat.NotificationWithIdAndTag
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.mam.dto.notification.NotificationResponse
 import com.example.mam.entity.Notification
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.outerShadow
@@ -87,6 +92,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListNotificationViewModel
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -98,7 +104,7 @@ fun ListNotificationScreen(
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onAddNotificationClick : () -> Unit = {},
-    mockData: List<Notification> ?= null,
+    mockData: List<NotificationResponse> ?= null,
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
     val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
@@ -106,6 +112,9 @@ fun ListNotificationScreen(
     val notiList = viewModel.notiList.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val desc = viewModel.desc.collectAsStateWithLifecycle().value
 
     LaunchedEffect(Unit) {
         viewModel.loadSortingOptions()
@@ -244,7 +253,7 @@ fun ListNotificationScreen(
                                             disabledContainerColor = WhiteDefault
                                         ),
                                         onClick = {
-                                            viewModel.searchNotification()
+                                            scope.launch { viewModel.searchNotification() }
                                             focusManager.clearFocus()
                                         }) {
                                         Icon(Icons.Default.Search, contentDescription = "Search")
@@ -257,7 +266,10 @@ fun ListNotificationScreen(
                             shape = RoundedCornerShape(50.dp),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .onFocusChanged { if(it.isFocused && searchHistory.isNotEmpty()) expanded.value = true },
+                                .onFocusChanged {
+                                    if (it.isFocused && searchHistory.isNotEmpty()) expanded.value =
+                                        true
+                                },
                         )
                         DropdownMenu(
                             expanded = expanded.value,
@@ -284,47 +296,76 @@ fun ListNotificationScreen(
                     }
                 }
                 item {
-                    Box(Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(start = 8.dp)) {
-                        var sortExpanded by remember { mutableStateOf(false) }
-                        FilterChip(
-                            selected = sortExpanded,
-                            onClick = { sortExpanded = !sortExpanded },
-                            label = { selectedSortingOption.value },
-                            leadingIcon = {
-                                Icon(Icons.Default.Sort, contentDescription = "Sort")
-                            },
-                            trailingIcon = {
-                                Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                containerColor = WhiteDefault,
-                                labelColor = BrownDefault,
-                                iconColor = BrownDefault,
-                                selectedContainerColor = OrangeDefault,
-                                selectedLabelColor = WhiteDefault,
-                                selectedLeadingIconColor = WhiteDefault,
-                                selectedTrailingIconColor = WhiteDefault
-                            ),
-                            modifier = Modifier
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .padding(start = 8.dp)
+                    ) {
+                        Box() {
+                            var sortExpanded by remember { mutableStateOf(false) }
+                            FilterChip(
+                                selected = sortExpanded,
+                                onClick = { sortExpanded = !sortExpanded },
+                                label = { selectedSortingOption.value },
+                                leadingIcon = {
+                                    Icon(Icons.Default.Sort, contentDescription = "Sort")
+                                },
+                                trailingIcon = {
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = "Expand")
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    containerColor = WhiteDefault,
+                                    labelColor = BrownDefault,
+                                    iconColor = BrownDefault,
+                                    selectedContainerColor = OrangeDefault,
+                                    selectedLabelColor = WhiteDefault,
+                                    selectedLeadingIconColor = WhiteDefault,
+                                    selectedTrailingIconColor = WhiteDefault
+                                ),
+                                modifier = Modifier
+                            )
 
-                        DropdownMenu(
-                            expanded = sortExpanded,
-                            onDismissRequest = { sortExpanded = false },
-                            containerColor = WhiteDefault,
-                            modifier = Modifier
-                        ) {
-                            sortOptions.forEach { option ->
-                                DropdownMenuItem(
-                                    text = { Text(option, color = BrownDefault) },
-                                    onClick = {
-                                        viewModel.setSelectedSortingOption(option)
-                                        sortExpanded = false
-                                    }
-                                )
+                            DropdownMenu(
+                                expanded = sortExpanded,
+                                onDismissRequest = { sortExpanded = false },
+                                containerColor = WhiteDefault,
+                                modifier = Modifier
+                            ) {
+                                sortOptions.forEach { option ->
+                                    DropdownMenuItem(
+                                        text = { Text(option, color = BrownDefault) },
+                                        onClick = {
+                                            sortExpanded = false
+                                            scope.launch {
+                                                viewModel.setSelectedSortingOption(option)
+                                                viewModel.sortNotification()
+                                            }
+                                        }
+                                    )
+                                }
                             }
+                        }
+                        IconButton(
+                            colors = IconButtonColors(
+                                containerColor = WhiteDefault,
+                                contentColor = BrownDefault,
+                                disabledContentColor = BrownDefault,
+                                disabledContainerColor = WhiteDefault
+                            ),
+                            onClick = {
+                                scope.launch {
+                                    viewModel.setDESC()
+                                    viewModel.sortNotification()
+                                }
+                            },
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(
+                                if (desc) Icons.Default.ArrowDownward else Icons.Default.ArrowUpward,
+                                contentDescription = "DESC/ASC"
+                            )
                         }
                     }
                 }
@@ -352,7 +393,7 @@ fun ListNotificationScreen(
                                 Text(
                                     text = "Không có thông báo nào",
                                     color = GreyDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(16.dp)
                                 )
@@ -365,8 +406,6 @@ fun ListNotificationScreen(
                                 )
                             }
                 }
-
-
             }
         }
         IconButton(
@@ -389,7 +428,7 @@ fun ListNotificationScreen(
 
 @Composable
 fun NotificationItem(
-    notification: Notification,
+    notification: NotificationResponse,
 ) {
     var expand by remember { mutableStateOf(false) }
     Surface(
@@ -415,7 +454,7 @@ fun NotificationItem(
                     modifier = Modifier
                         .weight(1f)
                 ) {
-                    notification.timestamp.atZone(ZoneId.systemDefault())?.let {
+                    Instant.parse(notification.createdAt).atZone(ZoneId.systemDefault())?.let {
                         Text(
                             text = buildAnnotatedString {
                                 withStyle(
@@ -437,7 +476,7 @@ fun NotificationItem(
                         text = notification.title,
                         textAlign = TextAlign.Start,
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -447,7 +486,7 @@ fun NotificationItem(
                         text = "ID: " + notification.id,
                         textAlign = TextAlign.Start,
                         color = GreyDefault,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
@@ -457,7 +496,7 @@ fun NotificationItem(
                         text = notification.title,
                         textAlign = TextAlign.Start,
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -477,17 +516,17 @@ fun NotificationItem(
             }
             if (expand) {
                 Text(
-                    text = notification.content,
+                    text = notification.message,
                     textAlign = TextAlign.Start,
                     color = BrownDefault,
-                    fontSize = 16.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier
                         .padding(horizontal = 16.dp)
                         .fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.size(8.dp))
-                notification.createAt.atZone(ZoneId.systemDefault())?.let {
+                Instant.parse(notification.createdAt).atZone(ZoneId.systemDefault())?.let {
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -496,7 +535,7 @@ fun NotificationItem(
                             append(it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")))
                         },
                         color = GreyDefault,
-                        fontSize = 16.sp,
+                        fontSize = 14.sp,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
@@ -504,7 +543,7 @@ fun NotificationItem(
                     )
                 }
 
-                notification.updateAt.atZone(ZoneId.systemDefault())?.let {
+                Instant.parse(notification.updatedAt).atZone(ZoneId.systemDefault())?.let {
                     Text(
                         text = buildAnnotatedString {
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
@@ -513,7 +552,7 @@ fun NotificationItem(
                             append(it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")))
                         },
                         color = GreyDefault,
-                        fontSize = 16.sp,
+                        fontSize = 14.sp,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .padding(start = 16.dp, bottom = 16.dp, end = 16.dp)
@@ -525,56 +564,56 @@ fun NotificationItem(
     }
 }
 
-@Preview
-@Composable
-fun NotificationItemPreview() {
-    NotificationItem(
-        notification = Notification(
-            id = "1",
-            title = "Test Notification",
-            content = "This is a test notification",
-            timestamp = Instant.now(),
-            isRead = false,
-            icon = Icons.Default.DoneAll,
-            createAt = Instant.now(),
-            updateAt = Instant.now(),
-            type = "ORDER_DELIVERING"
+//@Preview
+//@Composable
+//fun NotificationItemPreview() {
+//    NotificationItem(
+//        notification = Notification(
+//            id = "1",
+//            title = "Test Notification",
+//            content = "This is a test notification",
+//            timestamp = Instant.now(),
+//            isRead = false,
+//            icon = Icons.Default.DoneAll,
+//            createAt = Instant.now(),
+//            updateAt = Instant.now(),
+//            type = "ORDER_DELIVERING"
+//
+//        ),
+//    )
+//}
 
-        ),
-    )
-}
-
-@Preview
-@Composable
-fun ListNotificationScreenPreview() {
-    ListNotificationScreen(
-        viewModel = ListNotificationViewModel(),
-        onBackClick = {},
-        onAddNotificationClick = {},
-        onHomeClick = {},
-        mockData = listOf(
-            Notification(
-                id = "1",
-                title = "Test Notification",
-                content = "This is a test notification",
-                timestamp = Instant.now(),
-                isRead = false,
-                icon = Icons.Default.DoneAll,
-                createAt = Instant.now(),
-                updateAt = Instant.now(),
-                type = "ORDER_DELIVERING"
-            ),
-            Notification(
-                id = "2",
-                title = "Test Notification 2",
-                content = "This is a test notification 2",
-                timestamp = Instant.now(),
-                isRead = false,
-                icon = Icons.Default.DoneAll,
-                createAt = Instant.now(),
-                updateAt = Instant.now(),
-                type = "ORDER_DELIVERING"
-            )
-        )
-    )
-}
+//@Preview
+//@Composable
+//fun ListNotificationScreenPreview() {
+//    ListNotificationScreen(
+//        viewModel = ListNotificationViewModel(factory = ListNotificationViewModel.Factory),
+//        onBackClick = {},
+//        onAddNotificationClick = {},
+//        onHomeClick = {},
+//        mockData = listOf(
+//            Notification(
+//                id = "1",
+//                title = "Test Notification",
+//                content = "This is a test notification",
+//                timestamp = Instant.now(),
+//                isRead = false,
+//                icon = Icons.Default.DoneAll,
+//                createAt = Instant.now(),
+//                updateAt = Instant.now(),
+//                type = "ORDER_DELIVERING"
+//            ),
+//            Notification(
+//                id = "2",
+//                title = "Test Notification 2",
+//                content = "This is a test notification 2",
+//                timestamp = Instant.now(),
+//                isRead = false,
+//                icon = Icons.Default.DoneAll,
+//                createAt = Instant.now(),
+//                updateAt = Instant.now(),
+//                type = "ORDER_DELIVERING"
+//            )
+//        )
+//    )
+//}

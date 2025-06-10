@@ -27,7 +27,7 @@ interface PromotionService {
         @Query("page") page: Int = 0,
         @Query("size") size: Int = 20,
         @Query("sort") sort: List<String>? = null,
-        @Query("specification") specification: String
+        @Query("filter") filter: String
     ): Response<PageVO<PromotionResponse>>
     @POST("promotions")
     suspend fun createPromotion(@Body promotionRequest: PromotionRequest): Response<PromotionResponse>

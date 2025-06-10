@@ -45,6 +45,7 @@ interface OrderService {
     suspend fun getOrderStatus(
         @Path("orderId") orderId: Long,
         @Query("status") status: String
-    ): Response<String>
-
+    ): Response<VoidVoid>
+    @GET("orders/delete/{id}")
+    suspend fun deleteOrder(@Path("id") id: String): Response<OrderResponse>
 }
