@@ -27,7 +27,6 @@ public class UserPromotionServiceImpl implements UserPromotionService {
     public List<Promotion> getAvailablePromotions(Long userId) {
         Instant now = Instant.now();
 
-        // Lấy các promotion người dùng được chỉ định (private)
         List<UserPromotion> userPromotions = userPromotionRepository.findByUserId(userId);
         Set<Long> usedPromotionIds = userPromotions.stream()
                 .filter(UserPromotion::isUsed)
@@ -40,14 +39,12 @@ public class UserPromotionServiceImpl implements UserPromotionService {
                 .filter(p -> !now.isBefore(p.getStartDate()) && !now.isAfter(p.getEndDate()))
                 .collect(Collectors.toSet());
 
-        // Thêm promotion công khai (ai cũng dùng được, trừ đã dùng)
         Set<Promotion> availablePublicPromotions = promotionRepository.findByIsPublicTrue().stream()
                 .filter(p -> !now.isBefore(p.getStartDate()) && !now.isAfter(p.getEndDate()))
                 .filter(p -> !usedPromotionIds.contains(p.getId()))
                 .collect(Collectors.toSet());
 
-        Set<Promotion> allAvailable = new HashSet<>();
-        allAvailable.addAll(availablePrivatePromotions);
+        Set<Promotion> allAvailable = new HashSet<>(availablePrivatePromotions);
         allAvailable.addAll(availablePublicPromotions);
 
         return new ArrayList<>(allAvailable);
@@ -69,22 +66,7 @@ public class UserPromotionServiceImpl implements UserPromotionService {
             throw new IllegalArgumentException("Order value does not meet the promotion's minimum requirement");
         }
 
-        if (promotion.getIsPublic()) {
-            // Nếu là public promotion, đánh dấu là đã dùng
-            markPromotionAsUsed(userId, promotionId);
-        } else {
-            // Nếu là private promotion, người dùng phải có promotion
-            UserPromotion userPromotion = userPromotionRepository
-                    .findByUserIdAndPromotionId(userId, promotionId)
-                    .orElseThrow(() -> new IllegalArgumentException("Promotion is not available for this user"));
-
-            if (userPromotion.isUsed()) {
-                throw new IllegalArgumentException("Promotion has already been used");
-            }
-
-            userPromotion.setUsed(true);
-            userPromotionRepository.save(userPromotion);
-        }
+        updatePromotionUsage(userId, promotionId);
 
         return promotion;
     }
@@ -92,37 +74,13 @@ public class UserPromotionServiceImpl implements UserPromotionService {
     @Override
     @Transactional
     public void markPromotionAsUsed(Long userId, Long promotionId) {
-        Optional<UserPromotion> existing = userPromotionRepository.findByUserIdAndPromotionId(userId, promotionId);
-
-        if (existing.isPresent()) {
-            UserPromotion userPromotion = existing.get();
-            if (!userPromotion.isUsed()) {
-                userPromotion.setUsed(true);
-                userPromotionRepository.save(userPromotion);
-            }
-        } else {
-            Promotion promotion = promotionRepository.findById(promotionId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Promotion not found"));
-
-            if (!promotion.getIsPublic()) {
-                throw new IllegalArgumentException("Cannot auto-assign private promotion");
-            }
-
-            UserPromotion newUserPromotion = new UserPromotion();
-            newUserPromotion.setId(new UserPromotionId(userId, promotionId));
-            newUserPromotion.setUser(new User(userId));
-            newUserPromotion.setPromotion(promotion);
-            newUserPromotion.setUsed(true);
-
-            userPromotionRepository.save(newUserPromotion);
-        }
+        updatePromotionUsage(userId, promotionId);
     }
 
     @Override
     public List<Promotion> getAvailablePromotionsForOrder(Long userId, BigDecimal orderValue) {
         Instant now = Instant.now();
 
-        // Lấy UserPromotion đã dùng
         Set<Long> usedPromotionIds = userPromotionRepository.findByUserId(userId).stream()
                 .filter(UserPromotion::isUsed)
                 .map(up -> up.getPromotion().getId())
@@ -141,10 +99,37 @@ public class UserPromotionServiceImpl implements UserPromotionService {
                 .filter(p -> orderValue.compareTo(p.getMinValue()) >= 0)
                 .collect(Collectors.toSet());
 
-        Set<Promotion> allEligible = new HashSet<>();
-        allEligible.addAll(privateEligible);
+        Set<Promotion> allEligible = new HashSet<>(privateEligible);
         allEligible.addAll(publicEligible);
 
         return new ArrayList<>(allEligible);
+    }
+
+    private void updatePromotionUsage(Long userId, Long promotionId) {
+        userPromotionRepository.findByUserIdAndPromotionId(userId, promotionId)
+                .ifPresentOrElse(
+                        userPromotion -> {
+                            if (!userPromotion.isUsed()) {
+                                userPromotion.setUsed(true);
+                                userPromotionRepository.save(userPromotion);
+                            }
+                        },
+                        () -> {
+                            Promotion promotion = promotionRepository.findById(promotionId)
+                                    .orElseThrow(() -> new ResourceNotFoundException("Promotion not found"));
+
+                            if (!promotion.getIsPublic()) {
+                                throw new IllegalArgumentException("Cannot auto-assign private promotion");
+                            }
+
+                            UserPromotion newUserPromotion = new UserPromotion();
+                            newUserPromotion.setId(new UserPromotionId(userId, promotionId));
+                            newUserPromotion.setUser(new User(userId));
+                            newUserPromotion.setPromotion(promotion);
+                            newUserPromotion.setUsed(true);
+
+                            userPromotionRepository.save(newUserPromotion);
+                        }
+                );
     }
 }
