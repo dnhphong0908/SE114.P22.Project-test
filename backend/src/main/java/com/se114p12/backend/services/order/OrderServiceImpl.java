@@ -93,6 +93,7 @@ public class OrderServiceImpl implements OrderService {
         .build();
   }
 
+  @Transactional
   @Override
   public OrderResponseDTO create(OrderRequestDTO orderRequestDTO) {
     Long currentUserId = jwtUtil.getCurrentUserId();
@@ -160,7 +161,7 @@ public class OrderServiceImpl implements OrderService {
     order = orderRepository.save(order);
 
     cart.getCartItems().clear();
-    cartRepository.delete(cart);
+    cartRepository.deleteById(cart.getId());
 
     return orderMapper.entityToResponseDTO(order);
   }

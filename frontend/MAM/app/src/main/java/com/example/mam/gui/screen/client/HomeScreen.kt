@@ -52,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mam.R
 import com.example.mam.dto.product.CategoryResponse
@@ -114,10 +115,10 @@ fun HomeScreen(
                 }
             }
     }
-    LaunchedEffect(Unit) {
+    LaunchedEffect(LocalLifecycleOwner.current) {
         viewmodel.loadListCategory()
     }
-    LaunchedEffect(categories) {
+    LaunchedEffect(key1 = categories, key2 = LocalLifecycleOwner.current) {
         if(categories.isNotEmpty() && productMap.isEmpty()){
             viewmodel.loadAllProductsFromCategories(categories)
         }
@@ -287,6 +288,8 @@ fun HomeScreen(
                     onClick = {
                         scope.launch {
                             childListState.scrollToItem(0)
+                            viewmodel.loadListCategory()
+                            viewmodel.loadAllProductsFromCategories(categories)
                         }
                     },
                     modifier = Modifier

@@ -1,8 +1,14 @@
 package com.example.mam.viewmodel.client
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
+import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.entity.Order
+import com.example.mam.viewmodel.authentication.NotificationViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -12,49 +18,24 @@ import kotlinx.coroutines.launch
 import java.time.LocalDate
 import java.time.ZoneId
 
-enum class OrderStatusFilter(val code: Int) {
-    ALL(-1),
-    PENDING(0),
-    DELIVERED(1),
-    CANCELED(2);
 
-    companion object {
-        fun fromCode(code: Int): OrderStatusFilter {
-            return values().firstOrNull { it.code == code } ?: ALL
-        }
-    }
-}
-
-open class OrderHistoryViewModel(
-//    private val api: APIservice
+class OrderHistoryViewModel(
+    private val userPreferencesRepository: UserPreferencesRepository
 ): ViewModel() {
     private val _orders = MutableStateFlow<List<Order>>(emptyList())
     val orders: StateFlow<List<Order>> = _orders
 
-    private val _statusFilter = MutableStateFlow(OrderStatusFilter.ALL)
-    val statusFilter: StateFlow<OrderStatusFilter> = _statusFilter
-
-    private val _dateFilter = MutableStateFlow<LocalDate?>(null)
-    val dateFilter: StateFlow<LocalDate?> = _dateFilter
-
-    val filteredOrder = combine(_orders, _dateFilter) { orders, dateFilter ->
-        orders.filter { order ->
-            dateFilter?.let { selectedDate ->
-                val localDate = order.actualDeliveryTime
-                    ?.atZone(ZoneId.systemDefault())
-                    ?.toLocalDate()
-                localDate == selectedDate
-            } ?: true
-        }
-    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+    private val _asc = MutableStateFlow(true)
+    val asc: StateFlow<Boolean> = _asc
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
-    fun loadOrders() {
+    suspend fun loadOrders() {
         viewModelScope.launch {
             try {
                 _isLoading.value = true
+
             } catch (e: Exception) {
                 // Handle error
             } finally {
@@ -62,11 +43,12 @@ open class OrderHistoryViewModel(
             }
         }
     }
-    fun setStatusFilter(status: OrderStatusFilter) {
-        _statusFilter.value = status
-    }
-
-    fun setDateFilter(date: LocalDate?) {
-        _dateFilter.value = date
+    companion object {
+        val Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                NotificationViewModel(application.userPreferencesRepository)
+            }
+        }
     }
 }

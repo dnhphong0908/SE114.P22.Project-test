@@ -230,6 +230,9 @@ fun ItemScreen(
                     if (option.isMultipleChoice ){
                         var selectedOption: VariationOptionResponse
                         optionsMap[option.id]?.let {
+                            LaunchedEffect(it) {
+                                viewModel.selectRatioOption( it.first())
+                            }
                             RadioOption(
                                 title = option.name,
                                 options = it,
@@ -246,6 +249,9 @@ fun ItemScreen(
                     else if(option.name == "Kích cỡ bánh") {
                         var sizeOption: VariationOptionResponse
                         optionsMap[option.id]?.let {
+                            LaunchedEffect(it) {
+                                viewModel.selectRatioOption( it.first())
+                            }
                             PizzaSizeOption(
                                 title = option.name,
                                 options = it,

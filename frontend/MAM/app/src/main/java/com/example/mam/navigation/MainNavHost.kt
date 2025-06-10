@@ -319,8 +319,7 @@ fun MainNavHost(
                 val viewModel: ItemViewModel = viewModel(backStackEntry, factory = ItemViewModel.Factory)
                 ItemScreen(
                     onBackClicked = {navController.popBackStack()},
-                    onAddClick = {
-                        navController.popBackStack() },
+                    onAddClick = { },
                     onCartClicked = {navController.navigate("Cart")},
                     viewModel = viewModel
                 )
@@ -370,7 +369,9 @@ fun MainNavHost(
                     onBackClicked = {navController.popBackStack()},
                     onCheckOutClicked = {
                         //order
-                        navController.navigate("Order") },
+                        navController.navigate(route = HomeScreen.HomeSreen.name) {
+                            popUpTo("CheckOut") { inclusive = true }
+                        } },
                     onChangeAddressClicked = {
                         navController.navigate("Address")
                         // get address for saveStateHandle
