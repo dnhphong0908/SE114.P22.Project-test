@@ -5,6 +5,8 @@ import com.se114p12.backend.enums.OrderStatus;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
+
+import com.se114p12.backend.enums.PaymentMethod;
 import lombok.Data;
 
 @Data
@@ -17,5 +19,6 @@ public class OrderResponseDTO extends BaseResponseDTO {
   private OrderStatus orderStatus;
   private Long userId;
   private Long shipperId;
+  private PaymentMethod paymentMethod;
   private List<OrderDetailResponseDTO> orderDetails;
 }
