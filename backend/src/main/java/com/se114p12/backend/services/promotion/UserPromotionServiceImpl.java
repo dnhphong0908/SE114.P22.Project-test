@@ -5,6 +5,7 @@ import com.se114p12.backend.entities.promotion.UserPromotion;
 import com.se114p12.backend.entities.promotion.UserPromotionId;
 import com.se114p12.backend.entities.user.User;
 import com.se114p12.backend.exceptions.ResourceNotFoundException;
+import com.se114p12.backend.repositories.authentication.UserRepository;
 import com.se114p12.backend.repositories.promotion.PromotionRepository;
 import com.se114p12.backend.repositories.promotion.UserPromotionRepository;
 import jakarta.transaction.Transactional;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class UserPromotionServiceImpl implements UserPromotionService {
 
+    private final UserRepository userRepository;
     private final UserPromotionRepository userPromotionRepository;
     private final PromotionRepository promotionRepository;
 
@@ -122,13 +124,17 @@ public class UserPromotionServiceImpl implements UserPromotionService {
                                 throw new IllegalArgumentException("Cannot auto-assign private promotion");
                             }
 
+                            User user = userRepository.findById(userId)
+                                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
                             UserPromotion newUserPromotion = new UserPromotion();
                             newUserPromotion.setId(new UserPromotionId(userId, promotionId));
-                            newUserPromotion.setUser(new User(userId));
+                            newUserPromotion.setUser(user);
                             newUserPromotion.setPromotion(promotion);
                             newUserPromotion.setUsed(true);
 
                             userPromotionRepository.save(newUserPromotion);
+
                         }
                 );
     }

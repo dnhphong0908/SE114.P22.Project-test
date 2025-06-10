@@ -4,6 +4,7 @@ import com.se114p12.backend.dtos.cart.CartItemRequestDTO;
 import com.se114p12.backend.dtos.cart.CartItemResponseDTO;
 import com.se114p12.backend.entities.cart.CartItem;
 import com.se114p12.backend.entities.product.Product;
+import com.se114p12.backend.entities.variation.Variation;
 import com.se114p12.backend.entities.variation.VariationOption;
 import com.se114p12.backend.mappers.product.ProductMapper;
 import com.se114p12.backend.mappers.variation.VariationOptionMapper;
@@ -35,17 +36,28 @@ public interface CartItemMapper {
             dto.setProductName(entity.getProduct().getName());
             dto.setImageUrl(entity.getProduct().getImageUrl());
         }
+
         if (entity.getVariationOptions() != null && !entity.getVariationOptions().isEmpty()) {
             String variationNames = entity.getVariationOptions().stream()
-                    .sorted(Comparator.comparing(v -> v.getVariation() != null ? v.getVariation().getId() : 0)) // Sắp xếp theo tên
-                    .map(v -> {
-                        String variationName = (v.getVariation() != null) ? v.getVariation().getName() : "Unknown";
-                        return variationName + ": " + v.getValue();
+                    .filter(vo -> vo.getVariation() != null)
+                    .collect(Collectors.groupingBy(VariationOption::getVariation)) // Nhóm theo Variation
+                    .entrySet().stream()
+                    .sorted(Comparator.comparing(entry -> entry.getKey().getId()))
+                    .map(entry -> {
+                        Variation variation = entry.getKey();
+                        String variationName = variation.getName();
+                        String values = entry.getValue().stream()
+                                .map(VariationOption::getValue)
+                                .collect(Collectors.joining(", "));
+
+                        return variationName + ": " + values;
                     })
                     .collect(Collectors.joining(", "));
+
             dto.setVariationOptionInfo(variationNames);
         }
     }
+
 
     @Named("mapProduct")
     static Product mapProduct(Long productId, @Context ProductRepository productRepo) {
