@@ -1,7 +1,5 @@
 package com.se114p12.backend.services.order;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.se114p12.backend.dtos.order.OrderRequestDTO;
 import com.se114p12.backend.dtos.order.OrderResponseDTO;
 import com.se114p12.backend.entities.cart.Cart;
@@ -11,6 +9,7 @@ import com.se114p12.backend.entities.order.OrderDetail;
 import com.se114p12.backend.entities.product.Product;
 import com.se114p12.backend.entities.promotion.Promotion;
 import com.se114p12.backend.entities.shipper.Shipper;
+import com.se114p12.backend.entities.variation.VariationOption;
 import com.se114p12.backend.enums.OrderStatus;
 import com.se114p12.backend.enums.PaymentStatus;
 import com.se114p12.backend.exceptions.BadRequestException;
@@ -158,7 +157,7 @@ public class OrderServiceImpl implements OrderService {
           jwtUtil.getCurrentUserId(), appliedPromotion.getId());
     }
 
-    order.setTotalPrice(totalPrice);
+    order.setTotalPrice((totalPrice.compareTo(BigDecimal.ZERO) >= 0) ? totalPrice : BigDecimal.ZERO);
 
     order = orderRepository.save(order);
 
@@ -210,27 +209,6 @@ public class OrderServiceImpl implements OrderService {
     orderRepository.delete(order);
   }
 
-  private String extractVariationInfo(CartItem cartItem) {
-    if (cartItem.getVariationOptions() == null || cartItem.getVariationOptions().isEmpty()) {
-      return null;
-    }
-
-    // Đảm bảo thứ tự Variation
-    return cartItem.getVariationOptions().stream()
-            .filter(vo -> vo.getVariation() != null)
-            .collect(Collectors.groupingBy(vo -> vo.getVariation()))
-            .entrySet().stream()
-            .sorted(Comparator.comparing(entry -> entry.getKey().getId())) // Đảm bảo thứ tự Variation
-            .map(entry -> {
-              String variationName = entry.getKey().getName();
-              String values = entry.getValue().stream()
-                      .map(variationOption -> variationOption.getValue())
-                      .collect(Collectors.joining(", "));
-              return variationName + ": " + values;
-            })
-            .collect(Collectors.joining(", "));
-  }
-
   @Override
   @Transactional
   public void markOrderAsDelivered(Long orderId) {
@@ -280,5 +258,26 @@ public class OrderServiceImpl implements OrderService {
     }
     order.setOrderStatus(status);
     orderRepository.save(order);
+  }
+
+  private String extractVariationInfo(CartItem cartItem) {
+    if (cartItem.getVariationOptions() == null || cartItem.getVariationOptions().isEmpty()) {
+      return null;
+    }
+
+    // Đảm bảo thứ tự Variation
+    return cartItem.getVariationOptions().stream()
+            .filter(vo -> vo.getVariation() != null)
+            .collect(Collectors.groupingBy(VariationOption::getVariation))
+            .entrySet().stream()
+            .sorted(Comparator.comparing(entry -> entry.getKey().getId())) // Đảm bảo thứ tự Variation
+            .map(entry -> {
+              String variationName = entry.getKey().getName();
+              String values = entry.getValue().stream()
+                      .map(VariationOption::getValue)
+                      .collect(Collectors.joining(", "));
+              return variationName + ": " + values;
+            })
+            .collect(Collectors.joining(", "));
   }
 }
