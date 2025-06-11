@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -108,9 +109,10 @@ import kotlin.random.Random
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
-    onBackClicked: () -> Unit = {},
+    onProfileClicked: () -> Unit = {},
     onItemClicked: (String) -> Unit = {},
-    onActiveOrderClicked: (String) -> Unit = {},
+    onPreProcessOrderClick: () -> Unit = {},
+    onProcessingOrderClick: () -> Unit = {}
 ) {
     // Your UI code here
     // You can use viewModel to access the data and state
@@ -141,26 +143,9 @@ fun DashboardScreen(
             CircleIconButton(
                 backgroundColor = OrangeLighter,
                 foregroundColor = OrangeDefault,
-                icon = Icons.Outlined.Logout,
+                icon = Icons.Outlined.Person,
                 shadow = "outer",
-                onClick = {
-                    scope.launch {
-                        val result = viewModel.logOut()
-                        if (result == 1) {
-                            Toast.makeText(
-                                context,
-                                "Đăng xuất thành công",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            onBackClicked()
-                        }
-                        else Toast.makeText(
-                            context,
-                            "Đăng xuất thất bại",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                },
+                onClick = onProfileClicked,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(top = 16.dp, start = 16.dp)
@@ -221,7 +206,7 @@ fun DashboardScreen(
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 4.dp,
                         ),
-                        onClick = { },
+                        onClick = onProcessingOrderClick,
                         shape = RoundedCornerShape(20.dp),
                     ) {
                         Text(
@@ -249,7 +234,7 @@ fun DashboardScreen(
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 4.dp,
                         ),
-                        onClick = { },
+                        onClick = onPreProcessOrderClick,
                         shape = RoundedCornerShape(20.dp),
                     ) {
                         Text(

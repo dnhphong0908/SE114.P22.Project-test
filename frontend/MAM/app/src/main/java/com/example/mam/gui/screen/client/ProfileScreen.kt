@@ -83,6 +83,7 @@ fun ProfileScreen(
     onLogoutClicked: () -> Unit = {},
     onBackClicked: () -> Unit = {},
     onHistoryClicked: () -> Unit = {},
+    isAdmin: Boolean = false,
     viewModel: ProfileViewModel
     ) {
     val context = LocalContext.current
@@ -263,6 +264,7 @@ fun ProfileScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
+                if (!isAdmin)
                 NormalButtonWithIcon(
                     text = "Lịch sử đơn hàng",
                     onClick = onHistoryClicked,

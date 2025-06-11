@@ -97,6 +97,8 @@ fun ListOrderScreen(
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onEditOrderClick: (Long) -> Unit = {},
+    isPreProcessing: Boolean = false,
+    isProcessing: Boolean = false,
     mockData: List<OrderResponse>? = null,
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
@@ -111,7 +113,7 @@ fun ListOrderScreen(
     val context = LocalContext.current
     LaunchedEffect(Unit){
         viewModel.loadSortingOptions()
-        viewModel.loadData()
+        viewModel.loadData(isProcessing, isPreProcessing)
     }
     Box(
         modifier = Modifier
@@ -150,7 +152,7 @@ fun ListOrderScreen(
                         .padding(end = 16.dp, top = 16.dp)
                 )
                 Text(
-                    text = "Đơn hàng",
+                    text = "Đơn hàng" + if(isProcessing) " đang xử lý" else if(isPreProcessing) " chưa xử lý" else "",
                     style = Typography.titleLarge,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -246,7 +248,7 @@ fun ListOrderScreen(
                                             disabledContainerColor = WhiteDefault
                                         ),
                                         onClick = {
-                                            scope.launch {viewModel.searchOrder()}
+                                            scope.launch {viewModel.searchOrder(isProcessing, isPreProcessing)}
                                             focusManager.clearFocus()
                                         }) {
                                         Icon(Icons.Default.Search, contentDescription = "Search")
@@ -346,7 +348,7 @@ fun ListOrderScreen(
                             onClick = {
                                 scope.launch {
                                     viewModel.setASC()
-                                    viewModel.sortOrder()
+                                    viewModel.sortOrder(isProcessing, isPreProcessing)
                                 }
                             },
                             modifier = Modifier.size(30.dp)
@@ -378,7 +380,7 @@ fun ListOrderScreen(
                         if (orderList.isEmpty()) {
                             item {
                                 Text(
-                                    text = "Không có đơn hàng nào",
+                                    text = "Không có đơn hàng " + if(isProcessing) "đang xử lý nào" else if(isPreProcessing) "chưa xử lý nào" else   "nào",
                                     color = GreyDefault,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.SemiBold,

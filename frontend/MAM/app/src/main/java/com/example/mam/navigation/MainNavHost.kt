@@ -444,10 +444,8 @@ fun MainNavHost(
             ){ backStackEntry ->
                 val viewModel: DashboardViewModel = viewModel(backStackEntry, factory = DashboardViewModel.Factory)
                 DashboardScreen(
-                    onBackClicked = {
-                        navController.navigate(route = AuthenticationScreen.Start.name) {
-                        popUpTo("Dashboard") { inclusive = true }
-                        }
+                    onProfileClicked = {
+                        navController.navigate("AdminProfile")
                     },
                     onItemClicked = { item ->
                         when(item) {
@@ -460,7 +458,82 @@ fun MainNavHost(
                             "Đơn hàng" -> navController.navigate("ListOrder")
                         }
                     },
-                    onActiveOrderClicked = { order -> },
+                    onProcessingOrderClick = {
+                        navController.navigate("ProcessingOrder")
+                    },
+                    onPreProcessOrderClick = {
+                        navController.navigate("PreProcessingOrder")
+                    },
+                    viewModel = viewModel
+                )
+            }
+            composable(
+                route = "ProcessingOrder",
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
+            ) { backStackEntry ->
+                val viewModel: ListOrderViewModel = viewModel(backStackEntry, factory = ListOrderViewModel.Factory)
+                ListOrderScreen(
+                    onBackClick = {navController.popBackStack()},
+                    onEditOrderClick = { orderId ->
+                        navController.navigate("EditOrder/${orderId}")
+                    },
+                    onHomeClick = {
+                        navController.navigate("Dashboard") {
+                            popUpTo("Dashboard") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    },
+                    isProcessing = true,
+                    viewModel = viewModel
+                )
+            }
+            composable(
+                route = "PreProcessingOrder",
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
+            ) { backStackEntry ->
+                val viewModel: ListOrderViewModel = viewModel(backStackEntry, factory = ListOrderViewModel.Factory)
+                ListOrderScreen(
+                    onBackClick = {navController.popBackStack()},
+                    onEditOrderClick = { orderId ->
+                        navController.navigate("EditOrder/${orderId}")
+                    },
+                    onHomeClick = {
+                        navController.navigate("Dashboard") {
+                            popUpTo("Dashboard") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    },
+                    isPreProcessing = true,
+                    viewModel = viewModel
+                )
+            }
+            composable(
+                route = "AdminProfile",
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
+            ) { backStackEntry ->
+                val viewModel: ProfileViewModel = viewModel(backStackEntry, factory = ProfileViewModel.Factory)
+                ProfileScreen(
+                    onBackClicked = {navController.popBackStack()},
+                    onLogoutClicked = {
+                        navController.navigate(route = AuthenticationScreen.Start.name) {
+                            popUpTo("Profile") { inclusive = true }
+                        }},
+                    onChangePasswordClicked = {
+                        navController.navigate("ChangePassword")
+                    },
+                    onHistoryClicked = {
+                        navController.navigate("OrderHistory")
+                    },
+                    isAdmin = true,
                     viewModel = viewModel
                 )
             }
