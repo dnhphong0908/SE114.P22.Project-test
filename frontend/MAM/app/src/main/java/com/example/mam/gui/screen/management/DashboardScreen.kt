@@ -24,7 +24,9 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBackIos
 import androidx.compose.material.icons.filled.ArrowForwardIos
@@ -59,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -98,6 +101,7 @@ import com.example.mam.viewmodel.management.DashboardViewModel
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
+import kotlin.random.Random
 
 @OptIn( ExperimentalLayoutApi::class)
 @Composable
@@ -169,7 +173,7 @@ fun DashboardScreen(
             )
         }
 
-        LazyColumn(
+        Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .outerShadow(
@@ -198,9 +202,11 @@ fun DashboardScreen(
                         bottomEnd = 0.dp
                     )
                 )
+                .verticalScroll(enabled = true,
+                    state = rememberScrollState())
         )
         {
-            item {
+
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
@@ -265,8 +271,7 @@ fun DashboardScreen(
                         )
                     }
                 }
-            }
-            item {
+
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
@@ -287,6 +292,7 @@ fun DashboardScreen(
                         textAlign = TextAlign.Center,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(bottom = 10.dp)
                     )
                     FlowRow(
                         horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -311,7 +317,7 @@ fun DashboardScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .fillParentMaxWidth()
+
                                 ) {
                                     Icon(
                                         imageVector = it.icon,
@@ -338,8 +344,7 @@ fun DashboardScreen(
                         }
                     }
                 }
-            }
-            item{
+
                 var isShowBarChart by remember { mutableStateOf(false) }
                 Column (
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -372,8 +377,7 @@ fun DashboardScreen(
                             .height(400.dp)
                     )
                 }
-            }
-            item{
+
                 var isShowPieChart by remember { mutableStateOf(false) }
                 Column (
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -403,13 +407,13 @@ fun DashboardScreen(
                         modifier = Modifier
                             .padding(8.dp)
                             .fillMaxWidth()
-                            .height(500.dp)
+                            .wrapContentHeight()
                     )
                 }
             }
         }
     }
-}
+
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -613,9 +617,9 @@ fun SoldCategoryChart(
     viewModel: DashboardViewModel,
     modifier: Modifier = Modifier,
 ) {
-    var year by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).year) }
-    var month by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).monthValue) }
-    var quarter by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).monthValue / 3 + 1) }
+    val year by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).year) }
+    val month by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).monthValue) }
+    val quarter by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).monthValue / 3 + 1) }
     val context = LocalContext.current
     var isMonthly by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
@@ -630,10 +634,13 @@ fun SoldCategoryChart(
     }
     val isLoading = viewModel.isLoadingCategory.collectAsStateWithLifecycle().value
     val pieChartData = chartData.mapIndexed { index, pair ->
+        val red = Random.nextInt(256)
+        val green = Random.nextInt(256)
+        val blue = Random.nextInt(256)
         PieChartData.Slice(
             label = pair.first,
             value = pair.second,
-            color = if (index % 2 == 0) OrangeDefault else BrownDefault
+            color = Color(red, green, blue)
         )
     }
     val data = PieChartData(
@@ -678,12 +685,15 @@ fun SoldCategoryChart(
         )
     } else {
         Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = modifier
                 .background(
                     color = WhiteDefault,
                     shape = RoundedCornerShape(20.dp)
                 )
+                .wrapContentHeight()
                 .clip(RoundedCornerShape(20.dp))
+
         ) {
             Box(
                 contentAlignment = Alignment.CenterStart,
@@ -737,12 +747,15 @@ fun SoldCategoryChart(
                 legendsConfig = DataUtils.getLegendsConfigFromPieChartData(
                     pieChartData = data,
                     3
-                )
+                ),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+                    .height(150.dp),
             )
             DonutPieChart(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f),
+                    .size(300.dp),
                 data,
                 pieChartConfig
             ) { slice ->

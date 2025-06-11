@@ -18,6 +18,6 @@ data class OrderResponse(
 ): BaseResponse(){
     fun getPriceToString(): String{
         val formatter = DecimalFormat("#,###")
-        return "${formatter.format(totalPrice)} VND"
+        return "${formatter.format(totalPrice.toLong())} VND"
     }
 }

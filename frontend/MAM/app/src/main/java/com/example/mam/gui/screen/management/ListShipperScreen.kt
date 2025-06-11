@@ -385,6 +385,19 @@ fun ListShipperScreen(
                         )
                     }
                 }
+                else {
+                    items(shipperList) { shipper ->
+                        ShipperItem(
+                            shipper = shipper,
+                            onClick = onShipperClick,
+                            onEditClick = onEditShipperClick,
+                            onDeleteClick = {
+                                scope.launch {
+                                viewModel.deleteShipper(shipper.id)
+                            } }
+                        )
+                    }
+                }
             }
         }
         IconButton(

@@ -92,6 +92,8 @@ class ListOrderViewModel(
             _orders.value = allOrders.toMutableList() // Update UI with all categories
 
         } catch (e: Exception) {
+            Log.e("ListOrderViewModel", "Error searching orders: ${e.message}")
+            e.printStackTrace()
         } finally {
             _isLoading.value = false
         }
@@ -133,6 +135,8 @@ class ListOrderViewModel(
             _orders.value = allOrders.toMutableList() // Update UI with all categories
 
         } catch (e: Exception) {
+            Log.e("ListOrderViewModel", "Error sorting orders: ${e.message}")
+            e.printStackTrace()
         } finally {
             _isLoading.value = false
         }
@@ -143,8 +147,20 @@ class ListOrderViewModel(
         _selectedSortingOption.value = option
     }
 
-    fun loadOwnerOfOrder(id: Long): UserResponse {
-        return UserResponse()
+    suspend fun loadOwnerOfOrder(id: Long): UserResponse {
+        try{
+            val response = BaseService(userPreferencesRepository)
+                .userService.getUserById(id)
+            if (response.isSuccessful) {
+                return response.body() ?: UserResponse()
+            } else {
+                Log.e("ListOrderViewModel", "Error loading owner of order: ${response.errorBody()?.string()}")
+                return UserResponse()
+            }
+        } catch (e: Exception) {
+            Log.e("ListOrderViewModel", "Exception loading owner of order: ${e.message}")
+            return UserResponse()
+        }
     }
 
     fun setASC(){
@@ -178,11 +194,16 @@ class ListOrderViewModel(
                     val page = response.body()
                     if (page != null){
                         allOrders.addAll(page.content)
+                        _orders.value = allOrders.toMutableList()
+                        Log.d("ListOrderViewModel", "Loaded page ${page.page} with ${page.content.size} orders")
+                        for (order in page.content) {
+                            Log.d("ListOrderViewModel", "Order ID: ${order.id}, Status: ${order.orderStatus}, Total Price: ${order.getPriceToString()}")
+                        }
                         if (page.page >= (page.totalPages - 1)) {
                             break // Stop looping when the last page is reached
                         }
                         currentPage++ // Move to the next page
-                        _orders.value = allOrders.toMutableList()
+
 
                     }
                     else break
@@ -193,6 +214,8 @@ class ListOrderViewModel(
             _orders.value = allOrders.toMutableList() // Update UI with all categories
 
         } catch (e: Exception) {
+            Log.e("ListOrderViewModel", "Error loading orders: ${e.message}")
+            e.printStackTrace()
         } finally {
             _isLoading.value = false
         }

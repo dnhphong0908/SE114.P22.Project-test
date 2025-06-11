@@ -338,11 +338,11 @@ fun ManageNotificationScreen(
     }
 }
 
-@Preview
-@Composable
-fun ManageNotificationScreenPreview() {
-    ManageNotificationScreen(
-        viewModel = ManageNotificationViewModel(),
-        onBackClick = {}
-    )
-}
+//@Preview
+//@Composable
+//fun ManageNotificationScreenPreview() {
+//    ManageNotificationScreen(
+//        viewModel = ManageNotificationViewModel(),
+//        onBackClick = {}
+//    )
+//}

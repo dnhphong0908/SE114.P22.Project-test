@@ -189,12 +189,14 @@ class ListShipperViewModel(
                     val page = response.body()
                     if (page != null){
                         allShippers.addAll(page.content)
+                        Log.d("Shipper", "Số lượng Shipper: ${allShippers.size}")
+                        _shippers.value = allShippers.toMutableList()
+                        Log.d("Shipper", "Số lượng Shipper hiện tại: ${_shippers.value.size}")
                         if (page.page >= (page.totalPages - 1)) {
                             break // Stop looping when the last page is reached
                         }
                         currentPage++ // Move to the next page
                         Log.d("Shipper", "Lấy trang ${page.page}")
-                        _shippers.value = allShippers.toMutableList()
 
                     }
                     else break

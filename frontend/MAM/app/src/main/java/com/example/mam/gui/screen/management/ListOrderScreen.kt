@@ -25,7 +25,6 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
@@ -60,19 +59,21 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.zIndex
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.example.mam.R
 import com.example.mam.dto.order.OrderResponse
+import com.example.mam.dto.user.UserResponse
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
@@ -85,9 +86,6 @@ import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListOrderViewModel
 import kotlinx.coroutines.launch
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 @Composable
 fun ListOrderScreen(
@@ -401,23 +399,19 @@ fun ListOrderScreen(
 fun OrderItem(
     order: OrderResponse,
     viewModel: ListOrderViewModel,
-    isViewOnly: Boolean = false,
+    isViewOnly : Boolean = true,
     onEditClick: (Long) -> Unit,
 ) {
-    val owner = viewModel.loadOwnerOfOrder(order.userId)
+    var owner by remember { mutableStateOf(UserResponse()) }
+    LaunchedEffect(Unit) {
+         owner = viewModel.loadOwnerOfOrder(order.userId)
+    }
     var expand by remember { mutableStateOf(false) }
-    Surface(
-        shadowElevation = 4.dp,
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.padding(8.dp)
-    ) {
+
         Card(
             onClick = { },
             colors = CardDefaults.cardColors(
                 containerColor = WhiteDefault
-            ),
-            elevation = CardDefaults.cardElevation(
-                defaultElevation = 4.dp
             ),
             modifier = Modifier.padding(8.dp)
         ) {
@@ -427,8 +421,9 @@ fun OrderItem(
                     .padding(horizontal = 10.dp, vertical = 8.dp)
             ) {
                 AsyncImage(
-                    model = owner.avatarUrl,
+                    model = owner.getRealURL(),
                     contentDescription = null,
+                    placeholder = painterResource(R.drawable.ic_mam_logo),
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
                         .size(50.dp)
@@ -462,44 +457,33 @@ fun OrderItem(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
-                    Instant.parse(order.actualDeliveryTime).atZone(ZoneId.systemDefault())?.let {
-                        Text(
-                            text = it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")),
-                            textAlign = TextAlign.Start,
-                            color = BrownDefault,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
+//                    Instant.parse(order.actualDeliveryTime).atZone(ZoneId.systemDefault())?.let {
+//                        Text(
+//                            text = it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")),
+//                            textAlign = TextAlign.Start,
+//                            color = BrownDefault,
+//                            fontSize = 16.sp,
+//                            fontWeight = FontWeight.Medium,
+//                            maxLines = 1,
+//                            overflow = TextOverflow.Ellipsis,
+//                            modifier = Modifier.fillMaxWidth()
+//                        )
+//                    }
                     Text(
-                        text = order.getPriceToString(),
-                        textAlign = TextAlign.End,
-                        color = OrangeDefault,
-                        fontSize = 16.sp,
+                        text = "Tổng tiền: " + order.getPriceToString(),
+                        textAlign = TextAlign.Start,
+                        color = BrownDefault,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-                if (!isViewOnly) {
-                    if (order.orderStatus == "PENDING" &&
-                        order.orderStatus == "CONFIRMED" &&
-                        order.orderStatus == "PROCESSING")
-                        IconButton(onClick = { onEditClick(order.id) }) {
-                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
-                    }
-                    //                IconButton(onClick = { onDeleteClick(order.id) }) {
-                    //                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
-                    //                }
-                }
             }
         }
     }
-}
+
 //@Preview
 //@Composable
 //fun PreviewOrderItem() {
