@@ -94,4 +94,12 @@ public class StatsController {
           int year) {
     return ResponseEntity.ok(statsService.getSoldProductCountByCategory(month, year));
   }
+
+    @Operation(
+            summary = "Get total order count for statuses: PENDING, CONFIRMED, PROCESSING",
+            description = "Returns the number of orders in PENDING, CONFIRMED, and PROCESSING states.")
+    @GetMapping("/total-order-count-by-status/active")
+    public ResponseEntity<Map<String, Long>> getActiveOrderCountByStatus() {
+        return ResponseEntity.ok(statsService.getActiveOrderCountByStatus());
+    }
 }
