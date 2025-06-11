@@ -442,6 +442,9 @@ fun ListCategoryScreen(
                         )
                     }
                 }
+                item{
+                    Spacer(Modifier.height(100.dp))
+                }
             }
         }
         IconButton(

@@ -398,12 +398,16 @@ fun ListNotificationScreen(
                                 )
                             }
                         }
-                        else
+                        else {
                             items(notiList) { noti ->
                                 NotificationItem(
                                     notification = noti,
                                 )
                             }
+                            item{
+                                Spacer(Modifier.height(100.dp))
+                            }
+                        }
                 }
             }
         }

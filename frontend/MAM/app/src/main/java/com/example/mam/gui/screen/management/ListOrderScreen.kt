@@ -387,7 +387,7 @@ fun ListOrderScreen(
                                     modifier = Modifier.padding(16.dp)
                                 )
                             }
-                        } else
+                        } else {
                             items(orderList) { order ->
                                 OrderItem(
                                     order = order,
@@ -395,6 +395,10 @@ fun ListOrderScreen(
                                     viewModel = viewModel
                                 )
                             }
+                            item{
+                                Spacer(Modifier.height(100.dp))
+                            }
+                        }
                 }
             }
         }
