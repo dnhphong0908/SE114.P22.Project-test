@@ -1,5 +1,6 @@
 package com.example.mam.gui.screen.management
 
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -79,6 +80,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mam.dto.promotion.PromotionRequest
 import com.example.mam.dto.promotion.PromotionResponse
 import com.example.mam.gui.component.CircleIconButton
+import com.example.mam.gui.component.CustomDialog
 import com.example.mam.gui.component.outerShadow
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyDark
@@ -396,9 +398,34 @@ fun ListPromotionScreen(
                         }
                         else {
                             items(promoList) { promo ->
+                                var isShowDialog by remember { mutableStateOf(false) }
+                                if (isShowDialog){
+                                    CustomDialog(
+                                        title = "Xác nhận xóa",
+                                        message = "Bạn có chắc muốn xóa Mã khuyến mãi ${promo.code}",
+                                        onDismiss = {isShowDialog = false},
+                                        onConfirm = {
+                                            scope.launch {
+                                                val result = viewModel.deletePromo(promo.id)
+                                                Toast.makeText(
+                                                    context,
+                                                    when(result){
+                                                        -1 -> "Không thể kết nối Server"
+                                                        1 -> "Xóa thành công"
+                                                        else -> "Xóa thất bại"
+                                                    },
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                isShowDialog = false
+                                            }
+                                        }
+                                    )
+                                }
                                 PromotionItem(
                                     promo = promo,
-                                    onDeleteClick = {})
+                                    onDeleteClick = {
+                                        isShowDialog = true
+                                    })
                             }
                             //Them dong nay vao cuoi cac list (nhớ là else phải có ngoặc nhọn)
                             item{

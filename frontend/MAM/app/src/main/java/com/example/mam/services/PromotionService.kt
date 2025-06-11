@@ -21,7 +21,7 @@ interface PromotionService {
         @Body promotionRequest: PromotionRequest
     ): Response<PromotionResponse>
     @DELETE("promotions/{id}")
-    suspend fun deletePromotion(@Path("id") id: Long): Response<Unit>
+    suspend fun deletePromotion(@Path("id") id: Long): Response<Void>
     @GET("promotions")
     suspend fun getAllPromotions(
         @Query("page") page: Int = 0,

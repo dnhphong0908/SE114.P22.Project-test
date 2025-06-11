@@ -17,6 +17,7 @@ import com.example.mam.services.BaseService
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -155,6 +156,19 @@ class ListPromotionViewModel(
         }
     }
 
+    suspend fun deletePromo(id: Long): Int{
+        try {
+            val response = BaseService(userPreferencesRepository).promotionService.deletePromotion(id)
+            return if (response.isSuccessful){
+                _promoList.value = _promoList.value.filter {it.id != id}.toMutableList()
+                1
+            } else 0
+        }
+        catch (e: Exception) {
+            return 0
+        }
+    }
+
     suspend fun loadData() {
         _isLoading.value = true
         var currentPage = 0
@@ -189,6 +203,8 @@ class ListPromotionViewModel(
             _isLoading.value = false
         }
     }
+
+
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
