@@ -13,6 +13,7 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -152,9 +153,16 @@ public class StatsServiceImpl implements StatsService {
 
   @Override
   public Map<String, Long> getActiveOrderCountByStatus() {
+    // Khởi tạo map với giá trị mặc định là 0
+    Map<String, Long> result = new HashMap<>();
+    result.put(OrderStatus.PENDING.name(), 0L);
+    result.put(OrderStatus.CONFIRMED.name(), 0L);
+    result.put(OrderStatus.PROCESSING.name(), 0L);
+
     List<Order> orders = orderRepository.findAll();
 
-    return orders.stream()
+    // Đếm các status thực sự tồn tại
+    Map<String, Long> counted = orders.stream()
             .filter(order -> {
               OrderStatus status = order.getOrderStatus();
               return status == OrderStatus.PENDING ||
@@ -165,5 +173,9 @@ public class StatsServiceImpl implements StatsService {
                     order -> order.getOrderStatus().name(),
                     Collectors.counting()
             ));
+
+    // Gộp giá trị đếm vào map mặc định
+    result.putAll(counted);
+    return result;
   }
 }
