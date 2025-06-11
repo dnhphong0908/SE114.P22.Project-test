@@ -6,7 +6,7 @@ import lombok.Data;
 public class DeliveryResponseDTO {
     private int expectedDeliveryTimeInSeconds;
     private String durationText;
-    private String estimatedDeliveryTime; // thêm trường này
+    private String estimatedDeliveryTime;
 
     public DeliveryResponseDTO(int durationInSeconds, String durationText, String estimatedDeliveryTime) {
         this.expectedDeliveryTimeInSeconds = durationInSeconds;
