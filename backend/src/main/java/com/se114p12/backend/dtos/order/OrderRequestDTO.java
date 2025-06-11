@@ -7,7 +7,10 @@ import lombok.Data;
 @Data
 public class OrderRequestDTO {
     @NotNull
-    private String shippingAddress;
+    private Double destinationLatitude;
+
+    @NotNull
+    private Double destinationLongitude;
 
     private String note;
 
