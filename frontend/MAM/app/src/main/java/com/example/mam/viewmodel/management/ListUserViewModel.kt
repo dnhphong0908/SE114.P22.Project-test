@@ -9,10 +9,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
-import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.dto.user.UserResponse
-import com.example.mam.entity.Product
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -69,8 +67,8 @@ class ListUserViewModel(
 
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .userService.getAllUsers(filter = "username ~~ '*${_searchQuery.value}*' or fullname ~~ '*${_searchQuery.value}*' or email ~~ '*${_searchQuery.value}*' or phone ~~ '*${_searchQuery.value}*'", page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .userRepository.getAllUsers(filter = "username ~~ '*${_searchQuery.value}*' or fullname ~~ '*${_searchQuery.value}*' or email ~~ '*${_searchQuery.value}*' or phone ~~ '*${_searchQuery.value}*'", page = currentPage)
                 if (response.isSuccessful) {
                     setSearchHistory(_searchQuery.value)
                     val page = response.body()
@@ -106,8 +104,8 @@ class ListUserViewModel(
         }
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .userService.getAllUsers(
+                val response = BaseRepository(userPreferencesRepository)
+                    .userRepository.getAllUsers(
                         filter = "",
                         page = currentPage,
                         sort = listOf("${sortOption}," + if (_asc.value) "asc" else "desc"))
@@ -161,8 +159,8 @@ class ListUserViewModel(
 
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .userService.getAllUsers(filter = "", page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .userRepository.getAllUsers(filter = "", page = currentPage)
                 if (response.isSuccessful) {
                     val page = response.body()
                     if (page != null){
@@ -194,7 +192,7 @@ class ListUserViewModel(
                 "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
             )
             val response =
-                BaseService(userPreferencesRepository).productCategoryService.deleteCategory(id)
+                BaseRepository(userPreferencesRepository).productCategoryRepository.deleteCategory(id)
             Log.d("User", "User code: ${response.code()}")
             if (response.isSuccessful) {
                 _user.value = _user.value.filterNot { it.id == id }.toMutableList()

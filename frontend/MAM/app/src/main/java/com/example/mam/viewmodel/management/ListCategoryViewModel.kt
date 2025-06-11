@@ -9,7 +9,7 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.product.CategoryResponse
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -69,8 +69,8 @@ class ListCategoryViewModel(
 
             while (true) { // Loop until the last page
                 _isLoading.value = true
-                val response = BaseService(userPreferencesRepository)
-                    .productCategoryService.getCategories(filter = "name ~~ '*${_searchQuery.value}*' or description ~~ '*${_searchQuery.value}*'", page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .productCategoryRepository.getCategories(filter = "name ~~ '*${_searchQuery.value}*' or description ~~ '*${_searchQuery.value}*'", page = currentPage)
 
                 Log.d("Category", "Status code: ${response.code()}")
 
@@ -117,8 +117,8 @@ class ListCategoryViewModel(
             Log.d("Category", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
 
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .productCategoryService.getCategories(
+                val response = BaseRepository(userPreferencesRepository)
+                    .productCategoryRepository.getCategories(
                         filter = "",
                         page = currentPage,
                         sort = listOf("${sortOption}," + if (_asc.value) "asc" else "desc"))
@@ -171,8 +171,8 @@ class ListCategoryViewModel(
             Log.d("Category", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
 
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .productCategoryService.getCategories(filter = "", page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .productCategoryRepository.getCategories(filter = "", page = currentPage)
 
                 Log.d("Category", "Status code: ${response.code()}")
 
@@ -215,7 +215,7 @@ class ListCategoryViewModel(
                 "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
             )
             val response =
-                BaseService(userPreferencesRepository).productCategoryService.deleteCategory(id)
+                BaseRepository(userPreferencesRepository).productCategoryRepository.deleteCategory(id)
             Log.d("Category", "Status code: ${response.code()}")
             if (response.isSuccessful) {
                 _categories.value = _categories.value.filterNot { it.id == id }.toMutableList()

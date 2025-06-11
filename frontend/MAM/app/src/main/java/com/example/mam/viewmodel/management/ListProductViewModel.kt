@@ -4,19 +4,15 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
-import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.dto.product.ProductResponse
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 class ListProductViewModel(
     private val userPreferencesRepository: UserPreferencesRepository
@@ -68,8 +64,8 @@ class ListProductViewModel(
 
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .productService.getAllProducts(filter = "name ~~ '*${_searchQuery.value}*' or shortDescription ~~ '*${_searchQuery.value}*' or detailDescription ~~ '*${_searchQuery.value}*'", page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .productRepository.getAllProducts(filter = "name ~~ '*${_searchQuery.value}*' or shortDescription ~~ '*${_searchQuery.value}*' or detailDescription ~~ '*${_searchQuery.value}*'", page = currentPage)
 
                 if (response.isSuccessful) {
                     setSearchHistory(_searchQuery.value)
@@ -107,8 +103,8 @@ class ListProductViewModel(
         }
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .productService.getAllProducts(
+                val response = BaseRepository(userPreferencesRepository)
+                    .productRepository.getAllProducts(
                         filter = "",
                         page = currentPage,
                         sort = listOf("${sortOption}," + if (_asc.value) "asc" else "desc"))
@@ -155,8 +151,8 @@ class ListProductViewModel(
 
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .productService.getAllProducts(filter = "", page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .productRepository.getAllProducts(filter = "", page = currentPage)
                 if (response.isSuccessful) {
                     val page = response.body()
                     if (page != null){
@@ -189,7 +185,7 @@ class ListProductViewModel(
         _isDeleting.value = true
         try {
             val response =
-                BaseService(userPreferencesRepository).productCategoryService.deleteCategory(id)
+                BaseRepository(userPreferencesRepository).productCategoryRepository.deleteCategory(id)
             if (response.isSuccessful) {
                 _product.value = _product.value.filterNot { it.id == id }.toMutableList()
                 return 1

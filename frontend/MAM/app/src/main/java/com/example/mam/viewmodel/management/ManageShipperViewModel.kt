@@ -1,31 +1,21 @@
 package com.example.mam.viewmodel.management
 
 import android.util.Log
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.shipper.ShipperRequest
-import com.example.mam.services.BaseService
-import com.example.mam.viewmodel.ImageViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.time.Instant
 
 class ManageShipperViewModel(
     savedStateHandle: SavedStateHandle?,
@@ -102,8 +92,8 @@ class ManageShipperViewModel(
                 "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
             )
             val response =
-                BaseService(userPreferencesRepository)
-                    .shipperService
+                BaseRepository(userPreferencesRepository)
+                    .shipperRepository
                     .getShipperById(_shipperID.value)
             Log.d("Shipper", "Status code: ${response.code()}")
             if (response.isSuccessful) {
@@ -154,8 +144,8 @@ class ManageShipperViewModel(
                 _shipperPhone.value,
                 _shipperLicense.value
             )
-            val response = BaseService(userPreferencesRepository)
-                .shipperService
+            val response = BaseRepository(userPreferencesRepository)
+                .shipperRepository
                 .updateShipper(_shipperID.value, request)
             Log.d("Shipper", "${_shipperName.value}, ${_shipperLicense.value}, ${_shipperPhone.value}")
             if (response == null){
@@ -197,8 +187,8 @@ class ManageShipperViewModel(
                 _shipperPhone.value,
                 _shipperLicense.value
             )
-            val response = BaseService(userPreferencesRepository)
-                .shipperService
+            val response = BaseRepository(userPreferencesRepository)
+                .shipperRepository
                 .createShipper(request)
 
             if (response == null){

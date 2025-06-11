@@ -14,7 +14,7 @@ import com.example.mam.dto.cart.CartResponse
 import com.example.mam.dto.order.OrderRequest
 import com.example.mam.dto.promotion.PromotionResponse
 import com.example.mam.dto.user.UserResponse
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -94,7 +94,7 @@ class CheckOutViewModel(
 
     suspend fun loadUser() {
         try {
-            val userResponse = BaseService(userPreferencesRepository).authPrivateService.getUserInfo()
+            val userResponse = BaseRepository(userPreferencesRepository).authPrivateRepository.getUserInfo()
             if (userResponse.isSuccessful) {
                 _user.value = userResponse.body() ?: UserResponse()
                 Log.d("CheckOutViewModel", "User loaded: ${_user.value.username}")
@@ -110,7 +110,7 @@ class CheckOutViewModel(
     suspend fun loadCart(){
         try {
             Log.d("CartViewModel", "Loading Cart details")
-            val response = BaseService(userPreferencesRepository).cartService.getMyCart()
+            val response = BaseRepository(userPreferencesRepository).cartRepository.getMyCart()
             Log.d("CartViewModel", "Response Code: ${response.code()}")
             if (response.isSuccessful) {
                 val cartResponse = response.body()
@@ -137,7 +137,7 @@ class CheckOutViewModel(
 
     suspend fun loadPaymentOptions() {
         try {
-            val response = BaseService(userPreferencesRepository).authPublicService.getMetadata(
+            val response = BaseRepository(userPreferencesRepository).authPublicRepository.getMetadata(
                 listOf(Constant.metadata.PAYMENT_METHOD.name)
             )
             if (response.isSuccessful) {
@@ -154,7 +154,7 @@ class CheckOutViewModel(
 
     suspend fun loadDiscounts() {
         try {
-            val response = BaseService(userPreferencesRepository).userPromotionService.getAvailablePromotionsForOrder(
+            val response = BaseRepository(userPreferencesRepository).userPromotionRepository.getAvailablePromotionsForOrder(
                 _user.value.id,
                 _cart.value.cartItems.sumOf { it.price * it.quantity.toBigDecimal() }.toDouble()
             )
@@ -181,7 +181,7 @@ class CheckOutViewModel(
                 _discount.value?.id
             )
             Log.d("CheckOutViewModel", "Checking out with request: $request")
-            val response = BaseService(userPreferencesRepository).orderService.createOrder(request)
+            val response = BaseRepository(userPreferencesRepository).orderRepository.createOrder(request)
             Log.d("CheckOutViewModel", "Response Code: ${response.code()}")
             if (response.isSuccessful) {
                 Log.d("CheckOutViewModel", "Order created successfully")

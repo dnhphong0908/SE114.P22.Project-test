@@ -1,4 +1,4 @@
-package com.example.mam.services
+package com.example.mam.repository
 
 import com.example.mam.dto.authentication.SendOTPRequest
 import com.example.mam.dto.authentication.SignInRequest
@@ -16,7 +16,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 
-interface AuthPublicService {
+interface AuthPublicRepository {
     @POST("auth/login")
     suspend fun login(@Body request: SignInRequest): Response<AuthResponse>
     @POST("auth/register")

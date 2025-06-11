@@ -1,13 +1,10 @@
-package com.example.mam.services
+package com.example.mam.repository
 
-import com.example.mam.dto.product.CategoryRequest
-import com.example.mam.dto.product.ProductRequest
 import com.example.mam.dto.product.ProductResponse
 import com.example.mam.dto.vo.PageVO
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.Response
-import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Multipart
@@ -17,7 +14,7 @@ import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface ProductService {
+interface ProductRepository {
     @Multipart
     @POST("products")
     suspend fun createProduct(

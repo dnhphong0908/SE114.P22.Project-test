@@ -7,24 +7,18 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.Constant.BASE_IMAGE
 import com.example.mam.data.UserPreferencesRepository
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import com.example.mam.viewmodel.ImageViewModel
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 import java.time.Instant
 
@@ -156,8 +150,8 @@ class ManageUserViewModel(
                 "User",
                 "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
             )
-            val response = BaseService(userPreferencesRepository)
-                    .userService
+            val response = BaseRepository(userPreferencesRepository)
+                    .userRepository
                     .getUserById(_userID.value)
             Log.d("User", "Status code: ${response.code()}")
             if (response.isSuccessful) {

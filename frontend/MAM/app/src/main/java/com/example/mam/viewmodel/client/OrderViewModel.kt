@@ -3,27 +3,18 @@ package com.example.mam.viewmodel.client
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
-import com.example.mam.R
-import com.example.mam.data.Constant
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.order.OrderResponse
 import com.example.mam.dto.shipper.ShipperResponse
 import com.example.mam.dto.user.UserResponse
-import com.example.mam.entity.Shipper
-import com.example.mam.entity.OrderItem
-import com.example.mam.entity.PaymentType
-import com.example.mam.entity.Product
-import com.example.mam.entity.User
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.text.DecimalFormat
 
 class OrderViewModel(
     savedStateHandle: SavedStateHandle,
@@ -45,7 +36,7 @@ class OrderViewModel(
 
     suspend fun cancelOrder() :Int {
         try {
-            val response = BaseService(userPreferencesRepository).orderService.cancelOrder(orderId)
+            val response = BaseRepository(userPreferencesRepository).orderRepository.cancelOrder(orderId)
             Log.d("OrderViewModel", "Canceling order with ID: $orderId, Response Code: ${response.code()}")
             if (response.isSuccessful) {
                 Log.d("OrderViewModel", "Order canceled successfully")
@@ -65,7 +56,7 @@ class OrderViewModel(
 
     suspend fun maskAsDeliveried(): Int {
         try {
-            val response = BaseService(userPreferencesRepository).orderService.markOrderAsDelivered(orderId)
+            val response = BaseRepository(userPreferencesRepository).orderRepository.markOrderAsDelivered(orderId)
             Log.d("OrderViewModel", "Marking order as delivered with ID: $orderId, Response Code: ${response.code()}")
             if (response.isSuccessful) {
                 Log.d("OrderViewModel", "Order marked as delivered successfully")
@@ -88,13 +79,13 @@ class OrderViewModel(
     suspend fun loadOrder(){
         _isLoading.value = true
         try {
-            val response = BaseService(userPreferencesRepository).orderService.getOrderById(orderId)
+            val response = BaseRepository(userPreferencesRepository).orderRepository.getOrderById(orderId)
             Log.d("OrderViewModel", "Loading order with ID: $orderId, Response Code: ${response.code()}")
             if (response.isSuccessful) {
                 _order.value = response.body() ?: OrderResponse()
                 Log.d("OrderViewModel", "Order loaded successfully: ${_order.value.orderDetails.size} items")
 
-                val userResponse = BaseService(userPreferencesRepository).userService.getUserById(_order.value.userId)
+                val userResponse = BaseRepository(userPreferencesRepository).userRepository.getUserById(_order.value.userId)
                 if (userResponse.isSuccessful && userResponse.body() != null) {
                     _user.value = userResponse.body()!!
                 } else {
@@ -105,7 +96,7 @@ class OrderViewModel(
 
 
                 _shipper.value = _order.value.shipperId?.let {
-                    BaseService(userPreferencesRepository).shipperService.getShipperById(
+                    BaseRepository(userPreferencesRepository).shipperRepository.getShipperById(
                         it
                     ).body()
                 }

@@ -9,14 +9,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.authentication.SignUpRequest
-import com.example.mam.services.BaseService
-import com.mapbox.common.MapboxOptions.accessToken
-import kotlinx.coroutines.Dispatchers
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withContext
 
 class SignUpViewModel(
     private val userPreferencesRepository: UserPreferencesRepository
@@ -103,7 +99,7 @@ class SignUpViewModel(
             val request = _signUpState.value
 
             // Gọi service đăng nhập
-            val response = BaseService(userPreferencesRepository).authPublicService.signUp(request)
+            val response = BaseRepository(userPreferencesRepository).authPublicRepository.signUp(request)
             val statusCode = response.code()
             Log.d("SignUp", "Status Code: $statusCode")
 

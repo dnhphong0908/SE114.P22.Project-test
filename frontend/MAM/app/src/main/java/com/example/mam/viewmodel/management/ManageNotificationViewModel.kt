@@ -6,24 +6,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.notification.NotificationRequest
 import com.example.mam.entity.User
-import com.example.mam.services.BaseService
-import com.example.mam.viewmodel.ImageViewModel
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.time.Instant
 
 class ManageNotificationViewModel(
     savedStateHandle: SavedStateHandle?,
@@ -85,8 +77,8 @@ class ManageNotificationViewModel(
                 status = 0
             )
 
-            val response = BaseService(userPreferencesRepository)
-                .notificationService
+            val response = BaseRepository(userPreferencesRepository)
+                .notificationRepository
                 .sendNotificationToAll(request)
 
             if (response == null){

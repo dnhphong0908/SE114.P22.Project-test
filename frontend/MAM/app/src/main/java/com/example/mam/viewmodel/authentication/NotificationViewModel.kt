@@ -3,19 +3,15 @@ package com.example.mam.viewmodel.authentication
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.notification.NotificationResponse
-import com.example.mam.entity.Notification
-import com.example.mam.services.BaseService
-import com.example.mam.viewmodel.client.HomeScreenViewModel
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 
 open class NotificationViewModel(
     private val userPreferencesRepository: UserPreferencesRepository
@@ -34,7 +30,7 @@ open class NotificationViewModel(
             Log.d("NotificationViewModel", "Loading notifications")
             while (true) { // Loop until the last page
                 Log.d("NotificationViewModel", "Fetching page $currentPage")
-                val response = BaseService(userPreferencesRepository).notificationService.getMyNotifications(
+                val response = BaseRepository(userPreferencesRepository).notificationRepository.getMyNotifications(
                     page = currentPage,
                     sort = listOf("createdAt,desc"), // Sort by created date descending
                     filter = "")
@@ -69,7 +65,7 @@ open class NotificationViewModel(
     suspend fun markAllAsRead() {
         try{
             Log.d("NotificationViewModel", "Marking all notifications as read")
-            val response = BaseService(userPreferencesRepository).notificationService.markAllMyNotificationsAsRead()
+            val response = BaseRepository(userPreferencesRepository).notificationRepository.markAllMyNotificationsAsRead()
             if (response.isSuccessful) {
                 Log.d("NotificationViewModel", "All notifications marked as read successfully")
                 // Optionally, reload notifications to reflect changes
@@ -85,7 +81,7 @@ open class NotificationViewModel(
     suspend fun markAsRead(id: Long) {
         try {
             Log.d("NotificationViewModel", "Marking notification $id as read")
-            val response = BaseService(userPreferencesRepository).notificationService.markNotificationAsRead(id)
+            val response = BaseRepository(userPreferencesRepository).notificationRepository.markNotificationAsRead(id)
             if (response.isSuccessful) {
                 Log.d("NotificationViewModel", "Notification $id marked as read successfully")
                 // Optionally, reload notifications to reflect changes

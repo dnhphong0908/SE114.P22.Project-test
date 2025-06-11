@@ -1,4 +1,4 @@
-package com.example.mam.services
+package com.example.mam.repository
 
 import com.example.mam.dto.cart.CartItemRequest
 import com.example.mam.dto.cart.CartItemResponse
@@ -9,7 +9,7 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 
-interface CartItemService {
+interface CartItemRepository {
     @POST("cart-items")
     suspend fun addCartItem(
         @Body cartItemRequest: CartItemRequest

@@ -9,10 +9,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
-import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.dto.shipper.ShipperResponse
-import com.example.mam.entity.Shipper
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -71,8 +69,8 @@ class ListShipperViewModel(
             Log.d("Shipper", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
 
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .shipperService.getShippers(
+                val response = BaseRepository(userPreferencesRepository)
+                    .shipperRepository.getShippers(
                         filter = "fullname ~~ '*${_searchQuery.value}*' or phone ~~ '*${_searchQuery.value}*' or licensePlate ~~ '*${_searchQuery.value}*'",
                         page = currentPage
                     )
@@ -120,8 +118,8 @@ class ListShipperViewModel(
             Log.d("Shipper", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
 
             while(true){
-                val response = BaseService(userPreferencesRepository)
-                    .shipperService.getShippers(
+                val response = BaseRepository(userPreferencesRepository)
+                    .shipperRepository.getShippers(
                         filter = "",
                         page = currentPage,
                         sort = listOf("${sortOption}," + if (_asc.value) "asc" else "desc"))
@@ -180,8 +178,8 @@ class ListShipperViewModel(
             Log.d("Shipper", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
 
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .shipperService.getShippers(filter = "", page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .shipperRepository.getShippers(filter = "", page = currentPage)
 
                 Log.d("Shipper", "Status code: ${response.code()}")
 
@@ -224,7 +222,7 @@ class ListShipperViewModel(
         try{
             Log.d("Shipper", "Bắt đầu xóa Shipper")
             Log.d("Shipper", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
-            val response = BaseService(userPreferencesRepository).shipperService.deleteShipper(id)
+            val response = BaseRepository(userPreferencesRepository).shipperRepository.deleteShipper(id)
             Log.d("Shipper", "Status code: ${response.code()}")
             if (response.isSuccessful) {
                 _shippers.value = _shippers.value.filterNot { it.id == id }.toMutableList()

@@ -1,12 +1,10 @@
-package com.example.mam.services
+package com.example.mam.repository
 
 import android.util.Log
-import androidx.navigation.NavController
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.authentication.AuthResponse
 import com.example.mam.dto.authentication.RefreshTokenRequest
 import com.example.mam.navigation.AuthEventManager
-import com.example.mam.navigation.AuthenticationScreen
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
@@ -63,7 +61,7 @@ class AuthInterceptor(
     private suspend fun refreshAccessToken(): AuthResponse? {
         val refreshToken = runBlocking { userPreferencesRepository.refreshToken.first() }
         return try {
-            val response = BaseService(userPreferencesRepository).authPublicService.refreshToken(
+            val response = BaseRepository(userPreferencesRepository).authPublicRepository.refreshToken(
                 RefreshTokenRequest(refreshToken = refreshToken)
             ) // ✅ Using .execute() to ensure synchronous execution
 

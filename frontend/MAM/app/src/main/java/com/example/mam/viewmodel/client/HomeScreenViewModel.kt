@@ -1,30 +1,20 @@
 package com.example.mam.viewmodel.client
 
 import android.util.Log
-import androidx.compose.runtime.collectAsState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
-import com.example.mam.R
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.dto.product.ProductResponse
 import com.example.mam.dto.user.UserResponse
-import com.example.mam.entity.Product
-import com.example.mam.entity.ProductCategory
-import com.example.mam.services.BaseService
-import com.example.mam.viewmodel.authentication.StartViewModel
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 class HomeScreenViewModel(
     private val userPreferencesRepository: UserPreferencesRepository
@@ -57,8 +47,8 @@ class HomeScreenViewModel(
             Log.d("Category", "Bắt đầu lấy Danh mục")
 
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .productCategoryService
+                val response = BaseRepository(userPreferencesRepository)
+                    .productCategoryRepository
                     .getCategories(filter = "", page = currentPage)
 
                 Log.d("Category", "Status code: ${response.code()}")
@@ -96,8 +86,8 @@ class HomeScreenViewModel(
     suspend fun loadListProduct(id: Long): List<ProductResponse>{
         try {
             Log.d("Category", "Bắt đầu lấy Danh mục")
-                val response = BaseService(userPreferencesRepository)
-                    .productService
+                val response = BaseRepository(userPreferencesRepository)
+                    .productRepository
                     .getProductsByCategory(id,filter= "", page = 0)
                 Log.d("Category", "Status code: ${response.code()}")
 
@@ -130,7 +120,7 @@ class HomeScreenViewModel(
 
     suspend fun loadUser() {
         try {
-            _user.value = BaseService(userPreferencesRepository).authPrivateService.getUserInfo().body() ?: UserResponse()
+            _user.value = BaseRepository(userPreferencesRepository).authPrivateRepository.getUserInfo().body() ?: UserResponse()
             Log.d("USER", "User loaded: ${_user.value.username}")
         }
         catch (e: Exception) {

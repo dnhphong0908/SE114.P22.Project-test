@@ -1,6 +1,5 @@
 package com.example.mam.viewmodel.management
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -9,16 +8,11 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
-import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.dto.promotion.PromotionResponse
-import com.example.mam.entity.Notification
-import com.example.mam.entity.Promotion
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.filter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class ListPromotionViewModel(
@@ -68,8 +62,8 @@ class ListPromotionViewModel(
 
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .promotionService.getAllPromotions(filter = "code ~~ '*${_searchQuery.value}*' or description ~~ '*${_searchQuery.value}*'", page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .promotionRepository.getAllPromotions(filter = "code ~~ '*${_searchQuery.value}*' or description ~~ '*${_searchQuery.value}*'", page = currentPage)
 
                 if (response.isSuccessful) {
                     setSearchHistory(_searchQuery.value)
@@ -107,8 +101,8 @@ class ListPromotionViewModel(
         }
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .promotionService.getAllPromotions(
+                val response = BaseRepository(userPreferencesRepository)
+                    .promotionRepository.getAllPromotions(
                         filter = "",
                         page = currentPage,
                         sort = listOf("${sortOption}," + if (_asc.value) "asc" else "desc"))
@@ -158,7 +152,7 @@ class ListPromotionViewModel(
 
     suspend fun deletePromo(id: Long): Int{
         try {
-            val response = BaseService(userPreferencesRepository).promotionService.deletePromotion(id)
+            val response = BaseRepository(userPreferencesRepository).promotionRepository.deletePromotion(id)
             return if (response.isSuccessful){
                 _promoList.value = _promoList.value.filter {it.id != id}.toMutableList()
                 1
@@ -176,8 +170,8 @@ class ListPromotionViewModel(
 
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .promotionService.getAllPromotions(filter = "", page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .promotionRepository.getAllPromotions(filter = "", page = currentPage)
 
                 if (response.isSuccessful) {
                     val page = response.body()

@@ -6,21 +6,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.promotion.PromotionRequest
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
 import java.math.BigDecimal
 import java.time.Instant
 
@@ -104,8 +98,8 @@ class ManagePromotionViewModel(
                 discountValue = _value.value.toBigDecimal()
             )
 
-            val response = BaseService(userPreferencesRepository)
-                .promotionService
+            val response = BaseRepository(userPreferencesRepository)
+                .promotionRepository
                 .createPromotion(request)
             Log.d("Promotion", "Status code: ${response.code()}")
             if (response.isSuccessful) {

@@ -1,4 +1,4 @@
-package com.example.mam.services
+package com.example.mam.repository
 
 import retrofit2.Response
 import retrofit2.http.GET

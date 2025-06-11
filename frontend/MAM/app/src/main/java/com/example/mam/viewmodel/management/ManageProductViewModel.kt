@@ -3,13 +3,11 @@ package com.example.mam.viewmodel.management
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import androidx.compose.ui.unit.Constraints
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
@@ -20,15 +18,10 @@ import com.example.mam.dto.variation.VariationOptionRequest
 import com.example.mam.dto.variation.VariationOptionResponse
 import com.example.mam.dto.variation.VariationRequest
 import com.example.mam.dto.variation.VariationResponse
-import com.example.mam.entity.ProductCategory
-import com.example.mam.entity.Variance
-import com.example.mam.entity.VarianceOption
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import com.example.mam.viewmodel.ImageViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
@@ -173,7 +166,7 @@ class ManageProductViewModel(
 
     suspend fun addVariant(variant: VariationRequest): Int {
         try {
-            val response = BaseService(userPreferencesRepository).variationService.createVariation(
+            val response = BaseRepository(userPreferencesRepository).variationRepository.createVariation(
                 variant
             )
             Log.d("ManageProductViewModel", "Add variant response: ${response.code()}")
@@ -193,7 +186,7 @@ class ManageProductViewModel(
 
     suspend fun updateVariantIsMultipleChoice(variant: VariationResponse):Int  {
         try {
-            val response = BaseService(userPreferencesRepository).variationService.updateVariation(
+            val response = BaseRepository(userPreferencesRepository).variationRepository.updateVariation(
                 variant.id,
                 VariationRequest(
                     name = variant.name,
@@ -226,7 +219,7 @@ class ManageProductViewModel(
     suspend fun addVariantOption(option: VariationOptionRequest): Int {
         try {
             Log.d("ManageProductViewModel", "Adding variant option: $option, variantId: ${option.variationId}")
-            val response = BaseService(userPreferencesRepository).variationOptionService.createVariationOption(
+            val response = BaseRepository(userPreferencesRepository).variationOptionRepository.createVariationOption(
                 option
             )
             Log.d("ManageProductViewModel", "Add variant option response: ${response.code()}")
@@ -253,7 +246,7 @@ class ManageProductViewModel(
 
     suspend fun removeVariant(id: Long): Int {
         try {
-            val response = BaseService(userPreferencesRepository).variationService.deleteVariation(id)
+            val response = BaseRepository(userPreferencesRepository).variationRepository.deleteVariation(id)
             Log.d("ManageProductViewModel", "Remove variant response: ${response.code()}")
             if (response.isSuccessful) {
                 _variants.value = _variants.value.filterKeys { it.id != id }
@@ -272,7 +265,7 @@ class ManageProductViewModel(
 
     suspend fun removeVariantOption(id: Long): Int {
         try {
-            val response = BaseService(userPreferencesRepository).variationOptionService.deleteVariationOption(id)
+            val response = BaseRepository(userPreferencesRepository).variationOptionRepository.deleteVariationOption(id)
             Log.d("ManageProductViewModel", "Remove variant option response: ${response.code()}")
             if (response.isSuccessful) {
                 _variants.value = _variants.value.mapValues { options ->
@@ -297,8 +290,8 @@ class ManageProductViewModel(
             Log.d("Category", "Bắt đầu lấy Danh mục")
 
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .productCategoryService
+                val response = BaseRepository(userPreferencesRepository)
+                    .productCategoryRepository
                     .getCategories(filter = "", page = currentPage)
 
                 Log.d("Category", "Status code: ${response.code()}")
@@ -335,7 +328,7 @@ class ManageProductViewModel(
                 _isLoading.value = true
                 if (productId != 0L) {
                     // Simulate network call to fetch product data
-                    val response = BaseService(userPreferencesRepository).productService.getProductById(productId.toLong())
+                    val response = BaseRepository(userPreferencesRepository).productRepository.getProductById(productId.toLong())
                     Log.d("ManageProductViewModel", "Load product response: ${response.code()}")
                     if (response.isSuccessful) {
                         val product = response.body()
@@ -352,13 +345,13 @@ class ManageProductViewModel(
                             _isAvailable.value = product.isAvailable
                             Log.d("ManageProductViewModel", "Product loaded successfully: ${product.name}, ${productCategory.value}")
                             // Load variants if available
-                            val variantResponse = BaseService(userPreferencesRepository).variationService.getVariationByProduct(product.id, page = 0, size = 100)
+                            val variantResponse = BaseRepository(userPreferencesRepository).variationRepository.getVariationByProduct(product.id, page = 0, size = 100)
                             if (variantResponse.isSuccessful) {
                                 val variants = variantResponse.body()?.content ?: emptyList()
                                 val variantOptions = mutableMapOf<VariationResponse, List<VariationOptionResponse>>()
 
                                 for (variant in variants) {
-                                    val optionsResponse = BaseService(userPreferencesRepository).variationOptionService.getVariationOption(variant.id, page = 0, size = 100)
+                                    val optionsResponse = BaseRepository(userPreferencesRepository).variationOptionRepository.getVariationOption(variant.id, page = 0, size = 100)
                                     if (optionsResponse.isSuccessful) {
                                         variantOptions[variant] = optionsResponse.body()?.content ?: emptyList()
                                     } else {
@@ -395,7 +388,7 @@ class ManageProductViewModel(
             val requestFile = imageFile!!.asRequestBody("image/*".toMediaType())
             val imagePart = MultipartBody.Part.createFormData("image", imageFile.name, requestFile)
 
-            val response = BaseService(userPreferencesRepository).productService.createProduct(
+            val response = BaseRepository(userPreferencesRepository).productRepository.createProduct(
                 name = name,
                 shortDescription = shortDescription,
                 detailDescription = longDescription,
@@ -446,7 +439,7 @@ class ManageProductViewModel(
             val imageFile = _imageFile.value
             val requestFile = imageFile!!.asRequestBody("image/*".toMediaType())
             val imagePart = MultipartBody.Part.createFormData("image", imageFile.name, requestFile)
-            val response = BaseService(userPreferencesRepository).productService.updateProduct(
+            val response = BaseRepository(userPreferencesRepository).productRepository.updateProduct(
                 id = _productID.value,
                 name = name,
                 shortDescription = shortDescription,

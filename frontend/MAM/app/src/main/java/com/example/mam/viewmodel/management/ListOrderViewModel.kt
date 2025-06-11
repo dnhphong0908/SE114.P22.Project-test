@@ -11,13 +11,11 @@ import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.order.OrderRequest
 import com.example.mam.dto.order.OrderResponse
-import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.dto.user.UserResponse
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class ListOrderViewModel(
@@ -72,8 +70,8 @@ class ListOrderViewModel(
         else ""
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .orderService.getAllOrders(filter =
+                val response = BaseRepository(userPreferencesRepository)
+                    .orderRepository.getAllOrders(filter =
                     "actualDeliveryTime ~~ '*${_searchQuery.value}*' " +
                     "or shippingAddress ~~ '*${_searchQuery.value}*' " +
                     "or note ~~ '*${_searchQuery.value}*' " +
@@ -121,8 +119,8 @@ class ListOrderViewModel(
         else ""
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .orderService.getAllOrders(
+                val response = BaseRepository(userPreferencesRepository)
+                    .orderRepository.getAllOrders(
                         filter = filter,
                         page = currentPage,
                         sort = listOf("${sortOption}," + if (_asc.value) "asc" else "desc"))
@@ -160,8 +158,8 @@ class ListOrderViewModel(
 
     suspend fun loadOwnerOfOrder(id: Long): UserResponse {
         try{
-            val response = BaseService(userPreferencesRepository)
-                .userService.getUserById(id)
+            val response = BaseRepository(userPreferencesRepository)
+                .userRepository.getUserById(id)
             if (response.isSuccessful) {
                 return response.body() ?: UserResponse()
             } else {
@@ -201,8 +199,8 @@ class ListOrderViewModel(
 
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .orderService.getAllOrders(filter = filter, page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .orderRepository.getAllOrders(filter = filter, page = currentPage)
 
                 if (response.isSuccessful) {
                     val page = response.body()

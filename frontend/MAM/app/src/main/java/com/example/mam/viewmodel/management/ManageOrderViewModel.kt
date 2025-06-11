@@ -6,32 +6,18 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.Constant
 import com.example.mam.data.UserPreferencesRepository
-import com.example.mam.dto.order.OrderRequest
 import com.example.mam.dto.order.OrderResponse
 import com.example.mam.dto.shipper.ShipperResponse
 import com.example.mam.dto.user.UserResponse
-import com.example.mam.entity.Order
-import com.example.mam.entity.OrderItem
-import com.example.mam.entity.Shipper
-import com.example.mam.entity.User
-import com.example.mam.gui.screen.management.ManageOrderScreen
-import com.example.mam.services.BaseService
-import com.example.mam.viewmodel.ImageViewModel
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.RequestBody.Companion.asRequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
-import java.time.Instant
 
 class ManageOrderViewModel(
     savedStateHandle: SavedStateHandle?,
@@ -82,8 +68,8 @@ class ManageOrderViewModel(
                 "Order",
                 "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
             )
-            val response = BaseService(userPreferencesRepository)
-                .orderService
+            val response = BaseRepository(userPreferencesRepository)
+                .orderRepository
                 .getOrderStatus(_orderID.value, nextStatus)
             Log.d("Order", "${_orderID.value}, ${_orderStatus.value}")
 
@@ -107,7 +93,7 @@ class ManageOrderViewModel(
     suspend fun loadOrderStatus() {
         _isLoading.value = true
         try {
-            val response = BaseService(userPreferencesRepository).authPublicService.getMetadata(
+            val response = BaseRepository(userPreferencesRepository).authPublicRepository.getMetadata(
                 listOf(Constant.metadata.ORDER_STATUS.name)
             )
             Log.d("OrderViewModel", "Response Code: ${response.code()}")
@@ -135,7 +121,7 @@ class ManageOrderViewModel(
             )
             Log.d("Order", "${_orderID.value}")
             val response =
-                BaseService(userPreferencesRepository).orderService.getOrderById(_orderID.value)
+                BaseRepository(userPreferencesRepository).orderRepository.getOrderById(_orderID.value)
             Log.d("Order", "Status code: ${response.code()}")
             if (response.isSuccessful) {
                 val order = response.body()
@@ -147,8 +133,8 @@ class ManageOrderViewModel(
                     Log.d("Order", "Lấy Don hang thành công: ${order.createdAt}, ${order.note}, ${order.paymentMethod}, ${order.shipperId}")
 
 
-                    val user = BaseService(userPreferencesRepository)
-                        .userService
+                    val user = BaseRepository(userPreferencesRepository)
+                        .userRepository
                         .getUserById(order.userId)
                     if (user.isSuccessful) {
                         _user.value = user.body() ?: UserResponse()
@@ -157,8 +143,8 @@ class ManageOrderViewModel(
                         Log.d("Order", "Lấy thông tin người dùng thất bại: ${user.errorBody()?.string()}")
                     }
                     if (order.shipperId != null) {
-                        val shipperResponse = BaseService(userPreferencesRepository)
-                            .shipperService
+                        val shipperResponse = BaseRepository(userPreferencesRepository)
+                            .shipperRepository
                             .getShipperById(order.shipperId)
                         if (shipperResponse.isSuccessful) {
                             _shipper.value = shipperResponse.body()
@@ -184,7 +170,7 @@ class ManageOrderViewModel(
     }
     suspend fun cancelOrder() :Int {
         try {
-            val response = BaseService(userPreferencesRepository).orderService.cancelOrder(_orderID.value)
+            val response = BaseRepository(userPreferencesRepository).orderRepository.cancelOrder(_orderID.value)
             Log.d("OrderViewModel", "Canceling order with ID: $orderId, Response Code: ${response.code()}")
             if (response.isSuccessful) {
                 Log.d("OrderViewModel", "Order canceled successfully")

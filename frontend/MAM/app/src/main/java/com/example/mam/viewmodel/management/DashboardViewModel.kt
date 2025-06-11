@@ -10,14 +10,10 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import co.yml.charts.common.model.Point
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
-import com.example.mam.dto.authentication.RefreshTokenRequest
-import com.example.mam.services.BaseService
-import com.example.mam.viewmodel.authentication.SignInViewModel
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 class DashboardViewModel(
@@ -65,7 +61,7 @@ class DashboardViewModel(
         try {
             val groupBy = if(isMonthly) "month" else "quarter"
             _isLoadingRevenue.value = true
-            val response = BaseService(userPreferencesRepository).stastiticRepository.getRevenueByMonthOrQuarter(
+            val response = BaseRepository(userPreferencesRepository).stastiticRepository.getRevenueByMonthOrQuarter(
                 year,
                 groupBy
             )
@@ -86,7 +82,7 @@ class DashboardViewModel(
     suspend fun loadCategorySoldMonthlyList(month: Int, year: Int) {
         try {
             _isLoadingCategory.value = true
-            val response = BaseService(userPreferencesRepository).stastiticRepository.getSoldByCategory(month,year)
+            val response = BaseRepository(userPreferencesRepository).stastiticRepository.getSoldByCategory(month,year)
             if (response.isSuccessful)
             _categorySoldList.value = response.body()?.map {
                 Pair(it.key, it.value.toFloat())
@@ -100,7 +96,7 @@ class DashboardViewModel(
 
     suspend fun countOrderByStatus(): Map<String, Long>{
         try {
-            val response = BaseService(userPreferencesRepository).stastiticRepository.getStatusCount()
+            val response = BaseRepository(userPreferencesRepository).stastiticRepository.getStatusCount()
             return if (response.isSuccessful)
                 response.body()!!
             else emptyMap()
