@@ -486,8 +486,8 @@ fun OrderItem(
                     )
                 }
                 if (!isViewOnly) {
-                    if (order.orderStatus == "PENDING" &&
-                        order.orderStatus == "CONFIRMED" &&
+                    if (order.orderStatus == "PENDING" ||
+                        order.orderStatus == "CONFIRMED" ||
                         order.orderStatus == "PROCESSING")
                         IconButton(onClick = { onEditClick(order.id) }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)

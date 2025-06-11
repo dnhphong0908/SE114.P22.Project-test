@@ -14,6 +14,7 @@ data class OrderResponse(
     val orderStatus: String = "",
     val userId: Long = 0L,
     val shipperId: Long? = null,
+    val paymentMethod: String = "",
     val orderDetails: List<OrderDetailResponse> = emptyList(),
 ): BaseResponse(){
     fun getPriceToString(): String{
