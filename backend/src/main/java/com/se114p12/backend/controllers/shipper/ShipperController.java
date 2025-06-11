@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.shipper;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.shipper.ShipperRequest;
 import com.se114p12.backend.dtos.shipper.ShipperResponse;
 import com.se114p12.backend.entities.shipper.Shipper;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Shipper Module", description = "APIs for managing shippers (admin only)")
 @RestController
-@RequestMapping("/api/v1/shippers")
+@RequestMapping(AppConstant.API_BASE_PATH + "/shippers")
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ADMIN')")
 public class ShipperController {

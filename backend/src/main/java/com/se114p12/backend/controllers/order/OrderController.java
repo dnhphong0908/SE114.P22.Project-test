@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.order;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.order.OrderRequestDTO;
 import com.se114p12.backend.dtos.order.OrderResponseDTO;
 import com.se114p12.backend.entities.order.Order;
@@ -28,7 +29,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Order Module", description = "APIs for managing orders")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/orders")
+@RequestMapping(AppConstant.API_BASE_PATH + "/orders")
 public class OrderController {
 
   private final OrderService orderService;

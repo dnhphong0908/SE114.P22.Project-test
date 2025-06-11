@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.notification;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.nofitication.NotificationRequestDTO;
 import com.se114p12.backend.dtos.nofitication.NotificationResponseDTO;
 import com.se114p12.backend.entities.notification.Notification;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "Notification Module", description = "APIs for managing notifications")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/notifications")
+@RequestMapping(AppConstant.API_BASE_PATH + "/notifications")
 public class NotificationController {
 
     private final NotificationService notificationService;
