@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.cart;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.cart.CartItemRequestDTO;
 import com.se114p12.backend.dtos.cart.CartItemResponseDTO;
 import com.se114p12.backend.services.cart.CartItemService;
@@ -21,7 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Cart Item Module", description = "APIs for managing cart items")
 @RestController
-@RequestMapping("/api/v1/cart-items")
+@RequestMapping(AppConstant.API_BASE_PATH + "/cart-items")
 @RequiredArgsConstructor
 public class CartItemController {
 

@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.promotion;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.promotion.PromotionResponseDTO;
 import com.se114p12.backend.entities.promotion.Promotion;
 import com.se114p12.backend.mappers.promotion.PromotionMapper;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 
 @Tag(name = "User Promotion Module", description = "Endpoints for managing user-specific promotions")
 @RestController
-@RequestMapping("/api/v1/user-promotions")
+@RequestMapping(AppConstant.API_BASE_PATH + "/user-promotions")
 @RequiredArgsConstructor
 public class UserPromotionController {
 

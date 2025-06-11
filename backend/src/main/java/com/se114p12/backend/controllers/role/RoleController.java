@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.role;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.role.RoleRequestDTO;
 import com.se114p12.backend.dtos.role.RoleResponseDTO;
 import com.se114p12.backend.entities.authentication.Role;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Role Module", description = "APIs for managing roles")
 @RestController
-@RequestMapping("/api/v1/roles")
+@RequestMapping(AppConstant.API_BASE_PATH + "/roles")
 @RequiredArgsConstructor
 public class RoleController {
   private final RoleService roleService;

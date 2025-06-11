@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.payment;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.services.payment.VnPayService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,7 +19,7 @@ import java.util.Map;
 @Tag(name = "VNPAY Payment Module", description = "Endpoints for integrating VNPAY payment")
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/payment")
+@RequestMapping(AppConstant.API_BASE_PATH + "/payment")
 public class VnPayController {
 
     private final VnPayService vnPayService;

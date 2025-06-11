@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.promotion;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.promotion.PromotionRequestDTO;
 import com.se114p12.backend.dtos.promotion.PromotionResponseDTO;
 import com.se114p12.backend.entities.promotion.Promotion;
@@ -25,7 +26,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Promotion Module", description = "Endpoints for managing promotions")
 @RestController
-@RequestMapping("/api/v1/promotions")
+@RequestMapping(AppConstant.API_BASE_PATH + "/promotions")
 @RequiredArgsConstructor
 public class PromotionController {
 
