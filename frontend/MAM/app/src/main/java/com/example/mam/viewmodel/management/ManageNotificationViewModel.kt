@@ -1,20 +1,35 @@
 package com.example.mam.viewmodel.management
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.notification.NotificationRequest
 import com.example.mam.entity.User
+import com.example.mam.services.BaseService
 import com.example.mam.viewmodel.ImageViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.time.Instant
 
 class ManageNotificationViewModel(
     savedStateHandle: SavedStateHandle?,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val imageViewModel: ImageViewModel
 ):  ViewModel() {
+
     private val _title = MutableStateFlow("")
     val title = _title.asStateFlow()
 
@@ -42,8 +57,6 @@ class ManageNotificationViewModel(
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
 
-    private val notificationId = savedStateHandle?.get<Long>("notificationId")
-
     fun setTitle(title: String) {
         _title.value = title
     }
@@ -53,39 +66,79 @@ class ManageNotificationViewModel(
     fun setReceiverList(receiverList: List<String>) {
         _receiverList.value = receiverList
     }
-
     fun setType(type: String) {
         _type.value = type
     }
-    fun loadData() {
-        // Simulate loading data
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate network call
-                _userList.value = listOf(User("1", "John Doe"), User("2", "Jane Doe"))
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                // Hide loading indicator
-                _isLoading.value = false
+
+    suspend fun createNotification(): Int {
+        _isLoading.value = true
+        try {
+            Log.d("Notification", "Bắt đầu them Thong bao")
+            Log.d(
+                "Notification",
+                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+            )
+            val request  = NotificationRequest(
+                type = _type.value,
+                title = _title.value,
+                message = _message.value,
+                status = 0
+            )
+
+            val response = BaseService(userPreferencesRepository)
+                .notificationService
+                .sendNotificationToAll(request)
+
+            if (response == null){
+                return 0
             }
-        }
-    }
-    fun sendNotification() {
-        // Simulate sending notification
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate network call
-                println("Notification sent to ${_receiverList.value.joinToString(", ")}")
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                // Hide loading indicator
-                _isLoading.value = false
+            Log.d("Notification", "Status code: ${response.code()}")
+            if (response.isSuccessful) {
+                val notification = response.body()
+                if (notification != null) {
+                    _title.value = notification.title
+                    _message.value = notification.message
+                    _type.value = notification.type
+                }
+                return 1
+            } else {
+                Log.d("Notification", "Them thong bao thất bại: ${response.errorBody()?.string()}")
+                return 0
             }
+        } catch (e: Exception) {
+            Log.d("Notification", "Không thể them thong bao: ${e.message}")
+            return 0
+        } finally {
+            _isLoading.value = false
+            Log.d("Notification", "Kết thúc them thong bao")
         }
     }
 
+//    fun sendNotification() {
+//        // Simulate sending notification
+//        viewModelScope.launch {
+//            try {
+//                _isLoading.value = true
+//                // Simulate network call
+//                println("Notification sent to ${_receiverList.value.joinToString(", ")}")
+//            } catch (e: Exception) {
+//                // Handle error
+//            } finally {
+//                // Hide loading indicator
+//                _isLoading.value = false
+//            }
+//        }
+//    }
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                val savedStateHandle = this.createSavedStateHandle()
+                ManageNotificationViewModel(
+                    savedStateHandle = savedStateHandle,
+                    userPreferencesRepository = application.userPreferencesRepository,
+                )
+            }
+        }
+    }
 }

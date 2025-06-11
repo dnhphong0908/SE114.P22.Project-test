@@ -19,6 +19,10 @@ interface NotificationService {
     suspend fun sendNotification(
         @Body notificationRequest: NotificationRequest
     ): Response<NotificationResponse>
+    @POST("notifications/send-to-all")
+    suspend fun sendNotificationToAll(
+        @Body notificationRequest: NotificationRequest
+    ): Response<NotificationResponse>
     @PUT("notifications/me/read-all")
     suspend fun markAllMyNotificationsAsRead(): Response<Void>
     @GET("notifications")

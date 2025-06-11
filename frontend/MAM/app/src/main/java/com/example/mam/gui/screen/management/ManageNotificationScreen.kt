@@ -1,5 +1,6 @@
 package com.example.mam.gui.screen.management
 
+import android.app.Activity
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -38,6 +39,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +70,7 @@ import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ManageNotificationViewModel
 import com.mapbox.maps.extension.style.expressions.dsl.generated.typeofExpression
+import kotlinx.coroutines.launch
 
 @Composable
 fun ManageNotificationScreen(
@@ -82,9 +85,7 @@ fun ManageNotificationScreen(
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
     var isShowDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    LaunchedEffect(Unit) {
-        viewModel.loadData()
-    }
+    val scope = rememberCoroutineScope()
 
     Column(
         modifier = Modifier
@@ -142,15 +143,16 @@ fun ManageNotificationScreen(
                 message = "Bạn có chắc chắn muốn gửi thông báo này không?",
                 onDismiss = { isShowDialog = false },
                 onConfirm = {
-
-                    isShowDialog = false
-                    viewModel.sendNotification()
-                    onBackClick()
-                    Toast.makeText(
-                        context,
-                        "Gửi thông báo thành công",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    scope.launch {
+                        isShowDialog = false
+                        viewModel.createNotification()
+                        onBackClick()
+                        Toast.makeText(
+                            context,
+                            "Gửi thông báo thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             )
         }
