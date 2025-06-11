@@ -17,4 +17,10 @@ public interface OrderRepository
       "SELECT o FROM Order o WHERE (:start IS NULL OR o.createdAt >= :start) AND (:end IS NULL OR"
           + " o.createdAt <= :end)")
   List<Order> findByCreatedAtOptional(@Param("start") Instant start, @Param("end") Instant end);
+
+  @Query("SELECT o FROM Order o WHERE YEAR(o.createdAt) = :year")
+  List<Order> findByYear(int year);
+
+  @Query("SELECT o FROM Order o WHERE MONTH(o.createdAt) = :month AND YEAR(o.createdAt) = :year")
+  List<Order> findByMonthAndYear(int month, int year);
 }

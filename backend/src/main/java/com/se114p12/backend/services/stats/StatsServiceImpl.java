@@ -3,8 +3,10 @@ package com.se114p12.backend.services.stats;
 import com.se114p12.backend.dtos.stats.RevenueStatsResponseDTO;
 import com.se114p12.backend.entities.order.Order;
 import com.se114p12.backend.repositories.order.OrderRepository;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.Month;
 import java.time.Year;
 import java.time.YearMonth;
 import java.util.ArrayList;
@@ -80,5 +82,44 @@ public class StatsServiceImpl implements StatsService {
     }
 
     return groupedOrders;
+  }
+
+  @Override
+  public Map<Integer, BigDecimal> getRevenueStatsByYear(int year, String groupBy) {
+    List<Order> orders = orderRepository.findByYear(year);
+
+    switch (groupBy.toLowerCase()) {
+      case "month":
+        return orders.stream()
+            .collect(
+                Collectors.groupingBy(
+                    order -> Month.from(order.getCreatedAt()).getValue(),
+                    Collectors.reducing(BigDecimal.ZERO, Order::getTotalPrice, BigDecimal::add)));
+      case "quarter":
+        return orders.stream()
+            .collect(
+                Collectors.groupingBy(
+                    order -> {
+                      int month = Month.from(order.getCreatedAt()).getValue();
+                      return (month - 1) / 3 + 1; // Calculate quarter
+                    },
+                    Collectors.reducing(BigDecimal.ZERO, Order::getTotalPrice, BigDecimal::add)));
+      default:
+        throw new IllegalArgumentException("Invalid groupBy value: " + groupBy);
+    }
+  }
+
+  @Override
+  public Map<String, BigDecimal> getSoldProductCountByCategory(int month, int year) {
+    List<Order> orders = orderRepository.findByMonthAndYear(month, year);
+    return orders.stream()
+        .flatMap(order -> order.getOrderDetails().stream())
+        .collect(
+            Collectors.groupingBy(
+                orderItem -> orderItem.getCategoryName(),
+                Collectors.reducing(
+                    BigDecimal.ZERO,
+                    orderItem -> BigDecimal.valueOf(orderItem.getQuantity()),
+                    BigDecimal::add)));
   }
 }

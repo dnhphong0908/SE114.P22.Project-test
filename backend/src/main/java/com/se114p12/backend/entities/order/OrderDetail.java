@@ -17,6 +17,8 @@ public class OrderDetail {
   @JoinColumn(name = "order_id")
   private Order order;
 
+  private Long categoryId;
+  private String categoryName;
   private Long productId;
   private String productName;
   private String productImage;
