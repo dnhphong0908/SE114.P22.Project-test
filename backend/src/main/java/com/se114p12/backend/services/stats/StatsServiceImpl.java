@@ -2,7 +2,9 @@ package com.se114p12.backend.services.stats;
 
 import com.se114p12.backend.dtos.stats.RevenueStatsResponseDTO;
 import com.se114p12.backend.entities.order.Order;
+import com.se114p12.backend.entities.product.ProductCategory;
 import com.se114p12.backend.repositories.order.OrderRepository;
+import com.se114p12.backend.repositories.product.ProductCategoryRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class StatsServiceImpl implements StatsService {
 
+  private final ProductCategoryRepository productCategoryRepository;
   private final OrderRepository orderRepository;
 
   public List<RevenueStatsResponseDTO> getRevenueStats(Instant start, Instant end, String groupBy) {
@@ -90,21 +93,36 @@ public class StatsServiceImpl implements StatsService {
 
     switch (groupBy.toLowerCase()) {
       case "month":
-        return orders.stream()
-            .collect(
-                Collectors.groupingBy(
-                    order -> order.getCreatedAt().atZone(ZoneId.systemDefault()).getMonthValue(),
-                    Collectors.reducing(BigDecimal.ZERO, Order::getTotalPrice, BigDecimal::add)));
+        Map<Integer, BigDecimal> monthlyRevenue =
+            orders.stream()
+                .collect(
+                    Collectors.groupingBy(
+                        order ->
+                            order.getCreatedAt().atZone(ZoneId.systemDefault()).getMonthValue(),
+                        Collectors.reducing(
+                            BigDecimal.ZERO, Order::getTotalPrice, BigDecimal::add)));
+        for (int month = 1; month <= 12; month++) {
+          monthlyRevenue.putIfAbsent(month, BigDecimal.ZERO);
+        }
+        return monthlyRevenue;
+
       case "quarter":
-        return orders.stream()
-            .collect(
-                Collectors.groupingBy(
-                    order -> {
-                      int month =
-                          order.getCreatedAt().atZone(ZoneId.systemDefault()).getMonthValue();
-                      return (month - 1) / 3 + 1; // Calculate quarter
-                    },
-                    Collectors.reducing(BigDecimal.ZERO, Order::getTotalPrice, BigDecimal::add)));
+        Map<Integer, BigDecimal> quarterlyRevenue =
+            orders.stream()
+                .collect(
+                    Collectors.groupingBy(
+                        order -> {
+                          int month =
+                              order.getCreatedAt().atZone(ZoneId.systemDefault()).getMonthValue();
+                          return (month - 1) / 3 + 1; // Calculate quarter
+                        },
+                        Collectors.reducing(
+                            BigDecimal.ZERO, Order::getTotalPrice, BigDecimal::add)));
+        for (int quarter = 1; quarter <= 4; quarter++) {
+          quarterlyRevenue.putIfAbsent(quarter, BigDecimal.ZERO);
+        }
+        return quarterlyRevenue;
+
       default:
         throw new IllegalArgumentException("Invalid groupBy value: " + groupBy);
     }
@@ -113,14 +131,21 @@ public class StatsServiceImpl implements StatsService {
   @Override
   public Map<String, BigDecimal> getSoldProductCountByCategory(int month, int year) {
     List<Order> orders = orderRepository.findByMonthAndYear(month, year);
-    return orders.stream()
-        .flatMap(order -> order.getOrderDetails().stream())
+    Map<Long, BigDecimal> soldByCategory =
+        orders.stream()
+            .flatMap(order -> order.getOrderDetails().stream())
+            .collect(
+                Collectors.groupingBy(
+                    orderItem -> orderItem.getCategoryId(),
+                    Collectors.reducing(
+                        BigDecimal.ZERO,
+                        orderItem -> BigDecimal.valueOf(orderItem.getQuantity()),
+                        BigDecimal::add)));
+    List<ProductCategory> categories = productCategoryRepository.findAll();
+    return categories.stream()
         .collect(
-            Collectors.groupingBy(
-                orderItem -> orderItem.getCategoryName(),
-                Collectors.reducing(
-                    BigDecimal.ZERO,
-                    orderItem -> BigDecimal.valueOf(orderItem.getQuantity()),
-                    BigDecimal::add)));
+            Collectors.toMap(
+                ProductCategory::getName,
+                category -> soldByCategory.getOrDefault(category.getId(), BigDecimal.ZERO)));
   }
 }
