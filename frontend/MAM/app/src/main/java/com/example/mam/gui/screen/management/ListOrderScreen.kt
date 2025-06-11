@@ -480,6 +480,17 @@ fun OrderItem(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+                if (!isViewOnly) {
+                    if (order.orderStatus == "PENDING" ||
+                        order.orderStatus == "CONFIRMED" ||
+                        order.orderStatus == "PROCESSING")
+                        IconButton(onClick = { onEditClick(order.id) }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
+                    }
+                    //                IconButton(onClick = { onDeleteClick(order.id) }) {
+                    //                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
+                    //                }
+                }
             }
         }
     }

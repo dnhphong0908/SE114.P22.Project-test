@@ -30,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -59,6 +60,8 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ManageOrderViewModel
+import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -76,12 +79,10 @@ fun ManageOrderScreen(
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
     val isStatusLoading = viewModel.isStatusLoading.collectAsStateWithLifecycle().value
     var isShowDialog by remember { mutableStateOf(false)}
-    var context = LocalContext.current
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     LaunchedEffect(key1 = order) {
         if (isPreview) {
-            viewModel.mockData()
-        }
-        else {
             viewModel.loadData()
         }
     }
@@ -122,13 +123,15 @@ fun ManageOrderScreen(
                 onDismiss = { isShowDialog = false },
                 onConfirm = {
                     viewModel.setStatus()
-                    isShowDialog = false
-                    viewModel.updateStatus()
-                    Toast.makeText(
-                        context,
-                        "Cập nhật trạng thái đơn hàng thành công",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    scope.launch {
+                        isShowDialog = false
+                        viewModel.updateStatus()
+                        Toast.makeText(
+                            context,
+                            "Cập nhật trạng thái đơn hàng thành công",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
                 }
             )
         }
@@ -177,7 +180,7 @@ fun ManageOrderScreen(
                             .size(40.dp)
                     )
                 }
-                else if (orderStatus <= 3) {
+                else if (orderStatus == "PENDING" || orderStatus == "CONFIRMED" || orderStatus == "PROCESSING") {
                     OuterShadowFilledButton(
                         text = getStatusUpdateMessage(order.orderStatus),
                         onClick = {isShowDialog = true},
@@ -223,7 +226,7 @@ fun ManageOrderScreen(
                                 .fillMaxWidth()
                         )
                         Text(
-                            text = shipper.name + " - " + shipper.phoneNumber,
+                            text = shipper.fullname + " - " + shipper.phone,
                             fontSize = 18.sp,
                             color = BrownDefault,
                             textAlign = TextAlign.Start,
@@ -277,7 +280,7 @@ fun ManageOrderScreen(
                             .fillMaxWidth()
                     )
                     Text(
-                        text = user.fullName + " - " + user.phoneNumber,
+                        text = user.fullname + " - " + user.phone,
                         fontSize = 18.sp,
                         color = BrownDefault,
                         textAlign = TextAlign.Start,
@@ -297,7 +300,7 @@ fun ManageOrderScreen(
                             ) {
                                 append("Địa chỉ: ")
                             }
-                            append(user.address)
+                            append(order.shippingAddress)
                         },
                         fontSize = 18.sp,
                         color = BrownDefault,
@@ -340,7 +343,7 @@ fun ManageOrderScreen(
                             ) {
                                 append("Mã đơn hàng: ")
                             }
-                            append(order.id)
+                            append(order.id.toString())
                         },
                         fontSize = 18.sp,
                         color = BrownDefault,
@@ -349,7 +352,7 @@ fun ManageOrderScreen(
                             .padding(start = 10.dp)
                             .fillMaxWidth()
                     )
-                    order.orderDate?.atZone(ZoneId.systemDefault()).let {
+                    Instant.parse(order.actualDeliveryTime).atZone(ZoneId.systemDefault()).let {
                         Text(
                             text = buildAnnotatedString {
                                 withStyle(
@@ -383,7 +386,7 @@ fun ManageOrderScreen(
                             ) {
                                 append("Hình thức thanh toán: ")
                             }
-                            append(order.paymentId)
+                            append(order.paymentMethod)
                         },
                         fontSize = 18.sp,
                         color = BrownDefault,
@@ -477,34 +480,34 @@ fun ManageOrderScreen(
     }
 }
 
-fun getStatusMessage(status: Int): String {
+fun getStatusMessage(status: String): String {
     return when (status) {
-        0 -> "Chờ xác nhận" //PENDING
-        1 -> "Đã xác nhận" //CONFIRMED
-        2 -> "Đang chế biến" //PROCESSING
-        3 -> "Đang giao hàng" //SHIPPING
-        4 -> "Đã giao hàng" //COMPLETED
-        5 -> "Hủy đơn hàng" //CANCEL
+        "PENDING" -> "Chờ xác nhận" //PENDING
+        "CONFIRMED" -> "Đã xác nhận" //CONFIRMED
+        "PROCESSING" -> "Đang chế biến" //PROCESSING
+        "SHIPPING" -> "Đang giao hàng" //SHIPPING
+        "COMPLETED" -> "Đã giao hàng" //COMPLETED
+        "CANCEL" -> "Hủy đơn hàng" //CANCEL
         else -> "Không xác định" //CANCEL
     }
 }
 
-fun getStatusUpdateMessage(status: Int): String {
+fun getStatusUpdateMessage(status: String): String {
     return when (status) {
-        0 -> "Xác nhận đơn hàng"
-        1 -> "Đang chế biến"
-        2 -> "Đang giao hàng"
-        3 -> "Đã giao hàng"
+        "CONFIRMED" -> "Xác nhận đơn hàng"
+        "PROCESSING" -> "Đang chế biến"
+        "SHIPPING" -> "Đang giao hàng"
+        "COMPLETED" -> "Đã giao hàng"
         else -> "Không xác định"
     }
 }
 
-@Preview
-@Composable
-fun ManageOrderScreenPreview() {
-    ManageOrderScreen(
-        viewModel = ManageOrderViewModel(savedStateHandle = SavedStateHandle(mapOf("orderId" to "orderId"))),
-        onBackClick = {},
-        isPreview = true,
-    )
-}
+//@Preview
+//@Composable
+//fun ManageOrderScreenPreview() {
+//    ManageOrderScreen(
+//        viewModel = ManageOrderViewModel(savedStateHandle = SavedStateHandle(mapOf("orderId" to "orderId"))),
+//        onBackClick = {},
+//        isPreview = true,
+//    )
+//}
