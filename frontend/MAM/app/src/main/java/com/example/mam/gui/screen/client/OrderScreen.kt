@@ -527,7 +527,7 @@ fun OrderItem(
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.fillMaxWidth()
                         )
-                        item.variationInfo.let {
+                        item.variationInfo.let{
                             Text(
                                 text = it,
                                 textAlign = TextAlign.Start,

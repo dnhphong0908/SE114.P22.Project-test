@@ -1,5 +1,6 @@
 package com.example.mam.viewmodel.management
 
+import android.annotation.SuppressLint
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -81,6 +82,7 @@ class DashboardViewModel(
         }
     }
 
+    @SuppressLint("SuspiciousIndentation")
     suspend fun loadCategorySoldMonthlyList(month: Int, year: Int) {
         try {
             _isLoadingCategory.value = true
@@ -96,24 +98,16 @@ class DashboardViewModel(
         }
     }
 
-
-
-    suspend fun logOut(): Int{
+    suspend fun countOrderByStatus(): Map<String, Long>{
         try {
-            val response = BaseService(userPreferencesRepository).authPrivateService.logOut(
-                RefreshTokenRequest(userPreferencesRepository.refreshToken.map { it }.first())
-            )
-            if (response.isSuccessful){
-                userPreferencesRepository.saveAccessToken("","")
-                userPreferencesRepository.saveAddress("")
-                return 1
-            }
-            else return 0
+            val response = BaseService(userPreferencesRepository).stastiticRepository.getStatusCount()
+            return if (response.isSuccessful)
+                response.body()!!
+            else emptyMap()
         }
         catch (e: Exception){
-            return 0
+            return emptyMap()
         }
-
     }
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {

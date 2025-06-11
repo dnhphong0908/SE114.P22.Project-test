@@ -144,13 +144,15 @@ class ManageOrderViewModel(
                     _orderStatus.value = order.orderStatus
                     Log.d("Order", "Lấy Don hang thành công: ${order.orderStatus}")
                     Log.d("Order", "Lấy Don hang thành công: ${order.orderDetails.size} items")
-                    Log.d("Order", "Lấy Don hang thành công: ${order.createdAt} items")
+                    Log.d("Order", "Lấy Don hang thành công: ${order.createdAt}, ${order.note}, ${order.paymentMethod}, ${order.shipperId}")
+
 
                     val user = BaseService(userPreferencesRepository)
                         .userService
                         .getUserById(order.userId)
                     if (user.isSuccessful) {
                         _user.value = user.body() ?: UserResponse()
+                        Log.d("Order", "Lấy thông tin người dùng: ${user.body()?.fullname}, $")
                     } else {
                         Log.d("Order", "Lấy thông tin người dùng thất bại: ${user.errorBody()?.string()}")
                     }
@@ -160,6 +162,7 @@ class ManageOrderViewModel(
                             .getShipperById(order.shipperId)
                         if (shipperResponse.isSuccessful) {
                             _shipper.value = shipperResponse.body()
+                            Log.d("Order", "Lấy thông tin Shipper: ${shipper.value?.fullname}")
                         } else {
                             Log.d("Order", "Lấy thông tin Shipper thất bại: ${shipperResponse.errorBody()?.string()}")
                         }

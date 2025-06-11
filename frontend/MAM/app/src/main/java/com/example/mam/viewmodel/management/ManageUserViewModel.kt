@@ -167,7 +167,7 @@ class ManageUserViewModel(
                     _userName.value = user.username
                     _fullName.value = user.fullname
                     _email.value = user.email
-                    _role.value = user.role.toString()
+                    _role.value = user.role.name
                     _phone.value = user.phone
                     _status.value = user.status
                     _createAt.value = Instant.parse(user.createdAt)
@@ -200,49 +200,49 @@ class ManageUserViewModel(
         _updateAt.value = Instant.now()
     }
 
-    suspend fun updateUser(): Int {
-        _isLoading.value = true
-        try {
-            Log.d("User", "Bắt đầu cap nhat Nguoi dung")
-            Log.d(
-                "User",
-                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
-            )
-            val userName = _userName.value.toRequestBody("text/plain".toMediaType())
-            val fullName = _fullName.value.toRequestBody("text/plain".toMediaType())
-            val email = _email.value.toRequestBody("text/plain".toMediaType())
-            val phone = _phone.value.toRequestBody("text/plain".toMediaType())
-            val role = _role.value.toRequestBody("text/plain".toMediaType())
-            val status = _status.value.toRequestBody("text/plain".toMediaType())
-            val imageFile = _userImageFile.value
-            val requestFile = imageFile?.asRequestBody("image/*".toMediaType())
-            val imagePart =
-                requestFile?.let { MultipartBody.Part.createFormData("image", imageFile.name, it) }
-
-            val response = BaseService(userPreferencesRepository)
-                .userService
-                .updateUser(
-                    _userID.value, userName, fullName, email, phone, imagePart, role
-                )
-            Log.d("User", "Status code: ${response.code()}")
-            if (response.isSuccessful) {
-                val user = response.body()
-                if (user != null) {
-                    _status.value = user.status
-                }
-                return 1
-            } else {
-                Log.d("User", "Cap nhat Nguoi dung thất bại: ${response.errorBody()?.string()}")
-                return 0
-            }
-        } catch (e: Exception) {
-            Log.d("User", "Không thể cap nhat Nguoi dung: ${e.message}")
-            return 0
-        } finally {
-            _isLoading.value = false
-            Log.d("User", "Kết thúc cap nhat Nguoi dung")
-        }
-    }
+//    suspend fun updateUser(): Int {
+//        _isLoading.value = true
+//        try {
+//            Log.d("User", "Bắt đầu cap nhat Nguoi dung")
+//            Log.d(
+//                "User",
+//                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+//            )
+//            val userName = _userName.value.toRequestBody("text/plain".toMediaType())
+//            val fullName = _fullName.value.toRequestBody("text/plain".toMediaType())
+//            val email = _email.value.toRequestBody("text/plain".toMediaType())
+//            val phone = _phone.value.toRequestBody("text/plain".toMediaType())
+//            val role = _role.value.toRequestBody("text/plain".toMediaType())
+//            val status = _status.value.toRequestBody("text/plain".toMediaType())
+//            val imageFile = _userImageFile.value
+//            val requestFile = imageFile?.asRequestBody("image/*".toMediaType())
+//            val imagePart =
+//                requestFile?.let { MultipartBody.Part.createFormData("image", imageFile.name, it) }
+//
+//            val response = BaseService(userPreferencesRepository)
+//                .userService
+//                .updateUser(
+//                    _userID.value, userName, fullName, email, phone, imagePart, role
+//                )
+//            Log.d("User", "Status code: ${response.code()}")
+//            if (response.isSuccessful) {
+//                val user = response.body()
+//                if (user != null) {
+//                    _status.value = user.status
+//                }
+//                return 1
+//            } else {
+//                Log.d("User", "Cap nhat Nguoi dung thất bại: ${response.errorBody()?.string()}")
+//                return 0
+//            }
+//        } catch (e: Exception) {
+//            Log.d("User", "Không thể cap nhat Nguoi dung: ${e.message}")
+//            return 0
+//        } finally {
+//            _isLoading.value = false
+//            Log.d("User", "Kết thúc cap nhat Nguoi dung")
+//        }
+//    }
     fun addUser() {
         viewModelScope.launch {
             try {

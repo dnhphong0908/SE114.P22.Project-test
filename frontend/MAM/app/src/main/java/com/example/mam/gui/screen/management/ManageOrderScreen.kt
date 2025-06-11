@@ -1,10 +1,13 @@
 package com.example.mam.gui.screen.management
 
+import android.annotation.SuppressLint
 import android.widget.Toast
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -17,6 +20,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentPasteOff
@@ -25,7 +29,10 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -37,8 +44,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -50,13 +59,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import co.yml.charts.common.extensions.isNotNull
+import coil.compose.AsyncImage
+import com.example.mam.R
+import com.example.mam.dto.order.OrderDetailResponse
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.CustomDialog
 import com.example.mam.gui.component.OrderItemContainer
 import com.example.mam.gui.component.OuterShadowFilledButton
 import com.example.mam.gui.component.outerShadow
+import com.example.mam.gui.screen.client.OrderScreen
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyDark
+import com.example.mam.ui.theme.GreyDefault
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLight
 import com.example.mam.ui.theme.OrangeLighter
@@ -68,6 +83,7 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
+@SuppressLint("SuspiciousIndentation")
 @Composable
 fun ManageOrderScreen(
     viewModel: ManageOrderViewModel,
@@ -80,7 +96,7 @@ fun ManageOrderScreen(
 
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
     val isStatusLoading = viewModel.isStatusLoading.collectAsStateWithLifecycle().value
-    var isShowDialog by remember { mutableStateOf(false)}
+    var isShowDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     LaunchedEffect(Unit) {
@@ -117,22 +133,22 @@ fun ManageOrderScreen(
                     .padding(top = 17.dp)
             )
             if (order.orderStatus == "PENDING")
-            CircleIconButton(
-                backgroundColor = OrangeLighter,
-                foregroundColor = OrangeDefault,
-                icon = Icons.Default.ContentPasteOff,
-                shadow = "outer",
-                onClick = {
-                    scope.launch {
-                        viewModel.cancelOrder()
-                    }
-                },
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(end = 16.dp, top = 16.dp)
-            )
+                CircleIconButton(
+                    backgroundColor = OrangeLighter,
+                    foregroundColor = OrangeDefault,
+                    icon = Icons.Default.ContentPasteOff,
+                    shadow = "outer",
+                    onClick = {
+                        scope.launch {
+                            viewModel.cancelOrder()
+                        }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .padding(end = 16.dp, top = 16.dp)
+                )
         }
-        if(isShowDialog) {
+        if (isShowDialog) {
             CustomDialog(
                 title = "Xác nhận",
                 message = "Bạn có chắc chắn muốn cập nhật trạng thái đơn hàng này không?",
@@ -192,19 +208,17 @@ fun ManageOrderScreen(
                 Spacer(modifier = Modifier.size(20.dp))
             }
             item {
-                if (isStatusLoading)
-                {
+                if (isStatusLoading) {
                     CircularProgressIndicator(
                         color = OrangeDefault,
                         modifier = Modifier
                             .padding(16.dp)
                             .size(40.dp)
                     )
-                }
-                else if (orderStatus == "PENDING" || orderStatus == "CONFIRMED" || orderStatus == "PROCESSING") {
+                } else if (orderStatus == "PENDING" || orderStatus == "CONFIRMED" || orderStatus == "PROCESSING") {
                     OuterShadowFilledButton(
                         text = getStatusUpdateMessage(order.orderStatus),
-                        onClick = {isShowDialog = true},
+                        onClick = { isShowDialog = true },
                         textColor = WhiteDefault,
                         color = OrangeDefault,
                         shadowColor = GreyDark,
@@ -225,7 +239,61 @@ fun ManageOrderScreen(
                     )
                 }
             } else {
-            if (shipper != null) {
+                if (shipper != null) {
+                    item {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(5.dp),
+                            modifier = Modifier
+                                .fillMaxWidth(0.9f)
+                                .background(
+                                    OrangeLight,
+                                    RoundedCornerShape(10.dp)
+                                )
+                                .padding(5.dp)
+                        ) {
+                            Text(
+                                text = "Người giao hàng",
+                                fontSize = 16.sp,
+                                color = BrownDefault,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .padding(start = 10.dp)
+                                    .fillMaxWidth()
+                            )
+                            Text(
+                                text = shipper.fullname + " - " + shipper.phone,
+                                fontSize = 14.sp,
+                                color = BrownDefault,
+                                textAlign = TextAlign.Start,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier
+                                    .padding(start = 10.dp)
+                                    .fillMaxWidth()
+                            )
+                            Text(
+                                text = buildAnnotatedString {
+                                    withStyle(
+                                        style = SpanStyle(
+                                            color = BrownDefault,
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.SemiBold
+                                        )
+                                    ) {
+                                        append("Biển số xe: ")
+                                    }
+                                    append(shipper.licensePlate)
+                                },
+                                fontSize = 14.sp,
+                                color = BrownDefault,
+                                textAlign = TextAlign.Start,
+                                modifier = Modifier
+                                    .padding(start = 10.dp)
+                                    .fillMaxWidth()
+                            )
+                        }
+                    }
+                }
                 item {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(5.dp),
@@ -238,7 +306,7 @@ fun ManageOrderScreen(
                             .padding(5.dp)
                     ) {
                         Text(
-                            text = "Người giao hàng",
+                            text = "Người đặt hàng",
                             fontSize = 16.sp,
                             color = BrownDefault,
                             fontWeight = FontWeight.Bold,
@@ -248,7 +316,7 @@ fun ManageOrderScreen(
                                 .fillMaxWidth()
                         )
                         Text(
-                            text = shipper.fullname + " - " + shipper.phone,
+                            text = user.fullname + " - " + user.phone,
                             fontSize = 14.sp,
                             color = BrownDefault,
                             textAlign = TextAlign.Start,
@@ -266,9 +334,9 @@ fun ManageOrderScreen(
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 ) {
-                                    append("Biển số xe: ")
+                                    append("Địa chỉ: ")
                                 }
-                                append(shipper.licensePlate)
+                                append(order.shippingAddress)
                             },
                             fontSize = 14.sp,
                             color = BrownDefault,
@@ -279,197 +347,144 @@ fun ManageOrderScreen(
                         )
                     }
                 }
-            }
-            item {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .background(
-                            OrangeLight,
-                            RoundedCornerShape(10.dp)
-                        )
-                        .padding(5.dp)
-                ) {
-                    Text(
-                        text = "Người đặt hàng",
-                        fontSize = 16.sp,
-                        color = BrownDefault,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
+                item {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
                         modifier = Modifier
-                            .padding(start = 10.dp)
-                            .fillMaxWidth()
-                    )
-                    Text(
-                        text = user.fullname + " - " + user.phone,
-                        fontSize = 14.sp,
-                        color = BrownDefault,
-                        textAlign = TextAlign.Start,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .fillMaxWidth()
-                    )
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(
-                                style = SpanStyle(
-                                    color = BrownDefault,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            ) {
-                                append("Địa chỉ: ")
-                            }
-                            append(order.shippingAddress)
-                        },
-                        fontSize = 14.sp,
-                        color = BrownDefault,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .fillMaxWidth()
-                    )
-                }
-            }
-            item {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(5.dp),
-                    modifier = Modifier
-                        .fillMaxWidth(0.9f)
-                        .background(
-                            OrangeLight,
-                            RoundedCornerShape(10.dp)
-                        )
-                        .padding(5.dp)
-                ) {
-                    Text(
-                        text = "Thông tin đơn hàng",
-                        fontSize = 16.sp,
-                        color = BrownDefault,
-                        fontWeight = FontWeight.Bold,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .fillMaxWidth()
-                    )
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(
-                                style = SpanStyle(
-                                    color = BrownDefault,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            ) {
-                                append("Mã đơn hàng: ")
-                            }
-                            append(order.id.toString())
-                        },
-                        fontSize = 14.sp,
-                        color = BrownDefault,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .fillMaxWidth()
-                    )
-                    if (order.createdAt.isNotEmpty())
-                    Instant.parse(order.createdAt).atZone(ZoneId.systemDefault()).let {
+                            .fillMaxWidth(0.9f)
+                            .background(
+                                OrangeLight,
+                                RoundedCornerShape(10.dp)
+                            )
+                            .padding(5.dp)
+                    ) {
                         Text(
-                            text = "Ngày đặt: " + it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")),
-                            textAlign = TextAlign.Start,
-                            color = OrangeDefault,
+                            text = "Thông tin đơn hàng",
+                            fontSize = 16.sp,
+                            color = BrownDefault,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .fillMaxWidth()
+                        )
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = BrownDefault,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                ) {
+                                    append("Mã đơn hàng: ")
+                                }
+                                append(order.id.toString())
+                            },
                             fontSize = 14.sp,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp)
+                            color = BrownDefault,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .fillMaxWidth()
+                        )
+                        if (order.createdAt.isNotEmpty())
+                        Instant.parse(order.createdAt).atZone(ZoneId.systemDefault()).let {
+                            Text(
+                                text = "Ngày đặt: " + it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")),
+                                textAlign = TextAlign.Start,
+                                color = OrangeDefault,
+                                fontSize = 14.sp,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.fillMaxWidth()
+                                    .padding(start = 10.dp, end = 10.dp)
+                            )
+                        }
+
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = BrownDefault,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                ) {
+                                    append("Hình thức thanh toán: ")
+                                }
+                                append(order.paymentMethod)
+                            },
+                            fontSize = 14.sp,
+                            color = BrownDefault,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .fillMaxWidth()
+                        )
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = BrownDefault,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                ) {
+                                    append("Ghi chú: ")
+                                }
+                                append(order.note ?: "Không có ghi chú")
+                            },
+                            fontSize = 14.sp,
+                            color = BrownDefault,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .fillMaxWidth()
+                        )
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = BrownDefault,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                ) {
+                                    append("Tổng tiền: ")
+                                }
+                                append(order.totalPrice.toString() + " VNĐ")
+                            },
+                            fontSize = 14.sp,
+                            color = BrownDefault,
+                            textAlign = TextAlign.Start,
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .fillMaxWidth()
+                        )
+                        Text(
+                            text = buildAnnotatedString {
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = BrownDefault,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                ) {
+                                    append("Trạng thái đơn hàng: ")
+                                }
+                                append(order.orderStatus)
+                            },
+                            fontSize = 14.sp,
+                            color = OrangeDefault,
+                            textAlign = TextAlign.Start,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .fillMaxWidth()
                         )
                     }
-
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(
-                                style = SpanStyle(
-                                    color = BrownDefault,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            ) {
-                                append("Hình thức thanh toán: ")
-                            }
-                            append(order.paymentMethod)
-                        },
-                        fontSize = 18.sp,
-                        color = BrownDefault,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .fillMaxWidth()
-                    )
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(
-                                style = SpanStyle(
-                                    color = BrownDefault,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            ) {
-                                append("Ghi chú: ")
-                            }
-                            append(order.note?: "Không có ghi chú")
-                        },
-                        fontSize = 14.sp,
-                        color = BrownDefault,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .fillMaxWidth()
-                    )
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(
-                                style = SpanStyle(
-                                    color = BrownDefault,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            ) {
-                                append("Tổng tiền: ")
-                            }
-                            append(order.totalPrice.toString() + " VNĐ")
-                        },
-                        fontSize = 14.sp,
-                        color = BrownDefault,
-                        textAlign = TextAlign.Start,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .fillMaxWidth()
-                    )
-                    Text(
-                        text = buildAnnotatedString {
-                            withStyle(
-                                style = SpanStyle(
-                                    color = BrownDefault,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            ) {
-                                append("Trạng thái đơn hàng: ")
-                            }
-                            append(order.orderStatus)
-                        },
-                        fontSize = 14.sp,
-                        color = OrangeDefault,
-                        textAlign = TextAlign.Start,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .fillMaxWidth()
-                    )
                 }
-            }
                 item {
                     Text(
                         text = "Danh sách sản phẩm",
@@ -482,16 +497,91 @@ fun ManageOrderScreen(
                             .fillMaxWidth()
                     )
                 }
-            items(order.orderDetails){ item ->
-                OrderItemContainer(
-                    item= item
-                )
+                items(order.orderDetails) { item ->
+                   OrderItem(
+                        item = item
+                    )
+                }
             }
         }
     }
-    }
 }
 
+@Composable
+fun OrderItem(
+    item: OrderDetailResponse,
+    modifier: Modifier = Modifier,
+){
+    Surface(
+        shadowElevation = 4.dp, // Elevation applied here instead
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.padding(8.dp)
+    ) {
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = WhiteDefault
+            ),
+            modifier = Modifier
+                .animateContentSize()
+        ) {
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier
+            ) {
+                AsyncImage(
+                    model = item.getRealUrl(), // Đây là URL từ API
+                    contentDescription = null,
+                    placeholder = painterResource(R.drawable.ic_mam_logo),
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .padding(8.dp)
+                        .size(80.dp)
+                        .clip(CircleShape)
+                )
+                Column(
+                    verticalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .weight(1f)
+                ) {
+                    Column (
+                        verticalArrangement = Arrangement.Top,
+                        modifier = Modifier.fillMaxWidth().padding(0.dp, 8.dp, 8.dp, 8.dp)
+                    ) {
+                        Text(
+                            text = item.productName + " *" + item.quantity,
+                            textAlign = TextAlign.Start,
+                            color = BrownDefault,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        if (item.variationInfo != null)
+                            Text(
+                                text = item.variationInfo,
+                                textAlign = TextAlign.Start,
+                                color = GreyDefault,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                        Text(
+                            text = item.getPrice(),
+                            textAlign = TextAlign.End,
+                            color = OrangeDefault,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                }
+            }
+        }
+    }
 fun getStatusUpdateMessage(status: String): String {
     return when (status) {
         "PENDING" -> "Xác nhận đơn hàng"

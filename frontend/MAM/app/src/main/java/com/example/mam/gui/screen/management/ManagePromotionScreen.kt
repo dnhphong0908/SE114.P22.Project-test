@@ -254,7 +254,7 @@ fun ManagePromotionScreen(
                     },
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -266,7 +266,7 @@ fun ManagePromotionScreen(
                         Text(
                             text = "Mã khuyến mãi",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )
@@ -289,7 +289,7 @@ fun ManagePromotionScreen(
                     },
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -301,7 +301,7 @@ fun ManagePromotionScreen(
                         Text(
                             text = "Mô tả",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )
@@ -323,7 +323,7 @@ fun ManagePromotionScreen(
                     },
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -335,7 +335,7 @@ fun ManagePromotionScreen(
                         Text(
                             text = "Giá trị",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )
@@ -357,7 +357,7 @@ fun ManagePromotionScreen(
                     readOnly = true,
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -369,7 +369,7 @@ fun ManagePromotionScreen(
                         Text(
                             text = "Ngày bắt đầu",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )
@@ -407,7 +407,7 @@ fun ManagePromotionScreen(
                     readOnly = true,
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -419,7 +419,7 @@ fun ManagePromotionScreen(
                         Text(
                             text = "Ngày kết thúc",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )
@@ -457,7 +457,7 @@ fun ManagePromotionScreen(
                     },
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -469,7 +469,7 @@ fun ManagePromotionScreen(
                         Text(
                             text = "Giá trị đơn hàng tối thiểu",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )

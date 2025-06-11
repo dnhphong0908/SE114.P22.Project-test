@@ -19,7 +19,7 @@ interface UserService {
     @GET("users/{id}")
     suspend fun getUserById(@Path("id") userId: Long): Response<UserResponse>
     @Multipart
-    @PUT("users/{id}")
+    @PUT("users/{userId}")
     suspend fun updateUser(
         @Path("userId") id: Long,
         @Part("fullname") fullname: RequestBody,

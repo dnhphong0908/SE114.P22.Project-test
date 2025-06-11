@@ -221,7 +221,7 @@ fun ManageShipperScreen(
                         textAlign = TextAlign.Start,
                         color = GreyDefault,
                         fontWeight = FontWeight.Normal,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
                             .fillMaxWidth()
@@ -235,7 +235,7 @@ fun ManageShipperScreen(
                         },
                         textStyle = TextStyle(
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -247,7 +247,7 @@ fun ManageShipperScreen(
                             Text(
                                 text = "Tên shipper",
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
@@ -283,7 +283,7 @@ fun ManageShipperScreen(
                         },
                         textStyle = TextStyle(
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -295,7 +295,7 @@ fun ManageShipperScreen(
                             Text(
                                 text = "Số điện thoại",
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
@@ -331,7 +331,7 @@ fun ManageShipperScreen(
                         },
                         textStyle = TextStyle(
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -343,7 +343,7 @@ fun ManageShipperScreen(
                             Text(
                                 text = "Biển số xe",
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )

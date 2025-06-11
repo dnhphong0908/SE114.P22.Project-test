@@ -11,9 +11,13 @@ interface StastiticRepository {
         @Query("month") month: Int,
         @Query("year") year: Int,
     ): Response<Map<String, BigDecimal>>
+
     @GET("stats/revenue/month-or-quarter")
     suspend fun getRevenueByMonthOrQuarter(
         @Query("year") year: Int,
         @Query("groupBy") groupBy: String,
     ): Response<Map<Int, BigDecimal>>
+
+    @GET("stats/total-order-count-by-status/active")
+    suspend fun  getStatusCount(): Response<Map<String, Long>>
 }

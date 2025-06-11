@@ -122,8 +122,13 @@ fun DashboardScreen(
     val isLoading = viewModel.isLoading.collectAsState()
     val processingOrderNum = viewModel.processingOrderNum.collectAsState().value
     val notProcessingOrderNum = viewModel.notProcessingOrderNum.collectAsState().value
+    var processingCount by remember { mutableStateOf(0L) }
+    var preProcessCount by remember { mutableStateOf(0L) }
     LaunchedEffect(key1 = Unit) {
         viewModel.loadData()
+        val countStatus = viewModel.countOrderByStatus()
+        processingCount = countStatus["CONFIRMED"]?.let { countStatus["PROCESSING"]?.plus(it) } ?: 0L
+        preProcessCount = countStatus["PENDING"]?:0L
     }
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -192,7 +197,6 @@ fun DashboardScreen(
                     state = rememberScrollState())
         )
         {
-
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
@@ -218,7 +222,7 @@ fun DashboardScreen(
                                 .padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 5.dp)
                         )
                         Text(
-                            text = processingOrderNum.toString(),
+                            text = processingCount.toString(),
                             color = OrangeDefault,
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
@@ -247,7 +251,7 @@ fun DashboardScreen(
                                 .padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 5.dp)
                         )
                         Text(
-                            text = notProcessingOrderNum.toString(),
+                            text = preProcessCount.toString(),
                             color = OrangeDefault,
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,

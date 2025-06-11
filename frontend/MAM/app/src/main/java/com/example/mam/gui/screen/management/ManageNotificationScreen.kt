@@ -201,7 +201,7 @@ fun ManageNotificationScreen(
                 ) {
                     Text(
                         text = "Loại thông báo:",
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         color = BrownDefault,
                         textAlign = TextAlign.Start,
                         fontWeight = FontWeight.SemiBold,
@@ -216,7 +216,7 @@ fun ManageNotificationScreen(
                             label = {
                                 Text(
                                     text = type,
-                                    fontSize = 18.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier
                                 )
@@ -274,7 +274,7 @@ fun ManageNotificationScreen(
                     },
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -286,7 +286,7 @@ fun ManageNotificationScreen(
                         Text(
                             text = "Tiêu đề",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )
@@ -309,7 +309,7 @@ fun ManageNotificationScreen(
                     },
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -321,7 +321,7 @@ fun ManageNotificationScreen(
                         Text(
                             text = "Nội dung",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )

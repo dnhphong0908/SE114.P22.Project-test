@@ -285,7 +285,7 @@ fun ManageCategoryScreen(
                         textAlign = TextAlign.Start,
                         color = GreyDefault,
                         fontWeight = FontWeight.Normal,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
                             .fillMaxWidth()
@@ -301,7 +301,7 @@ fun ManageCategoryScreen(
                             textAlign = TextAlign.Start,
                             color = GreyDefault,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth()
@@ -319,7 +319,7 @@ fun ManageCategoryScreen(
                             textAlign = TextAlign.Start,
                             color = GreyDefault,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth()
@@ -334,7 +334,7 @@ fun ManageCategoryScreen(
                             },
                             textStyle = TextStyle(
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Normal,
                             ),
                             colors = OutlinedTextFieldDefaults.colors(
@@ -346,7 +346,7 @@ fun ManageCategoryScreen(
                                 Text(
                                     text = "Tên danh mục",
                                     color = BrownDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier
                                 )
@@ -380,7 +380,7 @@ fun ManageCategoryScreen(
                             },
                             textStyle = TextStyle(
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Normal,
                             ),
                             colors = OutlinedTextFieldDefaults.colors(
@@ -392,7 +392,7 @@ fun ManageCategoryScreen(
                                 Text(
                                     text = "Mô tả danh mục",
                                     color = BrownDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier
                                 )
