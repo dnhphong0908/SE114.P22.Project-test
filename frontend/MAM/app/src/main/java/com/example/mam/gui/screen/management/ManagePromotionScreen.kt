@@ -72,7 +72,8 @@ import java.time.format.DateTimeFormatter
 fun ManagePromotionScreen(
     viewModel: ManagePromotionViewModel,
     onBackClick: () -> Unit,
-) {
+    isAdd: Boolean = false,
+    ) {
     val code = viewModel.code.collectAsStateWithLifecycle().value
     val description = viewModel.description.collectAsStateWithLifecycle().value
     val value = viewModel.value.collectAsStateWithLifecycle().value
@@ -84,6 +85,7 @@ fun ManagePromotionScreen(
     val datePickerState = rememberDatePickerState()
     var isShowStartDateDialog by remember { mutableStateOf(false) }
     var isShowEndDateDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -119,9 +121,7 @@ fun ManagePromotionScreen(
                 icon = Icons.Outlined.Done,
                 shadow = "outer",
                 onClick = {
-                    if (code.isNotEmpty() && description.isNotEmpty() && value > 0 && startDate.isAfter(
-                            endDate
-                        )
+                    if (code.isNotEmpty() && description.isNotEmpty() && value > 0 && startDate.isBefore(endDate)
                     ) {
                         viewModel.addPromotion()
                         Toast.makeText(
@@ -439,7 +439,7 @@ fun ManagePromotionScreen(
                 OutlinedTextField(
                     value = minValue.toString(),
                     onValueChange = {
-                        viewModel.setMinValue(it.toInt())
+                        viewModel.setMinValue(it.toBigDecimal())
                     },
                     textStyle = TextStyle(
                         color = BrownDefault,
@@ -473,11 +473,11 @@ fun ManagePromotionScreen(
     }
 }
 
-@Preview
-@Composable
-fun ManagePromotionScreenPreview() {
-    ManagePromotionScreen(
-        viewModel = ManagePromotionViewModel(),
-        onBackClick = {}
-    )
-}
+//@Preview
+//@Composable
+//fun ManagePromotionScreenPreview() {
+//    ManagePromotionScreen(
+//        viewModel = ManagePromotionViewModel(),
+//        onBackClick = {}
+//    )
+//}

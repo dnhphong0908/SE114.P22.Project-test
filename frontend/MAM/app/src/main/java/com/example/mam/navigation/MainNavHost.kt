@@ -697,7 +697,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManagePromotionViewModel = viewModel()
+                val viewModel: ManagePromotionViewModel = viewModel(backStackEntry, factory = ManagePromotionViewModel.Factory)
                 ManagePromotionScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -735,7 +735,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageShipperViewModel = viewModel()
+                val viewModel: ManageShipperViewModel = viewModel(backStackEntry, factory = ManageShipperViewModel.Factory)
                 ManageShipperScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -751,7 +751,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageShipperViewModel = viewModel(backStackEntry)
+                val viewModel: ManageShipperViewModel = viewModel(backStackEntry, factory = ManageShipperViewModel.Factory)
                 ManageShipperScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
