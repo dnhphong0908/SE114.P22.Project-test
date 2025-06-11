@@ -37,7 +37,7 @@ class ListNotificationViewModel(
     ))
     val sortingOptions: StateFlow<List<String>> = _sortingOptions
 
-    private val _selectedSortingOption = MutableStateFlow<String>("")
+    private val _selectedSortingOption = MutableStateFlow<String>(_sortingOptions.value[0])
     val selectedSortingOption: StateFlow<String> = _selectedSortingOption
 
     private val _searchQuery = MutableStateFlow<String>("")

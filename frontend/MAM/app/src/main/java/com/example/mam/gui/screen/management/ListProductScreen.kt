@@ -105,7 +105,7 @@ fun ListProductScreen(
 
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
-    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
+    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle().value
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
     val productList = viewModel.product.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
@@ -306,7 +306,7 @@ fun ListProductScreen(
                             FilterChip(
                                 selected = sortExpanded,
                                 onClick = { sortExpanded = !sortExpanded },
-                                label = { selectedSortingOption.value },
+                                label = { Text(selectedSortingOption) },
                                 leadingIcon = {
                                     Icon(Icons.Default.Sort, contentDescription = "Sort")
                                 },
@@ -361,6 +361,48 @@ fun ListProductScreen(
                         }
                     }
                 }
+                productList.let {
+                    items(productList) { product ->
+                        var isShowDialog by remember { mutableStateOf(false) }
+                        if (isShowDialog){
+                            CustomDialog(
+                                title = "Xác nhận xóa",
+                                message = "Bạn có chắc muốn xóa Sản phẩm ${product.name}",
+                                onDismiss = {isShowDialog = false},
+                                onConfirm = {
+                                    scope.launch {
+                                        val result = viewModel.deleteProduct(product.id)
+                                        Toast.makeText(
+                                            context,
+                                            when(result){
+                                                -1 -> "Không thể kết nối Server"
+                                                1 -> "Xóa thành công"
+                                                else -> "Xóa thất bại"
+                                            },
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                        isShowDialog = false
+                                    }
+                                }
+
+                            )
+                        }
+                        if (isDeleting)
+                            CircularProgressIndicator(
+                                color = OrangeDefault,
+                                modifier = Modifier
+                                    .padding(16.dp)
+                                    .size(40.dp)
+                            )
+                        else
+                            ProductItem(
+                                product = product,
+                                onProductClick = onProductClick,
+                                onEditProductClick = onEditProductClick,
+                                onDeleteProductClick = { isShowDialog = true }
+                            )
+                    }
+                }
                 if (mockData != null) {
                     items(mockData) { product ->
                         ProductItem(
@@ -388,55 +430,12 @@ fun ListProductScreen(
                                 Text(
                                     text = "Không có sản phẩm nào",
                                     color = GreyDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(16.dp)
                                 )
                             }
                         }
-                    else
-                    productList.let {
-                        items(productList) { product ->
-                            var isShowDialog by remember { mutableStateOf(false) }
-                            if (isShowDialog){
-                                CustomDialog(
-                                    title = "Xác nhận xóa",
-                                    message = "Bạn có chắc muốn xóa Sản phẩm ${product.name}",
-                                    onDismiss = {isShowDialog = false},
-                                    onConfirm = {
-                                        scope.launch {
-                                            val result = viewModel.deleteProduct(product.id)
-                                            Toast.makeText(
-                                                context,
-                                                when(result){
-                                                    -1 -> "Không thể kết nối Server"
-                                                    1 -> "Xóa thành công"
-                                                    else -> "Xóa thất bại"
-                                                },
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                            isShowDialog = false
-                                        }
-                                    }
-
-                                )
-                            }
-                            if (isDeleting)
-                                CircularProgressIndicator(
-                                    color = OrangeDefault,
-                                    modifier = Modifier
-                                        .padding(16.dp)
-                                        .size(40.dp)
-                                )
-                            else
-                                ProductItem(
-                                    product = product,
-                                    onProductClick = onProductClick,
-                                    onEditProductClick = onEditProductClick,
-                                    onDeleteProductClick = { isShowDialog = true }
-                                )
-                        }
-                    }
                 }
             }
         }

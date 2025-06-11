@@ -38,7 +38,7 @@ class ListUserViewModel(
     ))
     val sortingOptions: StateFlow<List<String>> = _sortingOptions
 
-    private val _selectedSortingOption = MutableStateFlow<String>("")
+    private val _selectedSortingOption = MutableStateFlow<String>(_sortingOptions.value[0])
     val selectedSortingOption: StateFlow<String> = _selectedSortingOption
 
     private val _searchQuery = MutableStateFlow<String>("")
@@ -186,7 +186,6 @@ class ListUserViewModel(
     }
 
     suspend fun deleteUser(id: Long): Int{
-
         _isDeleting.value = true
         try {
             Log.d("User", "Bắt đầu xóa Nguoi dung")

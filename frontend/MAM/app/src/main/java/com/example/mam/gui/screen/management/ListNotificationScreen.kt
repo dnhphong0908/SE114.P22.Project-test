@@ -107,13 +107,12 @@ fun ListNotificationScreen(
     mockData: List<NotificationResponse> ?= null,
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
-    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
+    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle().value
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
     val notiList = viewModel.notiList.collectAsStateWithLifecycle().value
-    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
+    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
     val scope = rememberCoroutineScope()
-    val context = LocalContext.current
     val desc = viewModel.desc.collectAsStateWithLifecycle().value
 
     LaunchedEffect(Unit) {
@@ -308,7 +307,7 @@ fun ListNotificationScreen(
                             FilterChip(
                                 selected = sortExpanded,
                                 onClick = { sortExpanded = !sortExpanded },
-                                label = { selectedSortingOption.value },
+                                label = { Text(selectedSortingOption) },
                                 leadingIcon = {
                                     Icon(Icons.Default.Sort, contentDescription = "Sort")
                                 },
@@ -377,7 +376,7 @@ fun ListNotificationScreen(
                     }
                 }
                 else{
-                    if (isLoading.value) {
+                    if (isLoading) {
                         item {
                             CircularProgressIndicator(
                                 color = OrangeDefault,
@@ -393,7 +392,7 @@ fun ListNotificationScreen(
                                 Text(
                                     text = "Không có thông báo nào",
                                     color = GreyDefault,
-                                    fontSize = 14.sp,
+                                    fontSize = 16.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(16.dp)
                                 )

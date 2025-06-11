@@ -98,7 +98,7 @@ fun ListOrderScreen(
     mockData: List<OrderResponse>? = null,
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
-    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
+    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle().value
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
     val orderList = viewModel.orders.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
@@ -287,16 +287,18 @@ fun ListOrderScreen(
                     }
                 }
                 item {
-                    Row(Modifier
-                        .fillMaxWidth(0.9f)
-                        .padding(start = 8.dp)
-                    ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        modifier = Modifier
+                            .fillMaxWidth(0.9f)
+                            .padding(start = 8.dp)) {
                         Box() {
                             var sortExpanded by remember { mutableStateOf(false) }
                             FilterChip(
                                 selected = sortExpanded,
                                 onClick = { sortExpanded = !sortExpanded },
-                                label = { selectedSortingOption.value },
+                                label = { Text(selectedSortingOption) },
                                 leadingIcon = {
                                     Icon(Icons.Default.Sort, contentDescription = "Sort")
                                 },
@@ -486,7 +488,8 @@ fun OrderItem(
                 if (!isViewOnly) {
                     if (order.orderStatus == "PENDING" &&
                         order.orderStatus == "CONFIRMED" &&
-                        order.orderStatus == "PROCESSING") IconButton(onClick = { onEditClick(order.id) }) {
+                        order.orderStatus == "PROCESSING")
+                        IconButton(onClick = { onEditClick(order.id) }) {
                         Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
                     }
                     //                IconButton(onClick = { onDeleteClick(order.id) }) {

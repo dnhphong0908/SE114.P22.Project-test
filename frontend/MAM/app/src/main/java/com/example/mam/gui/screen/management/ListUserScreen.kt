@@ -106,7 +106,7 @@ fun ListUserScreen(
     mockData: List<UserResponse>? = null
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
-    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
+    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle().value
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
     val userList = viewModel.user.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
@@ -116,10 +116,9 @@ fun ListUserScreen(
     val context = LocalContext.current
     val isDeleting = viewModel.isDeleting.collectAsStateWithLifecycle().value
 
-     LaunchedEffect(Unit) {
-        viewModel.loadSortingOptions()
-        viewModel.loadData()
-    }
+     LaunchedEffect(key1 = isDeleting) {
+         viewModel.loadData()
+     }
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -308,7 +307,7 @@ fun ListUserScreen(
                             FilterChip(
                                 selected = sortExpanded,
                                 onClick = { sortExpanded = !sortExpanded },
-                                label = { selectedSortingOption.value },
+                                label = { Text(selectedSortingOption) },
                                 leadingIcon = {
                                     Icon(Icons.Default.Sort, contentDescription = "Sort")
                                 },
@@ -326,7 +325,6 @@ fun ListUserScreen(
                                 ),
                                 modifier = Modifier
                             )
-
                             DropdownMenu(
                                 expanded = sortExpanded,
                                 onDismissRequest = { sortExpanded = false },
@@ -337,8 +335,11 @@ fun ListUserScreen(
                                     DropdownMenuItem(
                                         text = { Text(option, color = BrownDefault) },
                                         onClick = {
-                                            viewModel.setSelectedSortingOption(option)
                                             sortExpanded = false
+                                            scope.launch {
+                                                viewModel.setSelectedSortingOption(option)
+                                                viewModel.sortUser()
+                                            }
                                         }
                                     )
                                 }

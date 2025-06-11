@@ -42,7 +42,7 @@ class ListOrderViewModel(
     private val _orderState = MutableStateFlow(OrderRequest())
     val orderState = _orderState.asStateFlow()
 
-    private val _selectedSortingOption = MutableStateFlow<String>("")
+    private val _selectedSortingOption = MutableStateFlow<String>(_sortingOptions.value[0])
     val selectedSortingOption: StateFlow<String> = _selectedSortingOption
 
     private val _searchQuery = MutableStateFlow<String>("")

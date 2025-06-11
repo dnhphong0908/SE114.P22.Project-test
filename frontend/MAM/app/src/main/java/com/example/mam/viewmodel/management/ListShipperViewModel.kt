@@ -34,7 +34,6 @@ class ListShipperViewModel(
     private val _sortingOptions = MutableStateFlow<MutableList<String>>(mutableListOf(
         "Tất cả",
         "Tên",
-        "Ngày giao"
     ))
     val sortingOptions: StateFlow<List<String>> = _sortingOptions
 
@@ -74,7 +73,7 @@ class ListShipperViewModel(
             while (true) { // Loop until the last page
                 val response = BaseService(userPreferencesRepository)
                     .shipperService.getShippers(
-                        filter = "fullname ~~ '*${_searchQuery.value}*' or phone ~~ '*${_searchQuery.value}*'",
+                        filter = "fullname ~~ '*${_searchQuery.value}*' or phone ~~ '*${_searchQuery.value}*' or licensePlate ~~ '*${_searchQuery.value}*'",
                         page = currentPage
                     )
 
@@ -91,7 +90,6 @@ class ListShipperViewModel(
                         currentPage++ // Move to the next page
                         Log.d("Shipper", "Lấy trang ${page.page}")
                         _shippers.value = allShippers.toMutableList()
-
                     }
                     else break
                 } else {
@@ -114,8 +112,7 @@ class ListShipperViewModel(
         var currentPage = 0
         val allShippers = mutableListOf<ShipperResponse>()
         val sortOption = when(_selectedSortingOption.value){
-            "Tên" -> "name"
-            "Ngày giao" -> "createdAt"
+            "Tên" -> "fullname"
             else -> "id"
         }
         try{

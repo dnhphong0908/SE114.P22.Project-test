@@ -104,11 +104,11 @@ fun ListShipperScreen(
     mockData: List<ShipperResponse> ?= null
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
-    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle()
+    val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle().value
     val searchQuery = viewModel.searchQuery.collectAsStateWithLifecycle()
     val shipperList = viewModel.shippers.collectAsStateWithLifecycle().value
-    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle()
-    val isDeleting = viewModel.isDeleting.collectAsStateWithLifecycle()
+    val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
+    val isDeleting = viewModel.isDeleting.collectAsStateWithLifecycle().value
     val searchHistory = viewModel.searchHistory.collectAsStateWithLifecycle().value
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
@@ -306,7 +306,7 @@ fun ListShipperScreen(
                             FilterChip(
                                 selected = sortExpanded,
                                 onClick = { sortExpanded = !sortExpanded },
-                                label = { selectedSortingOption.value },
+                                label = { Text(selectedSortingOption) },
                                 leadingIcon = {
                                     Icon(Icons.Default.Sort, contentDescription = "Sort")
                                 },
@@ -364,47 +364,26 @@ fun ListShipperScreen(
                         }
                     }
                 }
-                if (mockData != null) {
-                    items(mockData) { shipper ->
-                        ShipperItem(
-                            shipper = shipper,
-                            onClick = onShipperClick,
-                            onEditClick = onEditShipperClick,
-                            onDeleteClick = {}
+                if (isLoading) {
+                    item {
+                        CircularProgressIndicator(
+                            color = OrangeDefault,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .size(40.dp)
                         )
                     }
                 }
-                else {
-                    if (isLoading.value) {
-                        item {
-                            CircularProgressIndicator(
-                                color = OrangeDefault,
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .size(40.dp)
-                            )
-                        }
-                    } else
-                        if (shipperList.isEmpty()) {
-                            item {
-                                Text(
-                                    text = "Không có shipper nào",
-                                    color = GreyDefault,
-                                    fontSize = 18.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    modifier = Modifier.padding(16.dp)
-                                )
-                            }
-                        } else {
-                            items(shipperList) { shipper ->
-                                ShipperItem(
-                                    shipper = shipper,
-                                    onClick = onShipperClick,
-                                    onEditClick = onEditShipperClick,
-                                    onDeleteClick = {}
-                                )
-                            }
-                        }
+                else if (shipperList.isEmpty()) {
+                    item {
+                        Text(
+                            text = "Không có shipper nào",
+                            color = GreyDefault,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 }
             }
         }
@@ -549,16 +528,16 @@ fun ShipperItem(
 //    )
 //}
 //
-@Preview
-@Composable
-fun ShipperScreenPreview() {
-    ListShipperScreen(
-        viewModel = viewModel(factory = ListShipperViewModel.Factory),
-        onBackClick = {},
-        onShipperClick = {},
-        onAddShipperClick = {},
-        onEditShipperClick = {},
-        mockData = listOf(
-        )
-    )
-}
+//@Preview
+//@Composable
+//fun ShipperScreenPreview() {
+//    ListShipperScreen(
+//        viewModel = viewModel(factory = ListShipperViewModel.Factory),
+//        onBackClick = {},
+//        onShipperClick = {},
+//        onAddShipperClick = {},
+//        onEditShipperClick = {},
+//        mockData = listOf(
+//        )
+//    )
+//}

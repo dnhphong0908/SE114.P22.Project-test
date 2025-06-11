@@ -35,7 +35,7 @@ class ListPromotionViewModel(
     ))
     val sortingOptions: StateFlow<List<String>> = _sortingOptions
 
-    private val _selectedSortingOption = MutableStateFlow<String>("")
+    private val _selectedSortingOption = MutableStateFlow<String>(_sortingOptions.value[0])
     val selectedSortingOption: StateFlow<String> = _selectedSortingOption
 
     private val _asc = MutableStateFlow(true)
@@ -193,7 +193,7 @@ class ListPromotionViewModel(
         val Factory: ViewModelProvider.Factory = viewModelFactory {
             initializer {
                 val application = (this[APPLICATION_KEY] as MAMApplication)
-                ListNotificationViewModel(application.userPreferencesRepository)
+                ListPromotionViewModel(application.userPreferencesRepository)
             }
         }
     }

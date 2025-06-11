@@ -1,13 +1,20 @@
 package com.example.mam.viewmodel.management
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.entity.User
+import com.example.mam.viewmodel.ImageViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class ManageNotificationViewModel():  ViewModel() {
+class ManageNotificationViewModel(
+    savedStateHandle: SavedStateHandle?,
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val imageViewModel: ImageViewModel
+):  ViewModel() {
     private val _title = MutableStateFlow("")
     val title = _title.asStateFlow()
 
@@ -34,6 +41,8 @@ class ManageNotificationViewModel():  ViewModel() {
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading = _isLoading.asStateFlow()
+
+    private val notificationId = savedStateHandle?.get<Long>("notificationId")
 
     fun setTitle(title: String) {
         _title.value = title

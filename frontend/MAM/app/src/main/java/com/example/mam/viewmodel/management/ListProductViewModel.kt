@@ -40,7 +40,7 @@ class ListProductViewModel(
     private val _asc = MutableStateFlow(true)
     val asc = _asc.asStateFlow()
 
-    private val _selectedSortingOption = MutableStateFlow<String>("")
+    private val _selectedSortingOption = MutableStateFlow<String>(_sortingOptions.value[0])
     val selectedSortingOption: StateFlow<String> = _selectedSortingOption
 
     private val _searchQuery = MutableStateFlow<String>("")
