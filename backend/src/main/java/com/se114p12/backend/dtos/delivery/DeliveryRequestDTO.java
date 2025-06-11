@@ -4,8 +4,6 @@ import lombok.Data;
 
 @Data
 public class DeliveryRequestDTO {
-    private double originLat;
-    private double originLng;
     private double destinationLat;
     private double destinationLng;
 }
