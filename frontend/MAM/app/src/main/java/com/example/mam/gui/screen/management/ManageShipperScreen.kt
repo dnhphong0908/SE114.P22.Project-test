@@ -1,6 +1,7 @@
 package com.example.mam.gui.screen.management
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -34,6 +35,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.internal.isLiveLiteralsEnabled
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,6 +65,7 @@ import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.viewmodel.management.ManageShipperViewModel
+import kotlinx.coroutines.launch
 
 @Composable
 fun ManageShipperScreen(
@@ -77,6 +80,9 @@ fun ManageShipperScreen(
     val shipperPhone = viewModel.shipperPhone.collectAsStateWithLifecycle().value
     val shipperLicense = viewModel.shipperLicense.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val activity = context as? Activity
     LaunchedEffect(Unit) {
         if (isPreview) {
             viewModel.mockData()
@@ -119,12 +125,30 @@ fun ManageShipperScreen(
                 icon = Icons.Default.Done ,
                 shadow = "outer",
                 onClick = {
-                    if (isEdit) {
-                        viewModel.updateShipper()
-                        onBackClick
-                    } else if (isAdd) {
-                        viewModel.addShipper()
-                        onBackClick
+                    scope.launch {
+                        if (isEdit) {
+                            val result = viewModel.updateShipper()
+                            Toast.makeText(
+                                context,
+                                when(result){
+                                    1 -> "Chỉnh sửa thành công"
+                                    else -> "Chỉnh sửa thất bại"
+                                },
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onBackClick()
+                        } else if (isAdd) {
+                            val result = viewModel.addShipper()
+                            Toast.makeText(
+                                context,
+                                when(result){
+                                    1 -> "Thêm thành công"
+                                    else -> "Thêm thất bại"
+                                },
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onBackClick()
+                        }
                     }
                 },
                 modifier = Modifier
@@ -192,7 +216,7 @@ fun ManageShipperScreen(
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append("ID: ")
                             }
-                            append(shipperID)
+                            append(shipperID.toString())
                         },
                         textAlign = TextAlign.Start,
                         color = GreyDefault,
@@ -352,17 +376,17 @@ fun ManageShipperScreen(
     }
 }
 
-@Preview
-@Composable
-fun ManageShipperScreenPreview() {
-    val viewModel = ManageShipperViewModel(savedStateHandle = SavedStateHandle().apply {
-        set("shipperId", "123")
-    })
-    ManageShipperScreen(
-        viewModel = viewModel,
-        onBackClick = {},
-        isPreview = false,
-        isEdit = false,
-        isAdd = true
-    )
-}
+//@Preview
+//@Composable
+//fun ManageShipperScreenPreview() {
+//    val viewModel = ManageShipperViewModel(savedStateHandle = SavedStateHandle().apply {
+//        set("shipperId", "123")
+//    })
+//    ManageShipperScreen(
+//        viewModel = viewModel,
+//        onBackClick = {},
+//        isPreview = false,
+//        isEdit = false,
+//        isAdd = true
+//    )
+//}
