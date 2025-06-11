@@ -364,48 +364,26 @@ fun ListUserScreen(
                         }
                     }
                 }
-                if (mockData != null) {
-                    items(mockData) { user ->
-                        UserItem(
-                            user = user,
-                            onUserClick = onUserClick,
-                            onEditUserClick = onEditUserClick,
-                            onDeleteUserClick = onDeleteUserClick
+                if (isLoading.value) {
+                    item {
+                        CircularProgressIndicator(
+                            color = OrangeDefault,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .size(40.dp)
                         )
                     }
                 }
-                else{
-                    if (isLoading.value) {
-                        item {
-                            CircularProgressIndicator(
-                                color = OrangeDefault,
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .size(40.dp)
-                            )
-                        }
+                else if (userList.isEmpty()) {
+                    item {
+                        Text(
+                            text = "Không có người dùng nào",
+                            color = GreyDefault,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(16.dp)
+                        )
                     }
-                    else
-                        if (userList.isEmpty()) {
-                            item {
-                                Text(
-                                    text = "Không có tài khoản nào",
-                                    color = GreyDefault,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(16.dp)
-                                )
-                            }
-                        }
-                        else
-                            items(userList) { user ->
-                                UserItem(
-                                    user = user,
-                                    onUserClick = onUserClick,
-                                    onEditUserClick = onEditUserClick,
-                                    onDeleteUserClick = onDeleteUserClick
-                                )
-                            }
                 }
             }
         }

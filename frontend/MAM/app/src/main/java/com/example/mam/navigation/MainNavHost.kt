@@ -867,7 +867,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageUserViewModel = viewModel()
+                val viewModel: ManageUserViewModel = viewModel(backStackEntry, factory = ManageUserViewModel.Factory)
                 ManageUserScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -883,7 +883,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageUserViewModel = viewModel(backStackEntry)
+                val viewModel: ManageUserViewModel = viewModel(backStackEntry, factory = ManageUserViewModel.Factory)
                 ManageUserScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -899,7 +899,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageUserViewModel = viewModel(backStackEntry)
+                val viewModel: ManageUserViewModel = viewModel(backStackEntry, factory = ManageUserViewModel.Factory)
                 ManageUserScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
