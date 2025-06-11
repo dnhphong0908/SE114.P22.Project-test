@@ -425,12 +425,10 @@ fun MonthRevenueChart(
     var isMonthly by remember { mutableStateOf(true) }
     val pointsData = viewModel.revenueList.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoadingRevenue.collectAsStateWithLifecycle().value
+    val scope = rememberCoroutineScope()
     LaunchedEffect(key1 = year, key2 = isMonthly) {
-        if (isMonthly) {
-            viewModel.loadRevenueMonthlyList(year)
-        } else {
-            viewModel.loadRevenueQuarterList(year)
-        }
+            viewModel.loadRevenueMonthlyList(year, isMonthly)
+
     }
     if (isLoading) {
         // Show loading indicator
@@ -469,7 +467,11 @@ fun MonthRevenueChart(
                     .clip(RoundedCornerShape(20.dp))
             ) {
                 IconButton(
-                    onClick = { year-- },
+                    onClick = {
+                        year--
+                          scope.launch{
+                              viewModel.loadRevenueMonthlyList(year, isMonthly)
+                          }},
                     modifier = Modifier
                         .padding(top = 16.dp, start = 16.dp)
                         .size(40.dp)
@@ -495,7 +497,10 @@ fun MonthRevenueChart(
                         .fillMaxWidth()
                 )
                 IconButton(
-                    onClick = { year++ },
+                    onClick = { year++
+                        scope.launch{
+                            viewModel.loadRevenueMonthlyList(year, isMonthly)
+                        }},
                     modifier = Modifier
                         .padding(top = 16.dp, end = 16.dp)
                         .size(40.dp)
@@ -617,20 +622,16 @@ fun SoldCategoryChart(
     viewModel: DashboardViewModel,
     modifier: Modifier = Modifier,
 ) {
-    val year by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).year) }
-    val month by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).monthValue) }
+    var year by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).year) }
+    var month by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).monthValue) }
     val quarter by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).monthValue / 3 + 1) }
     val context = LocalContext.current
-    var isMonthly by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
     val chartData = viewModel.categorySoldList.collectAsStateWithLifecycle().value
 
-    LaunchedEffect(key1 = month, key2 = quarter, key3 = isMonthly) {
-        if (isMonthly) {
+    LaunchedEffect(key1 = month) {
             viewModel.loadCategorySoldMonthlyList(month, year)
-        } else {
-            viewModel.loadCategorySoldQuarterList(quarter, year)
-        }
+
     }
     val isLoading = viewModel.isLoadingCategory.collectAsStateWithLifecycle().value
     val pieChartData = chartData.mapIndexed { index, pair ->
@@ -704,7 +705,16 @@ fun SoldCategoryChart(
                     .clip(RoundedCornerShape(20.dp))
             ) {
                 IconButton(
-                    onClick = { },
+                    onClick = {
+                        scope.launch {
+                            month--
+                            if (month <= 0) {
+                                year--
+                                month = 12
+                            }
+                            viewModel.loadCategorySoldMonthlyList(month, year)
+                        }
+                    },
                     modifier = Modifier
                         .padding(top = 16.dp, start = 16.dp)
                         .size(40.dp)
@@ -716,11 +726,7 @@ fun SoldCategoryChart(
                     )
                 }
                 Text(
-                    text = "Tỉ lệ danh mục bán ra\n" + if (isMonthly) {
-                        "theo tháng"
-                    } else {
-                        "theo quý"
-                    },
+                    text = "Tỉ lệ danh mục bán ra\n theo tháng",
                     color = BrownDefault,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -730,7 +736,16 @@ fun SoldCategoryChart(
                         .fillMaxWidth()
                 )
                 IconButton(
-                    onClick = { },
+                    onClick = {
+                        scope.launch {
+                            month++
+                            if (month > 12) {
+                                year++
+                                month = 1
+                            }
+                            viewModel.loadCategorySoldMonthlyList(month, year)
+                        }
+                    },
                     modifier = Modifier
                         .padding(top = 16.dp, end = 16.dp)
                         .size(40.dp)
@@ -761,50 +776,8 @@ fun SoldCategoryChart(
             ) { slice ->
                 Toast.makeText(context, slice.label, Toast.LENGTH_SHORT).show()
             }
-
         }
-        Row(
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .zIndex(1f)
-        ) {
-            Text(
-                text = "Theo quý: ",
-                color = BrownDefault,
-                fontSize = 16.sp,
-                textAlign = TextAlign.Start,
-                modifier = Modifier
-                    .padding(8.dp)
-            )
-            Switch(
-                checked = !isMonthly,
-                onCheckedChange = { isMonthly = !isMonthly },
-                colors = SwitchDefaults.colors(
-                    checkedTrackColor = OrangeDefault,
-                    uncheckedTrackColor = WhiteDefault,
-                    checkedThumbColor = WhiteDefault,
-                    uncheckedThumbColor = OrangeDefault,
-                    uncheckedBorderColor = OrangeDefault,
-                ),
-                thumbContent = {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        tint = if (!isMonthly) OrangeDefault else WhiteDefault,
-                        modifier = Modifier
-                            .size(20.dp)
-                            .padding(2.dp)
-                    )
-                },
-                modifier = Modifier
-                    .padding(8.dp)
-            )
-        }
-
     }
-
 }
 
 

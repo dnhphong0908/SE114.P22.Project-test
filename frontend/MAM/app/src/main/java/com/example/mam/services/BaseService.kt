@@ -58,4 +58,7 @@ class BaseService(userPreferencesRepository: UserPreferencesRepository) {
     val userPromotionService: UserPromotionService by lazy {
         privateRetrofit.create(UserPromotionService::class.java)
     }
+    val stastiticRepository: StastiticRepository by lazy {
+        privateRetrofit.create(StastiticRepository::class.java)
+    }
 }
