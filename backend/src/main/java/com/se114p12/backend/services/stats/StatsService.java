@@ -13,4 +13,6 @@ public interface StatsService {
   Map<Integer, BigDecimal> getRevenueStatsByYear(int year, String groupBy);
 
   Map<String, BigDecimal> getSoldProductCountByCategory(int month, int year);
+
+  Map<String, Long> getActiveOrderCountByStatus();
 }
