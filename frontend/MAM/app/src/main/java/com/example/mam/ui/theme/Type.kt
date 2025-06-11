@@ -14,7 +14,7 @@ import com.example.mam.R
 val Typography = Typography(
     titleLarge = TextStyle(
         fontWeight = FontWeight.Bold,
-        fontSize = 28.sp,
+        fontSize = 22.sp,
         lineHeight = 36.sp,
         letterSpacing = 0.sp,
         textAlign = TextAlign.Center,

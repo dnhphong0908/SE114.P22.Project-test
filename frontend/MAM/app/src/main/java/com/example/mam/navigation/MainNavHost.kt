@@ -550,13 +550,13 @@ fun MainNavHost(
             }
             composable(
                 route = "EditProduct/{productId}",
-                arguments = listOf(navArgument("productId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("productId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageProductViewModel = viewModel(backStackEntry)
+                val viewModel: ManageProductViewModel = viewModel(backStackEntry, factory = ManageProductViewModel.Factory)
                 ManageProductScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -566,13 +566,13 @@ fun MainNavHost(
             }
             composable(
                 route = "DetailsProduct/{productId}",
-                arguments = listOf(navArgument("productId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("productId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageProductViewModel = viewModel(backStackEntry)
+                val viewModel: ManageProductViewModel = viewModel(backStackEntry, factory = ManageProductViewModel.Factory)
                 ManageProductScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -587,7 +587,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageProductViewModel = viewModel()
+                val viewModel: ManageProductViewModel = viewModel(backStackEntry, factory = ManageProductViewModel.Factory)
                 ManageProductScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},

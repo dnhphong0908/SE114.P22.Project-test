@@ -31,7 +31,7 @@ interface ProductCategoryService {
  @Multipart
  @PUT("product-categories/{id}")
  suspend fun updateCategory(
-     @Path("id") id: Long,
+     @Part("id") id: Long,
      @Part("name") name: RequestBody,
      @Part("description") description: RequestBody?,
      @Part image: MultipartBody.Part?

@@ -4,26 +4,45 @@ import com.example.mam.dto.product.CategoryRequest
 import com.example.mam.dto.product.ProductRequest
 import com.example.mam.dto.product.ProductResponse
 import com.example.mam.dto.vo.PageVO
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface ProductService {
+    @Multipart
     @POST("products")
-    suspend fun createProduct(@Body request: ProductRequest): Response<ProductResponse>
+    suspend fun createProduct(
+        @Part("categoryId") categoryId: RequestBody,
+        @Part("name") name: RequestBody,
+        @Part("shortDescription") shortDescription: RequestBody,
+        @Part("detailDescription") detailDescription: RequestBody,
+        @Part("originalPrice") originalPrice: RequestBody,
+        @Part image: MultipartBody.Part?
+    ): Response<ProductResponse>
 
     @GET("products/{id}")
     suspend fun getProductById(@Path("id") id: Long): Response<ProductResponse>
 
+    @Multipart
     @PUT("products/{id}")
     suspend fun updateProduct(
         @Path("id") id: Long,
-        @Body request: ProductRequest): Response<ProductResponse>
+        @Part("categoryId") categoryId: RequestBody,
+        @Part("name") name: RequestBody,
+        @Part("shortDescription") shortDescription: RequestBody,
+        @Part("detailDescription") detailDescription: RequestBody,
+        @Part("originalPrice") originalPrice: RequestBody,
+        @Part image: MultipartBody.Part?
+    ): Response<ProductResponse>
 
     @DELETE("products/{id}")
     suspend fun deleteProduct(@Path("id") id: Long): Response<Void>

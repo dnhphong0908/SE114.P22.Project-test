@@ -15,7 +15,9 @@ import retrofit2.http.Query
 
 interface VariationService {
     @PUT("variations/{id}")
-    suspend fun updateVariation(@Path("id") id: Long): Response<VariationResponse>
+    suspend fun updateVariation(
+        @Path("id") id: Long,
+        @Body request: VariationRequest): Response<VariationResponse>
     @DELETE("variations/{id}")
     suspend fun deleteVariation(@Path("id") id: Long): Response<Unit>
     @POST("variations")
