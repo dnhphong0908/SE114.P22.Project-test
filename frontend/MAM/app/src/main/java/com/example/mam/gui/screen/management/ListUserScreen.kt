@@ -102,8 +102,6 @@ fun ListUserScreen(
     onUserClick: (Long) -> Unit = {},
     onAddUserClick: () -> Unit = {},
     onEditUserClick: (Long) -> Unit = {},
-    onDeleteUserClick: (Long) -> Unit = {},
-    mockData: List<UserResponse>? = null
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
     val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle().value
@@ -114,9 +112,8 @@ fun ListUserScreen(
     val asc = viewModel.asc.collectAsStateWithLifecycle().value
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val isDeleting = viewModel.isDeleting.collectAsStateWithLifecycle().value
 
-     LaunchedEffect(key1 = isDeleting) {
+     LaunchedEffect(Unit) {
          viewModel.loadData()
      }
     Box(
@@ -364,6 +361,21 @@ fun ListUserScreen(
                         }
                     }
                 }
+                userList.let {
+                    items(userList) { user ->
+                        var isShowDialog by remember { mutableStateOf(false) }
+                        UserItem(
+                            user = user,
+                            onUserClick = {
+                                onUserClick(user.id)
+                            },
+                            onEditUserClick = onEditUserClick
+                        )
+                    }
+                }
+                item{
+                    Spacer(Modifier.height(100.dp))
+                }
                 if (isLoading.value) {
                     item {
                         CircularProgressIndicator(
@@ -409,7 +421,6 @@ fun UserItem(
     user: UserResponse,
     onUserClick: (Long) -> Unit,
     onEditUserClick: (Long) -> Unit,
-    onDeleteUserClick: (Long) -> Unit,
 ) {
     Card(
         onClick = { onUserClick(user.id) },
