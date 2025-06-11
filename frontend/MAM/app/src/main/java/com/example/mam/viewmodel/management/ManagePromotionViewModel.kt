@@ -87,20 +87,6 @@ class ManagePromotionViewModel(
         _minValue.value = minValue
     }
 
-    fun addPromotion() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                // Hide loading indicator
-                clearData()
-                _isLoading.value = false
-            }
-        }
-    }
-
     suspend fun createPromotion(): Int{
         _isLoading.value = true
         try {

@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +62,7 @@ import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.viewmodel.management.ManagePromotionViewModel
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -85,6 +87,8 @@ fun ManagePromotionScreen(
     val datePickerState = rememberDatePickerState()
     var isShowStartDateDialog by remember { mutableStateOf(false) }
     var isShowEndDateDialog by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
 
     Column(
         modifier = Modifier
@@ -121,21 +125,23 @@ fun ManagePromotionScreen(
                 icon = Icons.Outlined.Done,
                 shadow = "outer",
                 onClick = {
-                    if (code.isNotEmpty() && description.isNotEmpty() && value > 0 && startDate.isBefore(endDate)
-                    ) {
-                        viewModel.addPromotion()
-                        Toast.makeText(
-                            context,
-                            "Thêm khuyến mãi thành công",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        onBackClick()
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Vui lòng điền đầy đủ thông tin",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                    scope.launch {
+                        if (code.isNotEmpty() && description.isNotEmpty() && value > 0 && startDate.isBefore(endDate)
+                        ) {
+                            viewModel.createPromotion()
+                            Toast.makeText(
+                                context,
+                                "Thêm khuyến mãi thành công",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onBackClick()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Vui lòng điền đầy đủ thông tin",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 },
                 modifier = Modifier
