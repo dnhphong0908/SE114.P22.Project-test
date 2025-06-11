@@ -30,7 +30,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -123,7 +122,6 @@ public class OrderServiceImpl implements OrderService {
     order.setActualDeliveryTime(null); // sẽ được cập nhật bởi khách
 
     BigDecimal totalPrice = BigDecimal.ZERO;
-    List<OrderDetail> orderDetails = new ArrayList<>();
 
     for (CartItem cartItem : cart.getCartItems()) {
       Product product = cartItem.getProduct();
@@ -135,6 +133,8 @@ public class OrderServiceImpl implements OrderService {
       orderDetail.setQuantity(cartItem.getQuantity());
       orderDetail.setVariationInfo(extractVariationInfo(cartItem));
       orderDetail.setPrice(cartItem.getPrice());
+      orderDetail.setCategoryId(product.getCategory().getId());
+      orderDetail.setCategoryName(product.getCategory().getName());
       totalPrice =
           totalPrice.add(
               orderDetail.getPrice().multiply(BigDecimal.valueOf(orderDetail.getQuantity())));
@@ -157,7 +157,8 @@ public class OrderServiceImpl implements OrderService {
           jwtUtil.getCurrentUserId(), appliedPromotion.getId());
     }
 
-    order.setTotalPrice((totalPrice.compareTo(BigDecimal.ZERO) >= 0) ? totalPrice : BigDecimal.ZERO);
+    order.setTotalPrice(
+        (totalPrice.compareTo(BigDecimal.ZERO) >= 0) ? totalPrice : BigDecimal.ZERO);
 
     order = orderRepository.save(order);
 
@@ -267,17 +268,20 @@ public class OrderServiceImpl implements OrderService {
 
     // Đảm bảo thứ tự Variation
     return cartItem.getVariationOptions().stream()
-            .filter(vo -> vo.getVariation() != null)
-            .collect(Collectors.groupingBy(VariationOption::getVariation))
-            .entrySet().stream()
-            .sorted(Comparator.comparing(entry -> entry.getKey().getId())) // Đảm bảo thứ tự Variation
-            .map(entry -> {
+        .filter(vo -> vo.getVariation() != null)
+        .collect(Collectors.groupingBy(VariationOption::getVariation))
+        .entrySet()
+        .stream()
+        .sorted(Comparator.comparing(entry -> entry.getKey().getId())) // Đảm bảo thứ tự Variation
+        .map(
+            entry -> {
               String variationName = entry.getKey().getName();
-              String values = entry.getValue().stream()
+              String values =
+                  entry.getValue().stream()
                       .map(VariationOption::getValue)
                       .collect(Collectors.joining(", "));
               return variationName + ": " + values;
             })
-            .collect(Collectors.joining(", "));
+        .collect(Collectors.joining(", "));
   }
 }
