@@ -6,9 +6,9 @@ import com.se114p12.backend.repositories.order.OrderRepository;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.Month;
 import java.time.Year;
 import java.time.YearMonth;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -93,14 +93,15 @@ public class StatsServiceImpl implements StatsService {
         return orders.stream()
             .collect(
                 Collectors.groupingBy(
-                    order -> Month.from(order.getCreatedAt()).getValue(),
+                    order -> order.getCreatedAt().atZone(ZoneId.systemDefault()).getMonthValue(),
                     Collectors.reducing(BigDecimal.ZERO, Order::getTotalPrice, BigDecimal::add)));
       case "quarter":
         return orders.stream()
             .collect(
                 Collectors.groupingBy(
                     order -> {
-                      int month = Month.from(order.getCreatedAt()).getValue();
+                      int month =
+                          order.getCreatedAt().atZone(ZoneId.systemDefault()).getMonthValue();
                       return (month - 1) / 3 + 1; // Calculate quarter
                     },
                     Collectors.reducing(BigDecimal.ZERO, Order::getTotalPrice, BigDecimal::add)));
