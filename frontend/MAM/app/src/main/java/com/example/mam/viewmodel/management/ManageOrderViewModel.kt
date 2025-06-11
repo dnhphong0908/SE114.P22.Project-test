@@ -3,7 +3,14 @@ package com.example.mam.viewmodel.management
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
+import com.example.mam.data.Constant
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.order.OrderRequest
 import com.example.mam.dto.order.OrderResponse
@@ -13,6 +20,7 @@ import com.example.mam.entity.Order
 import com.example.mam.entity.OrderItem
 import com.example.mam.entity.Shipper
 import com.example.mam.entity.User
+import com.example.mam.gui.screen.management.ManageOrderScreen
 import com.example.mam.services.BaseService
 import com.example.mam.viewmodel.ImageViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -28,12 +36,14 @@ import java.time.Instant
 class ManageOrderViewModel(
     savedStateHandle: SavedStateHandle?,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val imageViewModel: ImageViewModel
 ): ViewModel() {
-    private val orderId: String? = savedStateHandle?.get<String>("orderId")
+    private val orderId: Long? = savedStateHandle?.get<Long>("orderId")
 
-    private val _orderID = MutableStateFlow<Long>(0L)
+    private val _orderID = MutableStateFlow<Long>(orderId?: 0L)
     val orderID = _orderID.asStateFlow()
+
+    private val _orderStatuses = MutableStateFlow<List<String>>(listOf())
+    val orderStatuses = _orderStatuses.asStateFlow()
 
     private val _orderStatus = MutableStateFlow<String>("")
     val orderStatus = _orderStatus.asStateFlow()
@@ -53,13 +63,20 @@ class ManageOrderViewModel(
     private val _isStatusLoading = MutableStateFlow(false)
     val isStatusLoading = _isStatusLoading.asStateFlow()
 
-    fun setStatus() {
-        _orderStatus.value
+    fun getNextStatus(): String {
+        val values = _orderStatuses.value
+        val current = values.indexOfFirst { it == _orderStatus.value }
+        return if (current in 0 until values.lastIndex) {
+            values[current + 1]
+        } else {
+            values.firstOrNull() ?: ""
+        }
     }
 
     suspend fun updateStatus(): Int {
         _isLoading.value = true
         try {
+            val nextStatus = getNextStatus()
             Log.d("Order", "Bắt đầu cap nhat Don hang")
             Log.d(
                 "Order",
@@ -67,7 +84,7 @@ class ManageOrderViewModel(
             )
             val response = BaseService(userPreferencesRepository)
                 .orderService
-                .getOrderStatus(_orderID.value, _orderStatus.value)
+                .getOrderStatus(_orderID.value, nextStatus)
             Log.d("Order", "${_orderID.value}, ${_orderStatus.value}")
 
             Log.d("Order", "Status code: ${response.code()}")
@@ -87,6 +104,27 @@ class ManageOrderViewModel(
         }
     }
 
+    suspend fun loadOrderStatus() {
+        _isLoading.value = true
+        try {
+            val response = BaseService(userPreferencesRepository).authPublicService.getMetadata(
+                listOf(Constant.metadata.ORDER_STATUS.name)
+            )
+            Log.d("OrderViewModel", "Response Code: ${response.code()}")
+            if (response.isSuccessful) {
+                _orderStatuses.value = response.body()?.get(Constant.metadata.ORDER_STATUS.name) ?: listOf()
+                Log.d("OrderViewModel", "Order status loaded successfully: ${_orderStatuses.value.size} statuses")
+            } else {
+                Log.d("OrderViewModel", "Failed to load order status: ${response.errorBody()?.string()}")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("OrderViewModel", "Failed to load order status: ${e.message}")
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
     suspend fun loadData() {
         _isLoading.value = true
         try {
@@ -95,17 +133,43 @@ class ManageOrderViewModel(
                 "Order",
                 "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
             )
+            Log.d("Order", "${_orderID.value}")
             val response =
                 BaseService(userPreferencesRepository).orderService.getOrderById(_orderID.value)
             Log.d("Order", "Status code: ${response.code()}")
             if (response.isSuccessful) {
                 val order = response.body()
                 if (order != null) {
+                    _order.value = order
                     _orderStatus.value = order.orderStatus
+                    Log.d("Order", "Lấy Don hang thành công: ${order.orderStatus}")
+                    Log.d("Order", "Lấy Don hang thành công: ${order.orderDetails.size} items")
+                    Log.d("Order", "Lấy Don hang thành công: ${order.createdAt} items")
+
+                    val user = BaseService(userPreferencesRepository)
+                        .userService
+                        .getUserById(order.userId)
+                    if (user.isSuccessful) {
+                        _user.value = user.body() ?: UserResponse()
+                    } else {
+                        Log.d("Order", "Lấy thông tin người dùng thất bại: ${user.errorBody()?.string()}")
+                    }
+                    if (order.shipperId != null) {
+                        val shipperResponse = BaseService(userPreferencesRepository)
+                            .shipperService
+                            .getShipperById(order.shipperId)
+                        if (shipperResponse.isSuccessful) {
+                            _shipper.value = shipperResponse.body()
+                        } else {
+                            Log.d("Order", "Lấy thông tin Shipper thất bại: ${shipperResponse.errorBody()?.string()}")
+                        }
+                    } else {
+                        _shipper.value = null
+                    }
                 }
 
             } else {
-                Log.d("Order", "Lấy Don hang thất bại: ${response.errorBody().toString()}")
+                Log.d("Order", "Lấy Don hang thất bại: ${response.errorBody()?.string()}")
             }
         } catch (e: Exception) {
             Log.d("Order", "Không thể lấy Don hang: ${e.message}")
@@ -115,51 +179,37 @@ class ManageOrderViewModel(
         }
 
     }
+    suspend fun cancelOrder() :Int {
+        try {
+            val response = BaseService(userPreferencesRepository).orderService.cancelOrder(_orderID.value)
+            Log.d("OrderViewModel", "Canceling order with ID: $orderId, Response Code: ${response.code()}")
+            if (response.isSuccessful) {
+                Log.d("OrderViewModel", "Order canceled successfully")
+                loadData()
+                return 1
+            } else {
+                Log.d("OrderViewModel", "Failed to cancel order: ${response.errorBody()?.string()}")
+                return 0
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("OrderViewModel", "Exception while canceling order: ${e.message}")
+            return 0
+            // Handle exception
+        }
+    }
 
-//    fun mockData(){
-//        _order.value = Order(
-//            id = "orderId",
-//            userId = "userId",
-//            orderDate = Instant.now(),
-//            paymentId = "paymentId",
-//            shippingAddress = "shippingAddress",
-//            orderItems = mutableListOf(OrderItem(
-//                name = "Bánh mì",
-//                image = "https://example.com/image.jpg",
-//                id = "productId",
-//                quantity = 1,
-//                options = "Thịt nguội, dưa leo, rau thơm",
-//                price = 20000
-//            ), OrderItem(
-//                name = "Pizza hải sản",
-//                image = "https://example.com/image.jpg",
-//                id = "productId",
-//                quantity = 2,
-//                options = "25cm, Hành tây",
-//                price = 120000 * 2 + 10000 + 5000)
-//            ),
-//            totalPrice = 0,
-//            note = "note",
-//            orderStatus = 0,
-//            expectDeliveryTime = null,
-//            actualDeliveryTime = null,
-//            shipperId = "1"
-//        )
-//        _user.value = User(
-//                id = "userId",
-//        fullName = "Nguyễn Văn A",
-//        email = "",
-//        phoneNumber = "0123456789",
-//        address = "Hàn Thuyên, khu phố 6 P, Thủ Đức, Hồ Chí Minh.",
-//        avatarUrl = "",
-//        )
-//        _shipper.value = Shipper(
-//            id = "shipperId",
-//            name = "Nguyễn Văn B",
-//            phoneNumber = "0123456789",
-//            licensePlate = "55-C1 123.45",
-//        )
-//    }
-
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                val savedStateHandle = this.createSavedStateHandle()
+                ManageOrderViewModel(
+                    savedStateHandle = savedStateHandle,
+                    userPreferencesRepository = application.userPreferencesRepository,
+                )
+            }
+        }
+    }
 
 }

@@ -19,7 +19,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentPasteOff
 import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.outlined.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -41,6 +43,7 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -69,7 +72,6 @@ import java.time.format.DateTimeFormatter
 fun ManageOrderScreen(
     viewModel: ManageOrderViewModel,
     onBackClick: () -> Unit,
-    isPreview: Boolean = false,
 ) {
     val order = viewModel.order.collectAsStateWithLifecycle().value
     val shipper = viewModel.shipper.collectAsStateWithLifecycle().value
@@ -81,10 +83,9 @@ fun ManageOrderScreen(
     var isShowDialog by remember { mutableStateOf(false)}
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    LaunchedEffect(key1 = order) {
-        if (isPreview) {
-            viewModel.loadData()
-        }
+    LaunchedEffect(Unit) {
+        viewModel.loadOrderStatus()
+        viewModel.loadData()
     }
     Column(
         modifier = Modifier
@@ -115,6 +116,21 @@ fun ManageOrderScreen(
                     .fillMaxWidth()
                     .padding(top = 17.dp)
             )
+            if (order.orderStatus == "PENDING")
+            CircleIconButton(
+                backgroundColor = OrangeLighter,
+                foregroundColor = OrangeDefault,
+                icon = Icons.Default.ContentPasteOff,
+                shadow = "outer",
+                onClick = {
+                    scope.launch {
+                        viewModel.cancelOrder()
+                    }
+                },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(end = 16.dp, top = 16.dp)
+            )
         }
         if(isShowDialog) {
             CustomDialog(
@@ -122,10 +138,15 @@ fun ManageOrderScreen(
                 message = "Bạn có chắc chắn muốn cập nhật trạng thái đơn hàng này không?",
                 onDismiss = { isShowDialog = false },
                 onConfirm = {
-                    viewModel.setStatus()
                     scope.launch {
                         isShowDialog = false
-                        viewModel.updateStatus()
+                        if (viewModel.updateStatus() == 0) {
+                            Toast.makeText(
+                                context,
+                                "Cập nhật trạng thái đơn hàng thất bại",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                         Toast.makeText(
                             context,
                             "Cập nhật trạng thái đơn hàng thành công",
@@ -192,6 +213,7 @@ fun ManageOrderScreen(
                             .padding(5.dp)
                     )
                 }
+
             }
             if (isLoading) {
                 item {
@@ -217,7 +239,7 @@ fun ManageOrderScreen(
                     ) {
                         Text(
                             text = "Người giao hàng",
-                            fontSize = 20.sp,
+                            fontSize = 16.sp,
                             color = BrownDefault,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
@@ -227,7 +249,7 @@ fun ManageOrderScreen(
                         )
                         Text(
                             text = shipper.fullname + " - " + shipper.phone,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             color = BrownDefault,
                             textAlign = TextAlign.Start,
                             fontWeight = FontWeight.SemiBold,
@@ -240,7 +262,7 @@ fun ManageOrderScreen(
                                 withStyle(
                                     style = SpanStyle(
                                         color = BrownDefault,
-                                        fontSize = 18.sp,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.SemiBold
                                     )
                                 ) {
@@ -248,7 +270,7 @@ fun ManageOrderScreen(
                                 }
                                 append(shipper.licensePlate)
                             },
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             color = BrownDefault,
                             textAlign = TextAlign.Start,
                             modifier = Modifier
@@ -271,7 +293,7 @@ fun ManageOrderScreen(
                 ) {
                     Text(
                         text = "Người đặt hàng",
-                        fontSize = 20.sp,
+                        fontSize = 16.sp,
                         color = BrownDefault,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
@@ -281,7 +303,7 @@ fun ManageOrderScreen(
                     )
                     Text(
                         text = user.fullname + " - " + user.phone,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         color = BrownDefault,
                         textAlign = TextAlign.Start,
                         fontWeight = FontWeight.SemiBold,
@@ -294,7 +316,7 @@ fun ManageOrderScreen(
                             withStyle(
                                 style = SpanStyle(
                                     color = BrownDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold
                                 )
                             ) {
@@ -302,7 +324,7 @@ fun ManageOrderScreen(
                             }
                             append(order.shippingAddress)
                         },
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         color = BrownDefault,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
@@ -324,7 +346,7 @@ fun ManageOrderScreen(
                 ) {
                     Text(
                         text = "Thông tin đơn hàng",
-                        fontSize = 20.sp,
+                        fontSize = 16.sp,
                         color = BrownDefault,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
@@ -337,7 +359,7 @@ fun ManageOrderScreen(
                             withStyle(
                                 style = SpanStyle(
                                     color = BrownDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold
                                 )
                             ) {
@@ -345,33 +367,23 @@ fun ManageOrderScreen(
                             }
                             append(order.id.toString())
                         },
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         color = BrownDefault,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
                             .padding(start = 10.dp)
                             .fillMaxWidth()
                     )
-                    Instant.parse(order.actualDeliveryTime).atZone(ZoneId.systemDefault()).let {
+                    if (order.createdAt.isNotEmpty())
+                    Instant.parse(order.createdAt).atZone(ZoneId.systemDefault()).let {
                         Text(
-                            text = buildAnnotatedString {
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = BrownDefault,
-                                        fontSize = 18.sp,
-                                        fontWeight = FontWeight.SemiBold
-                                    )
-                                ) {
-                                    append("Ngày đặt hàng: ")
-                                }
-                                append(it?.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")))
-                            },
-                            fontSize = 18.sp,
-                            color = BrownDefault,
+                            text = "Ngày đặt: " + it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")),
                             textAlign = TextAlign.Start,
-                            modifier = Modifier
-                                .padding(start = 10.dp)
-                                .fillMaxWidth()
+                            color = OrangeDefault,
+                            fontSize = 14.sp,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp)
                         )
                     }
 
@@ -380,7 +392,7 @@ fun ManageOrderScreen(
                             withStyle(
                                 style = SpanStyle(
                                     color = BrownDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold
                                 )
                             ) {
@@ -400,15 +412,15 @@ fun ManageOrderScreen(
                             withStyle(
                                 style = SpanStyle(
                                     color = BrownDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold
                                 )
                             ) {
                                 append("Ghi chú: ")
                             }
-                            append(order.note)
+                            append(order.note?: "Không có ghi chú")
                         },
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         color = BrownDefault,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
@@ -420,7 +432,7 @@ fun ManageOrderScreen(
                             withStyle(
                                 style = SpanStyle(
                                     color = BrownDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold
                                 )
                             ) {
@@ -428,7 +440,7 @@ fun ManageOrderScreen(
                             }
                             append(order.totalPrice.toString() + " VNĐ")
                         },
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         color = BrownDefault,
                         textAlign = TextAlign.Start,
                         modifier = Modifier
@@ -440,15 +452,15 @@ fun ManageOrderScreen(
                             withStyle(
                                 style = SpanStyle(
                                     color = BrownDefault,
-                                    fontSize = 18.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold
                                 )
                             ) {
                                 append("Trạng thái đơn hàng: ")
                             }
-                            append(getStatusMessage(order.orderStatus))
+                            append(order.orderStatus)
                         },
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         color = OrangeDefault,
                         textAlign = TextAlign.Start,
                         fontWeight = FontWeight.Bold,
@@ -461,7 +473,7 @@ fun ManageOrderScreen(
                 item {
                     Text(
                         text = "Danh sách sản phẩm",
-                        fontSize = 20.sp,
+                        fontSize = 16.sp,
                         color = BrownDefault,
                         fontWeight = FontWeight.Bold,
                         textAlign = TextAlign.Center,
@@ -470,32 +482,21 @@ fun ManageOrderScreen(
                             .fillMaxWidth()
                     )
                 }
-//            items(order.orderItems){ item ->
-//                OrderItemContainer(
-//                    item= item
-//                )
-//            }
+            items(order.orderDetails){ item ->
+                OrderItemContainer(
+                    item= item
+                )
+            }
         }
     }
     }
 }
 
-fun getStatusMessage(status: String): String {
-    return when (status) {
-        "PENDING" -> "Chờ xác nhận" //PENDING
-        "CONFIRMED" -> "Đã xác nhận" //CONFIRMED
-        "PROCESSING" -> "Đang chế biến" //PROCESSING
-        "SHIPPING" -> "Đang giao hàng" //SHIPPING
-        "COMPLETED" -> "Đã giao hàng" //COMPLETED
-        "CANCEL" -> "Hủy đơn hàng" //CANCEL
-        else -> "Không xác định" //CANCEL
-    }
-}
-
 fun getStatusUpdateMessage(status: String): String {
     return when (status) {
-        "CONFIRMED" -> "Xác nhận đơn hàng"
-        "PROCESSING" -> "Đang chế biến"
+        "PENDING" -> "Xác nhận đơn hàng"
+        "CONFIRMED" -> "Chế biến"
+        "PROCESSING" -> "Giao hàng"
         "SHIPPING" -> "Đang giao hàng"
         "COMPLETED" -> "Đã giao hàng"
         else -> "Không xác định"

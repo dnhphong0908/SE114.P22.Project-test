@@ -619,14 +619,14 @@ fun MainNavHost(
             }
             composable(
                 route = "EditOrder/{orderId}",
-                arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("orderId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) {
                 backStackEntry ->
-                val viewModel: ManageOrderViewModel = viewModel(backStackEntry)
+                val viewModel: ManageOrderViewModel = viewModel(backStackEntry, factory = ManageOrderViewModel.Factory)
                 ManageOrderScreen(
                     onBackClick = {navController.popBackStack()},
                     viewModel = viewModel,

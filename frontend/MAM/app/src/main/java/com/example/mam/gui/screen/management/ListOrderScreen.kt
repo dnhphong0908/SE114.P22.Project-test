@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
@@ -86,6 +87,9 @@ import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListOrderViewModel
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ListOrderScreen(
@@ -407,9 +411,8 @@ fun OrderItem(
          owner = viewModel.loadOwnerOfOrder(order.userId)
     }
     var expand by remember { mutableStateOf(false) }
-
         Card(
-            onClick = { },
+            onClick = { onEditClick(order.id) },
             colors = CardDefaults.cardColors(
                 containerColor = WhiteDefault
             ),
@@ -457,18 +460,18 @@ fun OrderItem(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
-//                    Instant.parse(order.actualDeliveryTime).atZone(ZoneId.systemDefault())?.let {
-//                        Text(
-//                            text = it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")),
-//                            textAlign = TextAlign.Start,
-//                            color = BrownDefault,
-//                            fontSize = 16.sp,
-//                            fontWeight = FontWeight.Medium,
-//                            maxLines = 1,
-//                            overflow = TextOverflow.Ellipsis,
-//                            modifier = Modifier.fillMaxWidth()
-//                        )
-//                    }
+                    Instant.parse(order.createdAt).atZone(ZoneId.systemDefault())?.let {
+                        Text(
+                            text = it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")),
+                            textAlign = TextAlign.Start,
+                            color = BrownDefault,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                     Text(
                         text = "Tổng tiền: " + order.getPriceToString(),
                         textAlign = TextAlign.Start,
@@ -480,7 +483,6 @@ fun OrderItem(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-                if (!isViewOnly) {
                     if (order.orderStatus == "PENDING" ||
                         order.orderStatus == "CONFIRMED" ||
                         order.orderStatus == "PROCESSING")
@@ -490,7 +492,6 @@ fun OrderItem(
                     //                IconButton(onClick = { onDeleteClick(order.id) }) {
                     //                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
                     //                }
-                }
             }
         }
     }
