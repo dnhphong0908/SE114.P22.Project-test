@@ -3,6 +3,7 @@ package com.example.mam.gui.screen.management
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -45,6 +46,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,6 +85,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ManageUserViewModel
+import kotlinx.coroutines.launch
 import okhttp3.internal.platform.Jdk9Platform.Companion.isAvailable
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -95,9 +98,10 @@ fun ManageUserScreen(
     isEdit : Boolean = false,
     isAdd: Boolean = false,
 ) {
+    val scope = rememberCoroutineScope()
     val userId = viewModel.userID.collectAsStateWithLifecycle().value
     val userName = viewModel.userName.collectAsStateWithLifecycle().value
-    val imgUrl = viewModel.imgUrl.collectAsStateWithLifecycle().value
+    val imgUrl = viewModel.userImage.collectAsStateWithLifecycle().value
     val fullName = viewModel.fullName.collectAsStateWithLifecycle().value
     val email = viewModel.email.collectAsStateWithLifecycle().value
     val role = viewModel.role.collectAsStateWithLifecycle().value
@@ -113,18 +117,16 @@ fun ManageUserScreen(
     val imagePicker = if (!isPreview) {
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                viewModel.setImgUrl(it.toString())
+                viewModel.setUserImage(it.toString())
             }
         }
     } else null
     LaunchedEffect(Unit) {
-        if (isPreview) {
-            viewModel.mockData()
-        } else if (!isAdd) {
+        if (!isAdd) {
             viewModel.loadData()
         } else {
             viewModel.setUserName("")
-            viewModel.setImgUrl("https://static.vecteezy.com/system/resources/previews/056/202/171/non_2x/add-image-or-photo-icon-vector.jpg")
+            viewModel.setUserImage("https://static.vecteezy.com/system/resources/previews/056/202/171/non_2x/add-image-or-photo-icon-vector.jpg")
             viewModel.setFullName("")
             viewModel.setEmail("")
             viewModel.setRole("Admin")
@@ -173,17 +175,20 @@ fun ManageUserScreen(
                 icon = if (isEditMode || isAdd) Icons.Default.Done else Icons.Default.Edit,
                 shadow = "outer",
                 onClick = {
-                    if (isEditMode) {
-                        viewModel.updateUser()
-                        isEditMode = false
-                    } else if (isAdd) {
-                        viewModel.addUser()
-                        onBackClick()
-                    } else {
-                        isEditMode = true
+                    scope.launch {
+                        if (isEdit) {
+                            val result = viewModel.updateUser()
+                            Toast.makeText(
+                                context,
+                                when(result){
+                                    1 -> "Chỉnh sửa thành công"
+                                    else -> "Chỉnh sửa thất bại"
+                                },
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onBackClick()
+                        }
                     }
-
-
                 },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -286,7 +291,7 @@ fun ManageUserScreen(
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append("ID: ")
                             }
-                            append(userId)
+                            append(userId.toString())
                         },
                         textAlign = TextAlign.Start,
                         color = GreyDefault,
@@ -630,14 +635,14 @@ fun ManageUserScreen(
     }
 }
 
-@Preview
-@Composable
-fun ManageUserScreenPreview() {
-    ManageUserScreen(
-        viewModel = ManageUserViewModel(savedStateHandle = SavedStateHandle(mapOf("userId" to "1"))),
-        onBackClick = {},
-        isPreview = true,
-        isEdit = true,
-        isAdd = false
-    )
-}
+//@Preview
+//@Composable
+//fun ManageUserScreenPreview() {
+//    ManageUserScreen(
+//        viewModel = ManageUserViewModel(savedStateHandle = SavedStateHandle(mapOf("userId" to "1"))),
+//        onBackClick = {},
+//        isPreview = true,
+//        isEdit = true,
+//        isAdd = false
+//    )
+//}

@@ -794,7 +794,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageUserViewModel = viewModel()
+                val viewModel: ManageUserViewModel = viewModel(backStackEntry, factory = ManageUserViewModel.Factory)
                 ManageUserScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -804,13 +804,13 @@ fun MainNavHost(
             }
             composable(
                 route = "EditUser/{userId}",
-                arguments = listOf(navArgument("userId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("userId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageUserViewModel = viewModel(backStackEntry)
+                val viewModel: ManageUserViewModel = viewModel(backStackEntry, factory = ManageUserViewModel.Factory)
                 ManageUserScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -820,13 +820,13 @@ fun MainNavHost(
             }
             composable(
                 route = "DetailsUser/{userId}",
-                arguments = listOf(navArgument("userId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("userId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageUserViewModel = viewModel(backStackEntry)
+                val viewModel: ManageUserViewModel = viewModel(backStackEntry, factory = ManageUserViewModel.Factory)
                 ManageUserScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
