@@ -662,7 +662,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageNotificationViewModel = viewModel()
+                val viewModel: ManageNotificationViewModel = viewModel(backStackEntry, factory = ManageNotificationViewModel.Factory)
                 ManageNotificationScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
