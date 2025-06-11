@@ -54,6 +54,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -335,9 +336,8 @@ fun DashboardScreen(
                                             .padding(
                                                 bottom = 5.dp,
                                                 top = 0.dp,
-                                                start = 5.dp,
-                                                end = 5.dp
                                             )
+                                            .fillMaxWidth()
                                     )
                                 }
                             }
@@ -421,9 +421,9 @@ fun MonthRevenueChart(
     viewModel: DashboardViewModel,
     modifier: Modifier = Modifier,
 ) {
-    var year by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).year) }
+    var year by remember { mutableIntStateOf(Instant.now().atZone(ZoneId.systemDefault()).year) }
     var isMonthly by remember { mutableStateOf(true) }
-    var pointsData = viewModel.revenueList.collectAsStateWithLifecycle().value
+    val pointsData = viewModel.revenueList.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoadingRevenue.collectAsStateWithLifecycle().value
     LaunchedEffect(key1 = year, key2 = isMonthly) {
         if (isMonthly) {
