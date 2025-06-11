@@ -98,17 +98,15 @@ class ManagePromotionViewModel(
             val request = PromotionRequest(
                 code = _code.value,
                 description = _description.value,
-                startDate = _startDate.value,
-                endDate = _endDate.value
+                startDate = _startDate.value.toString(),
+                endDate = _endDate.value.toString(),
+                minValue = _minValue.value,
+                discountValue = _value.value.toBigDecimal()
             )
 
             val response = BaseService(userPreferencesRepository)
                 .promotionService
                 .createPromotion(request)
-
-            if (response == null){
-                return 0
-            }
             Log.d("Promotion", "Status code: ${response.code()}")
             if (response.isSuccessful) {
                 val promotion = response.body()

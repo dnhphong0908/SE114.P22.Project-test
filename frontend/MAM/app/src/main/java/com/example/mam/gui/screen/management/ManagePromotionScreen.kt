@@ -128,13 +128,21 @@ fun ManagePromotionScreen(
                     scope.launch {
                         if (code.isNotEmpty() && description.isNotEmpty() && value > 0 && startDate.isBefore(endDate)
                         ) {
-                            viewModel.createPromotion()
-                            Toast.makeText(
-                                context,
-                                "Thêm khuyến mãi thành công",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                            if (viewModel.createPromotion() == 1){
+                                Toast.makeText(
+                                    context,
+                                    "Thêm khuyến mãi thành công",
+                                    Toast.LENGTH_SHORT
+                                ).show()
                             onBackClick()
+                            }
+                            else {
+                                Toast.makeText(
+                                    context,
+                                    "Thêm khuyến mãi thất bại",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         } else {
                             Toast.makeText(
                                 context,
@@ -187,7 +195,7 @@ fun ManagePromotionScreen(
                                 .toLocalDate()
 
                             // Kết hợp với giờ 23:59:59
-                            val endOfDay = LocalTime.of(0, 0, 0)
+                            val endOfDay = LocalTime.of(23, 59, 59)
                             LocalDateTime.of(localDate, endOfDay)
                         }
                         val endDate = dateTimeAtEndOfDay?.atZone(ZoneId.systemDefault())?.toInstant()

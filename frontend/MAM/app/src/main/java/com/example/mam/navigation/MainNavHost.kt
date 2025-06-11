@@ -745,7 +745,7 @@ fun MainNavHost(
             }
             composable(
                 route = "EditShipper/{shipperId}",
-                arguments = listOf(navArgument("shipperId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("shipperId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
@@ -804,7 +804,7 @@ fun MainNavHost(
             }
             composable(
                 route = "EditUser/{userId}",
-                arguments = listOf(navArgument("userId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("userId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
@@ -820,7 +820,7 @@ fun MainNavHost(
             }
             composable(
                 route = "DetailsUser/{userId}",
-                arguments = listOf(navArgument("userId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("userId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),

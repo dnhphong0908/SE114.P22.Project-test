@@ -394,12 +394,17 @@ fun ListPromotionScreen(
                                 )
                             }
                         }
-                        else
+                        else {
                             items(promoList) { promo ->
                                 PromotionItem(
                                     promo = promo,
-                                    onDeleteClick = {}                                )
+                                    onDeleteClick = {})
                             }
+                            //Them dong nay vao cuoi cac list (nhớ là else phải có ngoặc nhọn)
+                            item{
+                                Spacer(Modifier.height(100.dp))
+                            }
+                        }
                 }
             }
         }
