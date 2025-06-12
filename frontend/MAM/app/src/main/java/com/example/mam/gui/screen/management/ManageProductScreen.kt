@@ -172,7 +172,7 @@ fun ManageProductScreen(
             )
             val isButtonEnable = (isAdd || isEditMode) &&
                 productName.isNotEmpty()
-                        && productPrice.toInt() > 0
+                        && (productPrice.isNotEmpty() && productPrice.toInt() > 0)
                         && productShortDescription.isNotEmpty()
                         && productLongDescription.isNotEmpty()
                         && viewModel.isProductNameValid().isEmpty()
@@ -187,16 +187,42 @@ fun ManageProductScreen(
                 onClick = {
                     if (isEditMode && isButtonEnable) {
                         scope.launch {
-                            viewModel.updateProduct()
+                            if (viewModel.updateProduct() == 1){
+                                Toast.makeText(
+                                    context,
+                                    "Sửa sản phẩm thành công",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            else{
+                                Toast.makeText(
+                                    context,
+                                    "Sửa sản phẩm thất bại",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            isEditMode = !isEditMode
                         }
-
                     } else if (isAdd && isButtonEnable) {
                         scope.launch{
-                            viewModel.addProduct()
-                            onBackClick()
+                            if (viewModel.addProduct() == 1){
+                                Toast.makeText(
+                                    context,
+                                    "Thêm sản phẩm thành công",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                onBackClick()
+                            }
+                            else{
+                                Toast.makeText(
+                                    context,
+                                    "Thêm sản phẩm thất bại",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
                     }
-                    else isEditMode = !isEditMode
+
                 },
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -516,10 +542,10 @@ fun ManageProductScreen(
                 }
                 item {
                     OutlinedTextField(
-                        value = productPrice.toString(),
+                        value = productPrice,
                         readOnly = !(isEditMode || isAdd),
                         onValueChange = {
-                            viewModel.setProductPrice(it.toBigDecimal())
+                            viewModel.setProductPrice(it)
                         },
                         textStyle = TextStyle(
                             color = BrownDefault,
