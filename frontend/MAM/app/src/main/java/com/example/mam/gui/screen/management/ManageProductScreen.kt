@@ -193,6 +193,7 @@ fun ManageProductScreen(
                     } else if (isAdd && isButtonEnable) {
                         scope.launch{
                             viewModel.addProduct()
+                            onBackClick()
                         }
                     }
                     else isEditMode = !isEditMode
@@ -659,7 +660,7 @@ fun ManageProductScreen(
 
                     )
                 }
-                if(variants.isNotEmpty() || isAdd || isEditMode) {
+                if(variants.isNotEmpty() || isEditMode) {
                     item {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
