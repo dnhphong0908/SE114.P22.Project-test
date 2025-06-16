@@ -85,6 +85,7 @@ import com.example.mam.gui.component.OrderItemContainer
 import com.example.mam.gui.component.OuterShadowFilledButton
 import com.example.mam.gui.component.QuantitySelectionButton
 import com.example.mam.gui.component.outerShadow
+import com.example.mam.gui.screen.management.OrderItem
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyAvaDefault
 import com.example.mam.ui.theme.GreyDark
@@ -477,67 +478,68 @@ fun OrderScreen(
         }
     }
 }
-@Composable
-fun OrderItem(
-    item: OrderDetailResponse,
-    modifier: Modifier = Modifier,
-){
-    Surface(
-        shadowElevation = 4.dp, // Elevation applied here instead
-        shape = RoundedCornerShape(12.dp),
-        modifier = Modifier.padding(8.dp)
+
+    @Composable
+    fun OrderItem(
+        item: OrderDetailResponse,
+        modifier: Modifier = Modifier,
     ) {
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = WhiteDefault
-            ),
-            modifier = Modifier
-                .animateContentSize()
+        Surface(
+            shadowElevation = 4.dp, // Elevation applied here instead
+            shape = RoundedCornerShape(12.dp),
+            modifier = Modifier.padding(8.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.Top,
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = WhiteDefault
+                ),
                 modifier = Modifier
+                    .animateContentSize()
             ) {
-                AsyncImage(
-                    model = item.getRealUrl(), // Đây là URL từ API
-                    contentDescription = null,
-                    placeholder = painterResource(R.drawable.ic_mam_logo),
-                    contentScale = ContentScale.Crop,
+                Row(
+                    verticalAlignment = Alignment.Top,
                     modifier = Modifier
-                        .padding(8.dp)
-                        .size(80.dp)
-                        .clip(CircleShape)
-                )
-                Column(
-                    verticalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier
-                        .weight(1f)
                 ) {
-                    Column (
-                        verticalArrangement = Arrangement.Top,
-                        modifier = Modifier.fillMaxWidth().padding(0.dp, 8.dp, 8.dp, 8.dp)
+                    AsyncImage(
+                        model = item.getRealUrl(), // Đây là URL từ API
+                        contentDescription = null,
+                        placeholder = painterResource(R.drawable.ic_mam_logo),
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .padding(8.dp)
+                            .size(80.dp)
+                            .clip(CircleShape)
+                    )
+                    Column(
+                        verticalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier
+                            .weight(1f)
                     ) {
-                        Text(
-                            text = item.productName + " *" + item.quantity,
-                            textAlign = TextAlign.Start,
-                            color = BrownDefault,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                        item.variationInfo.let{
+                        Column(
+                            verticalArrangement = Arrangement.Top,
+                            modifier = Modifier.fillMaxWidth().padding(0.dp, 8.dp, 8.dp, 8.dp)
+                        ) {
                             Text(
-                                text = it,
+                                text = item.productName + " *" + item.quantity,
                                 textAlign = TextAlign.Start,
-                                color = GreyDefault,
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 2,
+                                color = BrownDefault,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
                                 modifier = Modifier.fillMaxWidth()
                             )
+                            if (item.variationInfo != null)
+                                Text(
+                                    text = item.variationInfo,
+                                    textAlign = TextAlign.Start,
+                                    color = GreyDefault,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
                         }
                         Text(
                             text = item.getPrice(),
@@ -552,12 +554,3 @@ fun OrderItem(
             }
         }
     }
-}
-@Preview
-@Composable
-fun OrderPreview(){
-    val viewModel: OrderViewModel = viewModel()
-    OrderScreen(
-        viewModel = viewModel
-    )
-}

@@ -159,9 +159,7 @@ class CheckOutViewModel(
                 _cart.value.cartItems.sumOf { it.price * it.quantity.toBigDecimal() }.toDouble()
             )
             if (response.isSuccessful) {
-                _discountList.value = _discountList.value.toMutableList().apply {
-                    addAll(response.body() ?: mutableListOf())
-                }
+                _discountList.value = response.body()?.toMutableList() ?: mutableListOf()
                 Log.d("CheckOutViewModel", "Discounts loaded: ${_discountList.value.size} promotions")
             } else {
                 Log.d("CheckOutViewModel", "Failed to load discounts: ${response.errorBody()?.string()}")
