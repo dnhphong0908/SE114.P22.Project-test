@@ -39,6 +39,7 @@ import com.example.mam.ui.theme.GreyDark
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
+import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.authentication.StartViewModel
 import kotlinx.coroutines.launch
 
@@ -126,19 +127,20 @@ fun StartScreen(
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
             ) {
-//                OuterShadowFilledButton(
-//                    text = "Đăng ký qua Google",
-//                    image = R.drawable.ic_google,
-//                    onClick = onGGSignUpClicked,
-//                    modifier = Modifier
-//                        .fillMaxWidth(0.8f)
-//                )
-//                HorizontalDivider(
-//                    color = BrownDefault,
-//                    modifier = Modifier
-//                        .fillMaxWidth(0.8f),
-//
-//                )
+                OuterShadowFilledButton(
+                    text = "Đăng ký qua Google",
+                    image = R.drawable.ic_google,
+                    color = WhiteDefault,
+                    textColor = BrownDefault,
+                    onClick = onGGSignUpClicked,
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                )
+                HorizontalDivider(
+                    color = BrownDefault,
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f),
+                )
                 OuterShadowFilledButton(
                     text = "Đăng ký",
                     onClick = onSignUpClicked,
