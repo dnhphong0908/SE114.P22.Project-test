@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Pageable;
@@ -98,5 +99,18 @@ public class ProductController {
   public ResponseEntity<Void> deleteProduct(@PathVariable("id") Long id) {
     productService.delete(id);
     return ResponseEntity.noContent().build();
+  }
+
+  @Operation(
+      summary = "Get recommended products",
+      description = "Retrieve a list of recommended products based on user preferences")
+  @ApiResponse(
+      responseCode = "200",
+      description = "Successfully retrieved recommended products",
+      content = @Content(schema = @Schema(implementation = ProductResponseDTO.class)))
+  @ErrorResponse
+  @GetMapping("/recommended")
+  public ResponseEntity<List<ProductResponseDTO>> getRecommendedProducts() {
+    return ResponseEntity.ok(productService.getRecommendedProducts());
   }
 }
