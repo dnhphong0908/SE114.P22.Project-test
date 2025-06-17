@@ -6,6 +6,10 @@ import com.se114p12.backend.entities.product.Product;
 import com.se114p12.backend.entities.product.ProductCategory;
 import com.se114p12.backend.exceptions.ResourceNotFoundException;
 import com.se114p12.backend.mappers.product.ProductMapper;
+import com.se114p12.backend.neo4j.entities.CategoryNode;
+import com.se114p12.backend.neo4j.entities.ProductNode;
+import com.se114p12.backend.neo4j.repositories.ProductNeo4jRepository;
+import com.se114p12.backend.neo4j.services.RecommendService;
 import com.se114p12.backend.repositories.product.ProductCategoryRepository;
 import com.se114p12.backend.repositories.product.ProductRepository;
 import com.se114p12.backend.services.general.StorageService;
@@ -14,7 +18,9 @@ import java.time.Instant;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +32,8 @@ public class ProductServiceImpl implements ProductService {
   private final ProductCategoryRepository productCategoryRepository;
   private final StorageService storageService;
   private final ProductMapper productMapper;
+  private final RecommendService recommendService;
+  private final ProductNeo4jRepository productNeo4jRepository;
 
   @Override
   public PageVO<ProductResponseDTO> getAllProducts(
@@ -80,6 +88,14 @@ public class ProductServiceImpl implements ProductService {
     product.setImageUrl(storageService.store(dto.getImage(), "product-items"));
     product = productRepository.save(product);
 
+    // Neo4j recommendation system
+    ProductNode productNode = new ProductNode();
+    CategoryNode categoryNode = new CategoryNode();
+    productNode.setId(product.getId());
+    categoryNode.setId(category.getId());
+    productNode.setCategory(categoryNode);
+    productNeo4jRepository.save(productNode);
+
     return productMapper.entityToResponse(product);
   }
 
@@ -126,5 +142,24 @@ public class ProductServiceImpl implements ProductService {
             .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
     return productMapper.entityToResponse(product);
+  }
+
+  @Override
+  public List<ProductResponseDTO> getRecommendedProducts() {
+    List<Long> recommendedProductIds = recommendService.getRecommendProductIds();
+
+    List<Product> recommendedProducts = productRepository.findAllById(recommendedProductIds);
+
+    if (recommendedProducts.size() < 10) {
+      Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
+      List<Product> additional = productRepository.findAll(pageable).getContent();
+      recommendedProducts.addAll(
+          additional.stream()
+              .filter(product -> !recommendedProductIds.contains(product.getId()))
+              .limit(10 - recommendedProducts.size())
+              .toList());
+    }
+
+    return recommendedProducts.stream().map(productMapper::entityToResponse).toList();
   }
 }

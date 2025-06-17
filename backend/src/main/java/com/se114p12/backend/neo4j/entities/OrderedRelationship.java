@@ -16,5 +16,5 @@ public class OrderedRelationship {
 
   private Long count;
 
-  @TargetNode private Long productNodeId;
+  @TargetNode private ProductNode productNode;
 }
