@@ -52,6 +52,18 @@ public class AuthController {
   }
 
   @Operation(
+      summary = "Login with Firebase",
+      description =
+          "Login using Firebase credentials. The Firebase ID token is sent in the request body.")
+  @ErrorResponse
+  @PostMapping("/oauth2/login/firebase")
+  @ResponseBody
+  public ResponseEntity<AuthResponseDTO> loginWithFirebase(
+      @Valid @RequestBody FirebaseLoginRequestDTO firebaseLoginRequestDTO) {
+    return ResponseEntity.ok(authService.loginWithFirebase(firebaseLoginRequestDTO));
+  }
+
+  @Operation(
       summary = "Register with Google OAuth2",
       description =
           "Register using Google OAuth2 credentials. The Google ID token is sent in the request"
