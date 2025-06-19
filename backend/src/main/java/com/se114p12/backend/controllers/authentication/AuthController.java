@@ -78,6 +78,19 @@ public class AuthController {
   }
 
   @Operation(
+      summary = "Register with Firebase",
+      description =
+          "Register using Firebase credentials. The Firebase ID token is sent in the request body.")
+  @ErrorResponse
+  @PostMapping("/oauth2/register/firebase")
+  @ResponseBody
+  public ResponseEntity<UserResponseDTO> registerWithFirebase(
+      @Valid @RequestBody FirebaseRegisterRequestDTO firebaseRegisterRequestDTO) {
+    return ResponseEntity.status(HttpStatus.CREATED)
+        .body(userService.registerFirebaseUser(firebaseRegisterRequestDTO));
+  }
+
+  @Operation(
       summary = "Login with credentialId and password",
       description = "credentialId is usually the email or phone number or username")
   @ApiResponse(

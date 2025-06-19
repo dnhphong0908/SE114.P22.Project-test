@@ -1,14 +1,17 @@
 package com.se114p12.backend.services.user;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseAuthException;
+import com.google.firebase.auth.FirebaseToken;
 import com.se114p12.backend.constants.AppConstant;
+import com.se114p12.backend.dtos.authentication.FirebaseRegisterRequestDTO;
 import com.se114p12.backend.dtos.authentication.GoogleRegisterRequestDTO;
 import com.se114p12.backend.dtos.authentication.RegisterRequestDTO;
 import com.se114p12.backend.dtos.user.UserRequestDTO;
 import com.se114p12.backend.dtos.user.UserResponseDTO;
 import com.se114p12.backend.entities.authentication.Role;
 import com.se114p12.backend.entities.authentication.Verification;
-import com.se114p12.backend.entities.cart.Cart;
 import com.se114p12.backend.entities.user.User;
 import com.se114p12.backend.enums.LoginProvider;
 import com.se114p12.backend.enums.RoleName;
@@ -166,6 +169,47 @@ public class UserServiceImpl implements UserService {
     user.setPhone(SMSService.formatPhoneNumber(googleRegisterRequestDTO.getPhone()));
     user.setPassword("");
     user.setLoginProvider(LoginProvider.GOOGLE);
+    user.setStatus(UserStatus.ACTIVE);
+    Role userRole =
+        roleRepository
+            .findByName(RoleName.USER.getValue())
+            .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
+    user.setRole(userRole);
+    user = userRepository.save(user);
+    return userMapper.entityToResponse(user);
+  }
+
+  // Register or get user from Firebase
+  @Override
+  public UserResponseDTO registerFirebaseUser(
+      FirebaseRegisterRequestDTO firebaseRegisterRequestDTO) {
+    FirebaseToken payload;
+    try {
+      payload = FirebaseAuth.getInstance().verifyIdToken(firebaseRegisterRequestDTO.getIdToken());
+    } catch (FirebaseAuthException e) {
+      throw new BadRequestException("Invalid Firebase ID token");
+    }
+
+    Optional<User> userOptional = userRepository.findByEmail(payload.getEmail());
+
+    // If user exists, return the user response
+    if (userOptional.isPresent()) return userMapper.entityToResponse(userOptional.get());
+
+    if (userRepository.existsByPhone(
+        SMSService.formatPhoneNumber(firebaseRegisterRequestDTO.getPhoneNumber()))) {
+      throw new DataConflictException("Phone number already exists");
+    }
+
+    User user = new User();
+    user.setEmail(payload.getEmail());
+    user.setFullname(payload.getName());
+    user.setUsername(UUID.randomUUID().toString());
+    if (!smsService.lookupPhoneNumber(firebaseRegisterRequestDTO.getPhoneNumber())) {
+      throw new BadRequestException("Invalid phone number");
+    }
+    user.setPhone(SMSService.formatPhoneNumber(firebaseRegisterRequestDTO.getPhoneNumber()));
+    user.setPassword("");
+    user.setLoginProvider(LoginProvider.FIREBASE);
     user.setStatus(UserStatus.ACTIVE);
     Role userRole =
         roleRepository
