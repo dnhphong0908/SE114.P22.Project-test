@@ -1,26 +1,44 @@
 package com.example.mam.viewmodel.management
 
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
-import kotlinx.coroutines.cancel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
+import com.example.mam.data.Constant.BASE_IMAGE
+import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.repository.BaseRepository
+import com.example.mam.viewmodel.ImageViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import java.io.File
 import java.time.Instant
 
-class ManageUserViewModel(savedStateHandle: SavedStateHandle?): ViewModel() {
-    private val userId: String? = savedStateHandle?.get<String>("userId")
+class ManageUserViewModel(
+    savedStateHandle: SavedStateHandle?,
+    private val userPreferencesRepository: UserPreferencesRepository,
+    private val imageViewModel: ImageViewModel
+): ViewModel() {
+    private val userId = savedStateHandle?.get<Long>("userId") ?: 0L
 
-    private val _userID = MutableStateFlow<String>("")
-    val userID = _userID.asStateFlow()
+    private val _userID = MutableStateFlow<Long>(userId)
+    val userID: StateFlow<Long> = _userID
 
     private val _userName = MutableStateFlow<String>("")
     val userName = _userName.asStateFlow()
 
-    private val _imgUrl = MutableStateFlow<String>("")
-    val imgUrl = _imgUrl.asStateFlow()
+    private val _userImage = MutableStateFlow<String>(BASE_IMAGE)
+    val userImage: StateFlow<String> = _userImage
+
+    private val _userImageFile = MutableStateFlow<File?>(null) // Lưu ảnh dạng Multipart
 
     private val _fullName = MutableStateFlow<String>("")
     val fullName = _fullName.asStateFlow()
@@ -68,8 +86,8 @@ class ManageUserViewModel(savedStateHandle: SavedStateHandle?): ViewModel() {
         return "" // Name is valid
     }
 
-    fun setImgUrl(imgUrl: String) {
-        _imgUrl.value = imgUrl
+    fun setUserImage(imgUrl: String) {
+        _userImage.value = imgUrl
     }
 
     fun setFullName(fullName: String) {
@@ -124,53 +142,49 @@ class ManageUserViewModel(savedStateHandle: SavedStateHandle?): ViewModel() {
         _status.value = status
     }
 
-    fun loadData(){
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate a network call or data loading
-                // Replace this with your actual data loading logic
-                // For example, you can fetch data from a repository or API
-                // and update the state variables accordingly.
-                //_userID.value = userId ?: ""
-                //_userName.value = "John Doe"
-                //_imgUrl.value = "https://example.com/image
-            } catch (e: Exception) {
-                // Handle any errors that occur during data loading
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
+    suspend fun loadData(){
+        _isLoading.value = true
+        try {
+            Log.d("User", "Bắt đầu lấy Nguoi dung")
+            Log.d(
+                "User",
+                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+            )
+            val response = BaseRepository(userPreferencesRepository)
+                    .userRepository
+                    .getUserById(_userID.value)
+            Log.d("User", "Status code: ${response.code()}")
+            if (response.isSuccessful) {
+                val user = response.body()
+                if (user != null) {
+                    _userID.value = user.id
+                    _userName.value = user.username
+                    _fullName.value = user.fullname
+                    _email.value = user.email
+                    _role.value = user.role.name
+                    _phone.value = user.phone
+                    _status.value = user.status
+                    _createAt.value = Instant.parse(user.createdAt)
+                    _updateAt.value = Instant.parse(user.updatedAt)
+                    _userImage.value = user.getRealURL()
+                    Log.d("User", _userImage.value)
+                }
 
-    fun mockData() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate a network call or data loading
-                _userID.value = "1"
-                _userName.value = "Joe Mama"
-                _imgUrl.value = "https://mars.nasa.gov/msl-raw-images/msss/01000/mcam/1000MR0044631300503690E01_DXXX.jpg"
-                _fullName.value = "Đinh Thanh Tùng"
-                _email.value = "dinhthanhtung0312@gmail.com"
-                _role.value = "Admin"
-                _phone.value = "0123456789"
-                _status.value = "Active"
-                _createAt.value = Instant.now()
-                _updateAt.value = Instant.now()
-
-            } catch (e: Exception) {
-                // Handle any errors that occur during data loading
-            } finally {
-                _isLoading.value = false
+            } else {
+                Log.d("User", "Lấy Nguoi dung thất bại: ${response.errorBody().toString()}")
             }
+        } catch (e: Exception) {
+            Log.d("User", "Không thể lấy Nguoi dung: ${e.message}")
+        } finally {
+            _isLoading.value = false
+            Log.d("user", "Kết thúc lấy Nguoi dung")
         }
     }
 
     fun clear() {
-        _userID.value = ""
+        _userID.value = 0
         _userName.value = ""
-        _imgUrl.value = ""
+        _userImage.value = ""
         _fullName.value = ""
         _email.value = ""
         _role.value = ""
@@ -180,21 +194,49 @@ class ManageUserViewModel(savedStateHandle: SavedStateHandle?): ViewModel() {
         _updateAt.value = Instant.now()
     }
 
-    fun updateUser() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate a network call or data loading
-                // Replace this with your actual data loading logic
-                // For example, you can fetch data from a repository or API
-                // and update the state variables accordingly.
-            } catch (e: Exception) {
-                // Handle any errors that occur during data loading
-            } finally {
-                _isLoading.value = false
-            }
-        }
-    }
+//    suspend fun updateUser(): Int {
+//        _isLoading.value = true
+//        try {
+//            Log.d("User", "Bắt đầu cap nhat Nguoi dung")
+//            Log.d(
+//                "User",
+//                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+//            )
+//            val userName = _userName.value.toRequestBody("text/plain".toMediaType())
+//            val fullName = _fullName.value.toRequestBody("text/plain".toMediaType())
+//            val email = _email.value.toRequestBody("text/plain".toMediaType())
+//            val phone = _phone.value.toRequestBody("text/plain".toMediaType())
+//            val role = _role.value.toRequestBody("text/plain".toMediaType())
+//            val status = _status.value.toRequestBody("text/plain".toMediaType())
+//            val imageFile = _userImageFile.value
+//            val requestFile = imageFile?.asRequestBody("image/*".toMediaType())
+//            val imagePart =
+//                requestFile?.let { MultipartBody.Part.createFormData("image", imageFile.name, it) }
+//
+//            val response = BaseService(userPreferencesRepository)
+//                .userService
+//                .updateUser(
+//                    _userID.value, userName, fullName, email, phone, imagePart, role
+//                )
+//            Log.d("User", "Status code: ${response.code()}")
+//            if (response.isSuccessful) {
+//                val user = response.body()
+//                if (user != null) {
+//                    _status.value = user.status
+//                }
+//                return 1
+//            } else {
+//                Log.d("User", "Cap nhat Nguoi dung thất bại: ${response.errorBody()?.string()}")
+//                return 0
+//            }
+//        } catch (e: Exception) {
+//            Log.d("User", "Không thể cap nhat Nguoi dung: ${e.message}")
+//            return 0
+//        } finally {
+//            _isLoading.value = false
+//            Log.d("User", "Kết thúc cap nhat Nguoi dung")
+//        }
+//    }
     fun addUser() {
         viewModelScope.launch {
             try {
@@ -207,6 +249,20 @@ class ManageUserViewModel(savedStateHandle: SavedStateHandle?): ViewModel() {
                 // Handle any errors that occur during data loading
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                val savedStateHandle = this.createSavedStateHandle()
+                ManageUserViewModel(
+                    savedStateHandle = savedStateHandle,
+                    userPreferencesRepository = application.userPreferencesRepository,
+                    imageViewModel = ImageViewModel()
+                )
             }
         }
     }

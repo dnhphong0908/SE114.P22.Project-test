@@ -1,4 +1,4 @@
-package com.example.mam.services
+package com.example.mam.repository
 
 import com.example.mam.dto.promotion.PromotionRequest
 import com.example.mam.dto.promotion.PromotionResponse
@@ -12,7 +12,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface PromotionService {
+interface PromotionRepository {
     @GET("promotions/{id}")
     suspend fun getPromotion(@Path("id") id: Long): Response<PromotionResponse>
     @PUT("promotions/{id}")
@@ -21,7 +21,7 @@ interface PromotionService {
         @Body promotionRequest: PromotionRequest
     ): Response<PromotionResponse>
     @DELETE("promotions/{id}")
-    suspend fun deletePromotion(@Path("id") id: Long): Response<Unit>
+    suspend fun deletePromotion(@Path("id") id: Long): Response<Void>
     @GET("promotions")
     suspend fun getAllPromotions(
         @Query("page") page: Int = 0,

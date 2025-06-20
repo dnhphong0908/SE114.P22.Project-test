@@ -1,4 +1,4 @@
-package com.example.mam.services
+package com.example.mam.repository
 
 import com.example.mam.dto.promotion.PromotionResponse
 import retrofit2.Response
@@ -6,7 +6,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.Query
 
-interface UserPromotionService {
+interface UserPromotionRepository {
     @POST("user-promotions/use")
     suspend fun markPromotionAsUsed(
         @Query("userId") userId: Long,

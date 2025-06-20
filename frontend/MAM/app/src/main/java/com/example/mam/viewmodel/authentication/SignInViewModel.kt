@@ -1,34 +1,22 @@
 package com.example.mam.viewmodel.authentication
 
-import android.app.Application
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
-import android.widget.Toast
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.navigation.NavController
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.authentication.SendVerifyEmailRequest
 import com.example.mam.dto.authentication.SignInRequest
 import com.example.mam.dto.user.UserResponse
-import com.example.mam.services.BaseService
-import kotlinx.coroutines.Dispatchers
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.withContext
 
 
 class SignInViewModel(
@@ -59,7 +47,7 @@ class SignInViewModel(
             Log.d("LOGIN", "Password: ${request.password}")
 
             // Gọi service đăng nhập
-            val response = BaseService(userPreferencesRepository).authPublicService.login(request)
+            val response = BaseRepository(userPreferencesRepository).authPublicRepository.login(request)
             val statusCode = response.code()
             Log.d("LOGIN", "Status Code: $statusCode")
 
@@ -94,7 +82,7 @@ class SignInViewModel(
 
     suspend fun resendVerificationEmail() : Int {
         try {
-            val response = BaseService(userPreferencesRepository).authPublicService.sendVerifyEmail(
+            val response = BaseRepository(userPreferencesRepository).authPublicRepository.sendVerifyEmail(
                 SendVerifyEmailRequest(
                     email = _me.value.email
                 )

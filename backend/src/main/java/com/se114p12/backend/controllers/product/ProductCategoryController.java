@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.product;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.product.CategoryRequestDTO;
 import com.se114p12.backend.dtos.product.CategoryResponseDTO;
 import com.se114p12.backend.entities.product.ProductCategory;
@@ -24,7 +25,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Product Category Module", description = "APIs for managing product categories")
-@RequestMapping("/api/v1/product-categories")
+@RequestMapping(AppConstant.API_BASE_PATH + "/product-categories")
 @RestController
 @RequiredArgsConstructor
 public class ProductCategoryController {

@@ -1,4 +1,4 @@
-package com.example.mam.services
+package com.example.mam.repository
 
 import com.example.mam.data.Constant.BASE_URL
 import com.example.mam.data.UserPreferencesRepository

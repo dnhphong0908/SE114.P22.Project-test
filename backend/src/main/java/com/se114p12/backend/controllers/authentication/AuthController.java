@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.authentication;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.authentication.*;
 import com.se114p12.backend.dtos.user.UserResponseDTO;
 import com.se114p12.backend.services.authentication.AuthService;
@@ -19,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Auth Module", description = "APIs for authentication")
 @Controller
-@RequestMapping("/api/v1/auth")
+@RequestMapping(AppConstant.API_BASE_PATH + "/auth")
 @RequiredArgsConstructor
 public class AuthController {
 

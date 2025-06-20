@@ -8,19 +8,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.createSavedStateHandle
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.Constant.BASE_IMAGE
 import com.example.mam.data.UserPreferencesRepository
-import com.example.mam.dto.product.CategoryRequest
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import com.example.mam.viewmodel.ImageViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -108,7 +105,7 @@ class ManageCategoryViewModel(
                 "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
             )
             val response =
-                BaseService(userPreferencesRepository).productCategoryService.getCategory(_categoryID.value)
+                BaseRepository(userPreferencesRepository).productCategoryRepository.getCategory(_categoryID.value)
             Log.d("Category", "Status code: ${response.code()}")
             if (response.isSuccessful) {
                 val category = response.body()
@@ -149,11 +146,8 @@ class ManageCategoryViewModel(
             val imagePart =
                 requestFile?.let { MultipartBody.Part.createFormData("image", imageFile.name, it) }
 
-            val response = BaseService(userPreferencesRepository).productCategoryService.updateCategory(_categoryID.value, namePart, descriptionPart, imagePart)
+            val response = BaseRepository(userPreferencesRepository).productCategoryRepository.updateCategory(_categoryID.value, namePart, descriptionPart, imagePart)
             Log.d("Category", "${_categoryName.value}, ${_categoryDescription.value}, ${_categoryImageFile.value}")
-            if (response == null){
-                return 0
-            }
             Log.d("Category", "Status code: ${response.code()}")
             if (response.isSuccessful) {
                 val category = response.body()
@@ -194,8 +188,8 @@ class ManageCategoryViewModel(
             val requestFile = imageFile!!.asRequestBody("image/*".toMediaType())
             val imagePart = MultipartBody.Part.createFormData("image", imageFile.name, requestFile)
 
-            val response = BaseService(userPreferencesRepository)
-                .productCategoryService
+            val response = BaseRepository(userPreferencesRepository)
+                .productCategoryRepository
                 .createCategory(namePart, descriptionPart, imagePart)
 
             if (response == null){

@@ -3,25 +3,16 @@ package com.example.mam.viewmodel.client
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.Constant
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.order.OrderResponse
-import com.example.mam.entity.Order
-import com.example.mam.services.BaseService
-import com.example.mam.viewmodel.authentication.NotificationViewModel
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.ZoneId
 
 
 class OrderHistoryViewModel(
@@ -46,7 +37,7 @@ class OrderHistoryViewModel(
             _isLoading.value = true
             while (true) {
                 Log.d("OrderHistoryViewModel", "Loading page $currentPage with status: $status")
-                val response = BaseService(userPreferencesRepository).orderService.getMyOrders(
+                val response = BaseRepository(userPreferencesRepository).orderRepository.getMyOrders(
                     page = currentPage,
                     sort = listOf("createdAt,${if (_asc.value) "asc" else "desc"}"),
                     filter = if (status.isNotBlank()) {
@@ -105,7 +96,7 @@ class OrderHistoryViewModel(
     suspend fun loadOrderStatus() {
         _isLoading.value = true
         try {
-            val response = BaseService(userPreferencesRepository).authPublicService.getMetadata(
+            val response = BaseRepository(userPreferencesRepository).authPublicRepository.getMetadata(
                 listOf(Constant.metadata.ORDER_STATUS.name)
             )
             Log.d("OrderViewModel", "Response Code: ${response.code()}")

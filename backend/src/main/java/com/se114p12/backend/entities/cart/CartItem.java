@@ -34,5 +34,5 @@ public class CartItem extends BaseEntity {
       inverseJoinColumns = @JoinColumn(name = "variation_option_id"))
   private Set<VariationOption> variationOptions;
 
-  private Boolean available = false;
+  private Boolean available = true;
 }

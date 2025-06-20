@@ -3,6 +3,7 @@ package com.example.mam.gui.screen.management
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -45,6 +46,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -83,6 +85,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ManageUserViewModel
+import kotlinx.coroutines.launch
 import okhttp3.internal.platform.Jdk9Platform.Companion.isAvailable
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -95,9 +98,10 @@ fun ManageUserScreen(
     isEdit : Boolean = false,
     isAdd: Boolean = false,
 ) {
+    val scope = rememberCoroutineScope()
     val userId = viewModel.userID.collectAsStateWithLifecycle().value
     val userName = viewModel.userName.collectAsStateWithLifecycle().value
-    val imgUrl = viewModel.imgUrl.collectAsStateWithLifecycle().value
+    val imgUrl = viewModel.userImage.collectAsStateWithLifecycle().value
     val fullName = viewModel.fullName.collectAsStateWithLifecycle().value
     val email = viewModel.email.collectAsStateWithLifecycle().value
     val role = viewModel.role.collectAsStateWithLifecycle().value
@@ -113,18 +117,16 @@ fun ManageUserScreen(
     val imagePicker = if (!isPreview) {
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
-                viewModel.setImgUrl(it.toString())
+                viewModel.setUserImage(it.toString())
             }
         }
     } else null
     LaunchedEffect(Unit) {
-        if (isPreview) {
-            viewModel.mockData()
-        } else if (!isAdd) {
+        if (!isAdd) {
             viewModel.loadData()
         } else {
             viewModel.setUserName("")
-            viewModel.setImgUrl("https://static.vecteezy.com/system/resources/previews/056/202/171/non_2x/add-image-or-photo-icon-vector.jpg")
+            viewModel.setUserImage("https://static.vecteezy.com/system/resources/previews/056/202/171/non_2x/add-image-or-photo-icon-vector.jpg")
             viewModel.setFullName("")
             viewModel.setEmail("")
             viewModel.setRole("Admin")
@@ -167,28 +169,31 @@ fun ManageUserScreen(
                         && viewModel.isEmailValid().isEmpty()
                         && viewModel.isPhoneValid().isEmpty()
             } else true
-            if (isButtonEnable) CircleIconButton(
-                backgroundColor = OrangeLighter,
-                foregroundColor = OrangeDefault,
-                icon = if (isEditMode || isAdd) Icons.Default.Done else Icons.Default.Edit,
-                shadow = "outer",
-                onClick = {
-                    if (isEditMode) {
-                        viewModel.updateUser()
-                        isEditMode = false
-                    } else if (isAdd) {
-                        viewModel.addUser()
-                        onBackClick()
-                    } else {
-                        isEditMode = true
-                    }
-
-
-                },
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(end = 16.dp, top = 16.dp)
-            )
+//            if (isButtonEnable) CircleIconButton(
+//                backgroundColor = OrangeLighter,
+//                foregroundColor = OrangeDefault,
+//                icon = if (isEditMode || isAdd) Icons.Default.Done else Icons.Default.Edit,
+//                shadow = "outer",
+//                onClick = {
+//                    scope.launch {
+//                        if (isEdit) {
+//                            val result = viewModel.updateUser()
+//                            Toast.makeText(
+//                                context,
+//                                when(result){
+//                                    1 -> "Chỉnh sửa thành công"
+//                                    else -> "Chỉnh sửa thất bại"
+//                                },
+//                                Toast.LENGTH_SHORT
+//                            ).show()
+//                            onBackClick()
+//                        }
+//                    }
+//                },
+//                modifier = Modifier
+//                    .align(Alignment.TopEnd)
+//                    .padding(end = 16.dp, top = 16.dp)
+//            )
             Text(
                 text = if (isAdd) "Thêm tài khoản" else if (isEditMode) "Chỉnh sửa tài khoản" else "Chi tiết tài khoản",
                 style = Typography.titleLarge,
@@ -286,12 +291,12 @@ fun ManageUserScreen(
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append("ID: ")
                             }
-                            append(userId)
+                            append(userId.toString())
                         },
                         textAlign = TextAlign.Start,
                         color = GreyDefault,
                         fontWeight = FontWeight.Normal,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
                             .fillMaxWidth()
@@ -307,7 +312,7 @@ fun ManageUserScreen(
                             textAlign = TextAlign.Start,
                             color = GreyDefault,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth()
@@ -325,7 +330,7 @@ fun ManageUserScreen(
                             textAlign = TextAlign.Start,
                             color = GreyDefault,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth()
@@ -344,7 +349,7 @@ fun ManageUserScreen(
                             label = {
                                 Text(
                                     text = role,
-                                    fontSize = 18.sp,
+                                    fontSize = 14.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier
                                 )
@@ -361,45 +366,28 @@ fun ManageUserScreen(
                             var statusExpanded by remember { mutableStateOf(false) }
                             FilterChip(
                                 selected = statusExpanded,
-                                onClick = { if (isEditMode || isAdd ) statusExpanded = !statusExpanded },
+                                onClick = {
+//                                    if (isEditMode || isAdd ) statusExpanded = !statusExpanded
+                                },
                                 label = {
                                     Text(
-                                        text = when (status) {
-                                            "Active" -> "Hoạt động"
-                                            "Inactive" -> "Tạm ngưng"
-                                            "Blocked" -> "Bị chặn"
-                                            "Deleted" -> "Đã xóa"
-                                            else -> "Chưa xác định"
-                                        },
-                                        fontSize = 18.sp,
+                                        text = status,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         modifier = Modifier
                                     )
                                 },
                                 trailingIcon = {
-                                    if (isEditMode || isAdd ) Icon(if (!statusExpanded) Icons.Default.ArrowDropDown else Icons.Default.ArrowDropUp , contentDescription = "Expand")
+                                    //if (isEditMode || isAdd ) Icon(if (!statusExpanded) Icons.Default.ArrowDropDown else Icons.Default.ArrowDropUp , contentDescription = "Expand")
                                 },
                                 border = FilterChipDefaults.filterChipBorder(
                                     enabled = true,
                                     selected = statusExpanded,
                                     borderWidth = 1.dp,
-                                    borderColor = when (status) {
-                                        "Active" -> GreenDefault
-                                        "Inactive" -> GreyDefault
-                                        "Blocked" -> GreyDark
-                                        "Deleted" -> ErrorColor
-                                        else -> OrangeDefault
-                                    },
                                     selectedBorderColor = OrangeDefault
                                 ),
                                 colors = FilterChipDefaults.filterChipColors(
-                                    containerColor = when (status) {
-                                        "Active" -> GreenDefault
-                                        "Inactive" -> GreyDefault
-                                        "Blocked" -> GreyDark
-                                        "Deleted" -> ErrorColor
-                                        else -> OrangeDefault
-                                    },
+                                    containerColor = OrangeDefault,
                                     labelColor = WhiteDefault,
                                     iconColor = WhiteDefault,
                                     selectedContainerColor = OrangeDefault,
@@ -417,13 +405,7 @@ fun ManageUserScreen(
                             ) {
                                 statusList.forEach { status ->
                                     DropdownMenuItem(
-                                        text = { Text(
-                                            when (status) {
-                                                "Active" -> "Hoạt động"
-                                                "Inactive" -> "Tạm ngưng"
-                                                "Blocked" -> "Bị chặn"
-                                                "Deleted" -> "Đã xóa"
-                                                else -> "Chưa xác định"},
+                                        text = { Text(status,
                                             color = BrownDefault) },
                                         onClick = {
                                             viewModel.setStatus(status)
@@ -444,7 +426,7 @@ fun ManageUserScreen(
                         },
                         textStyle = TextStyle(
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -456,7 +438,7 @@ fun ManageUserScreen(
                             Text(
                                 text = "Tên người dùng",
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
@@ -491,7 +473,7 @@ fun ManageUserScreen(
                         },
                         textStyle = TextStyle(
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
                             ),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -503,7 +485,7 @@ fun ManageUserScreen(
                             Text(
                                 text = "Tên đầy đủ",
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
@@ -538,7 +520,7 @@ fun ManageUserScreen(
                         },
                         textStyle = TextStyle(
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -550,7 +532,7 @@ fun ManageUserScreen(
                             Text(
                                 text = "Email",
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
@@ -584,7 +566,7 @@ fun ManageUserScreen(
                         },
                         textStyle = TextStyle(
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -596,7 +578,7 @@ fun ManageUserScreen(
                             Text(
                                 text = "Số điện thoại",
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
@@ -630,14 +612,14 @@ fun ManageUserScreen(
     }
 }
 
-@Preview
-@Composable
-fun ManageUserScreenPreview() {
-    ManageUserScreen(
-        viewModel = ManageUserViewModel(savedStateHandle = SavedStateHandle(mapOf("userId" to "1"))),
-        onBackClick = {},
-        isPreview = true,
-        isEdit = true,
-        isAdd = false
-    )
-}
+//@Preview
+//@Composable
+//fun ManageUserScreenPreview() {
+//    ManageUserScreen(
+//        viewModel = ManageUserViewModel(savedStateHandle = SavedStateHandle(mapOf("userId" to "1"))),
+//        onBackClick = {},
+//        isPreview = true,
+//        isEdit = true,
+//        isAdd = false
+//    )
+//}

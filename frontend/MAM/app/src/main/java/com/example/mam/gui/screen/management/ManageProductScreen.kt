@@ -3,6 +3,7 @@ package com.example.mam.gui.screen.management
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -53,6 +54,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -77,6 +79,8 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.mam.R
+import com.example.mam.dto.variation.VariationOptionRequest
+import com.example.mam.dto.variation.VariationRequest
 import com.example.mam.entity.Variance
 import com.example.mam.entity.VarianceOption
 import com.example.mam.gui.component.CircleIconButton
@@ -93,6 +97,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ManageProductViewModel
+import kotlinx.coroutines.launch
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -106,8 +111,8 @@ fun ManageProductScreen(
     isEdit: Boolean = false,
 ) {
     val productId = viewModel.productID.collectAsStateWithLifecycle().value
-    val createAt = viewModel.createAt.collectAsStateWithLifecycle().value
-    val updateAt = viewModel.updateAt.collectAsStateWithLifecycle().value
+    val createAt = viewModel.createdAt.collectAsStateWithLifecycle().value
+    val updateAt = viewModel.updatedAt.collectAsStateWithLifecycle().value
     val productName = viewModel.productName.collectAsStateWithLifecycle().value
     val productShortDescription = viewModel.productShortDescription.collectAsStateWithLifecycle().value
     val productLongDescription = viewModel.productLongDescription.collectAsStateWithLifecycle().value
@@ -119,13 +124,16 @@ fun ManageProductScreen(
     val isLoading = viewModel.isLoading.collectAsStateWithLifecycle().value
     val isSetting = viewModel.isSetting.collectAsStateWithLifecycle().value
     val categoryList = viewModel.categoryList.collectAsStateWithLifecycle().value
+
     var isEditMode by remember { mutableStateOf(isEdit) }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val activity = context as? Activity
     val imagePicker = if (!isPreview) {
         rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
             uri?.let {
                 viewModel.setProductImageUrl(it.toString())
+                viewModel.setProductImageFile(context, uri)
             }
         }
     } else null
@@ -136,8 +144,7 @@ fun ManageProductScreen(
         else if (!isAdd) {
             viewModel.loadData()
         }
-        else viewModel.setCategoryList()
-        viewModel.setProductImageUrl("https://static.vecteezy.com/system/resources/previews/056/202/171/non_2x/add-image-or-photo-icon-vector.jpg")
+        viewModel.setCategoryList()
     }
     Column(
         modifier = Modifier
@@ -157,11 +164,7 @@ fun ManageProductScreen(
                 icon = Icons.Outlined.ArrowBack,
                 shadow = "outer",
                 onClick = {
-                    if (isEditMode) {
-                        isEditMode = false
-                    } else {
-                        onBackClick()
-                    }
+                    onBackClick()
                 },
                 modifier = Modifier
                     .align(Alignment.TopStart)
@@ -169,29 +172,56 @@ fun ManageProductScreen(
             )
             val isButtonEnable = (isAdd || isEditMode) &&
                 productName.isNotEmpty()
-                        && productPrice > 0
+                        && (productPrice.isNotEmpty() && productPrice.toInt() > 0)
                         && productShortDescription.isNotEmpty()
                         && productLongDescription.isNotEmpty()
                         && viewModel.isProductNameValid().isEmpty()
                         && viewModel.isProductPriceValid().isEmpty()
                         && viewModel.isProductShortDescriptionValid().isEmpty()
                         && viewModel.isProductLongDescriptionValid().isEmpty()
-            if (isButtonEnable) CircleIconButton(
+            CircleIconButton(
                 backgroundColor = OrangeLighter,
                 foregroundColor = OrangeDefault,
                 icon = if(isEditMode || isAdd) Icons.Default.Done else Icons.Default.Edit,
                 shadow = "outer",
                 onClick = {
-                    if (isEditMode) {
-                        viewModel.updateProduct()
-                        onBackClick()
-                    } else if (isAdd) {
-                        viewModel.addProduct()
-                        onBackClick()
-                    } else {
-                       onBackClick()
+                    if (isEditMode && isButtonEnable) {
+                        scope.launch {
+                            if (viewModel.updateProduct() == 1){
+                                Toast.makeText(
+                                    context,
+                                    "Sửa sản phẩm thành công",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            else{
+                                Toast.makeText(
+                                    context,
+                                    "Sửa sản phẩm thất bại",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            isEditMode = !isEditMode
+                        }
+                    } else if (isAdd && isButtonEnable) {
+                        scope.launch{
+                            if (viewModel.addProduct() == 1){
+                                Toast.makeText(
+                                    context,
+                                    "Thêm sản phẩm thành công",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                onBackClick()
+                            }
+                            else{
+                                Toast.makeText(
+                                    context,
+                                    "Thêm sản phẩm thất bại",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
                     }
-
 
                 },
                 modifier = Modifier
@@ -283,8 +313,7 @@ fun ManageProductScreen(
                                             imagePicker?.launch("image/*")
                                         }
                                     }
-                                }
-                                else Modifier
+                                } else Modifier
                             )
 
                     )
@@ -295,12 +324,12 @@ fun ManageProductScreen(
                             withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
                                 append("ID: ")
                             }
-                            append(productId)
+                            append(productId.toString())
                         },
                         textAlign = TextAlign.Start,
                         color = GreyDefault,
                         fontWeight = FontWeight.Normal,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         modifier = Modifier
                             .padding(horizontal = 16.dp)
                             .fillMaxWidth()
@@ -316,7 +345,7 @@ fun ManageProductScreen(
                             textAlign = TextAlign.Start,
                             color = GreyDefault,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth()
@@ -334,7 +363,7 @@ fun ManageProductScreen(
                             textAlign = TextAlign.Start,
                             color = GreyDefault,
                             fontWeight = FontWeight.Normal,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             modifier = Modifier
                                 .padding(horizontal = 16.dp)
                                 .fillMaxWidth()
@@ -345,7 +374,8 @@ fun ManageProductScreen(
                     Row(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
-                            .fillMaxWidth().padding(horizontal = 16.dp)
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
                     ){
                         Box(Modifier.zIndex(1f)
                         ) {
@@ -355,8 +385,9 @@ fun ManageProductScreen(
                                 onClick = { if (isEditMode || isAdd ) categoryExpanded = !categoryExpanded },
                                 label = {
                                     Text(
-                                        text = productCategory.name,
-                                        fontSize = 18.sp,
+                                        text = categoryList.find { it.first == productCategory }?.second
+                                            ?: "Chọn danh mục",
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         modifier = Modifier
                                     )
@@ -390,9 +421,9 @@ fun ManageProductScreen(
                             ) {
                                 categoryList.forEach { category ->
                                     DropdownMenuItem(
-                                        text = { Text(category.name, color = BrownDefault) },
+                                        text = { Text(category.second, color = BrownDefault) },
                                         onClick = {
-                                            viewModel.setProductCategory(category)
+                                            viewModel.setProductCategory(category.first)
                                             categoryExpanded = false
                                         },
                                     )
@@ -409,7 +440,7 @@ fun ManageProductScreen(
                                 label = {
                                     Text(
                                         text = if (isAvailable) "Có sẵn" else "Hết hàng",
-                                        fontSize = 18.sp,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.SemiBold,
                                         modifier = Modifier
                                     )
@@ -469,7 +500,7 @@ fun ManageProductScreen(
                         },
                         textStyle = TextStyle(
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
 
                         ),
@@ -482,7 +513,7 @@ fun ManageProductScreen(
                             Text(
                                 text = "Tên sản phẩm",
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
@@ -511,14 +542,14 @@ fun ManageProductScreen(
                 }
                 item {
                     OutlinedTextField(
-                        value = productPrice.toString(),
+                        value = productPrice,
                         readOnly = !(isEditMode || isAdd),
                         onValueChange = {
-                            viewModel.setProductPrice(it.toInt())
+                            viewModel.setProductPrice(it)
                         },
                         textStyle = TextStyle(
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
 
                             ),
@@ -531,7 +562,7 @@ fun ManageProductScreen(
                             Text(
                                 text = "Giá sản phẩm (VND)",
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
@@ -566,7 +597,7 @@ fun ManageProductScreen(
                         },
                         textStyle = TextStyle(
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
 
                             ),
@@ -579,7 +610,7 @@ fun ManageProductScreen(
                             Text(
                                 text = "Mô tả ngắn",
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
@@ -615,7 +646,7 @@ fun ManageProductScreen(
                         },
                         textStyle = TextStyle(
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.Normal,
 
                             ),
@@ -628,7 +659,7 @@ fun ManageProductScreen(
                             Text(
                                 text = "Mô tả chi tiết",
                                 color = BrownDefault,
-                                fontSize = 18.sp,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 modifier = Modifier
                             )
@@ -655,7 +686,7 @@ fun ManageProductScreen(
 
                     )
                 }
-                if(variants.isNotEmpty() || isAdd || isEditMode) {
+                if(variants.isNotEmpty() || isEditMode) {
                     item {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -672,7 +703,7 @@ fun ManageProductScreen(
                             Text(
                                 text = "Danh sách tùy chọn",
                                 color = BrownDefault,
-                                fontSize = 20.sp,
+                                fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier
@@ -691,7 +722,7 @@ fun ManageProductScreen(
                                     readOnly = true,
                                     textStyle = TextStyle(
                                         color = BrownDefault,
-                                        fontSize = 18.sp,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.Normal,
                                     ),
                                     colors = OutlinedTextFieldDefaults.colors(
@@ -710,12 +741,25 @@ fun ManageProductScreen(
                                                     disabledContainerColor = WhiteDefault
                                                 ),
                                                 onClick = {
-                                                    viewModel.removeVariant(variance)
+                                                    scope.launch {
+                                                        if (viewModel.removeVariant(variance.id) == 1) {
+                                                            Toast.makeText(
+                                                                context,
+                                                                "Đã xóa tùy chọn ${variance.name}",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                        }
+                                                        else {
+                                                            Toast.makeText(
+                                                                context,
+                                                                "Không thể xóa tùy chọn ${variance.name}",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                        }
+                                                    }
                                                 }) {
                                                 Icon(Icons.Default.Remove, contentDescription = "Remove")
                                             }
-                                        } else {
-                                            null
                                         }
                                     },
                                     singleLine = true,
@@ -737,15 +781,30 @@ fun ManageProductScreen(
                                     Text(
                                         text = "Chọn nhiều giá trị",
                                         color = BrownDefault,
-                                        fontSize = 18.sp,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.Normal,
                                         modifier = Modifier
                                             .padding(end = 8.dp)
                                     )
                                     Switch(
-                                        checked = variance.isMutipleChoice,
+                                        checked = variance.isMultipleChoice,
                                         onCheckedChange = {
-                                            viewModel.updateVariantIsMultipleChoice(variance)
+                                            scope.launch {
+                                                if(viewModel.updateVariantIsMultipleChoice(variance)==1){
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Đã cập nhật tùy chọn ${variance.name} thành ${if (it) "Chọn nhiều giá trị" else "Chọn một giá trị"}",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                                else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Không thể cập nhật tùy chọn ${variance.name}",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            }
                                         },
                                         colors = SwitchDefaults.colors(
                                             checkedTrackColor = OrangeDefault,
@@ -762,7 +821,7 @@ fun ManageProductScreen(
                                         readOnly = true,
                                         textStyle = TextStyle(
                                             color = BrownDefault,
-                                            fontSize = 18.sp,
+                                            fontSize = 14.sp,
                                             fontWeight = FontWeight.Normal,
                                             ),
                                         colors = OutlinedTextFieldDefaults.colors(
@@ -781,7 +840,21 @@ fun ManageProductScreen(
                                                         disabledContainerColor = WhiteDefault
                                                     ),
                                                     onClick = {
-                                                        viewModel.removeVariantOption(variance, option)
+                                                        scope.launch {
+                                                            if(viewModel.removeVariantOption(option.id) ==1){
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    "Đã xóa giá trị tùy chọn ${option.value}",
+                                                                    Toast.LENGTH_SHORT
+                                                                ).show()
+                                                            } else {
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    "Không thể xóa giá trị tùy chọn ${option.value}",
+                                                                    Toast.LENGTH_SHORT
+                                                                ).show()
+                                                            }
+                                                        }
                                                     }) {
                                                     Icon(Icons.Default.Remove, contentDescription = "Remove")
                                                 }
@@ -809,7 +882,7 @@ fun ManageProductScreen(
                                         },
                                         textStyle = TextStyle(
                                             color = BrownDefault,
-                                            fontSize = 18.sp,
+                                            fontSize = 14.sp,
                                             fontWeight = FontWeight.Normal,
 
                                             ),
@@ -837,12 +910,29 @@ fun ManageProductScreen(
                                                 ),
                                                 enabled = variantOpion.isNotEmpty(),
                                                 onClick = {
-                                                    viewModel.addVariantOption(variance, VarianceOption(
-                                                        id = "",
-                                                        value = variantOpion,
-                                                        idVariance = variance.id
-                                                    ))
-                                                    variantOpion = ""
+                                                    scope.launch {
+                                                        if(viewModel.addVariantOption(
+                                                            VariationOptionRequest(
+                                                                value = variantOpion,
+                                                                additionalPrice = 0.0,
+                                                                variationId = variance.id
+                                                            )
+                                                        ) == 1){
+                                                            Toast.makeText(
+                                                                context,
+                                                                "Đã thêm giá trị tùy chọn ${variantOpion}",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                            variantOpion = ""
+                                                        } else {
+                                                            Toast.makeText(
+                                                                context,
+                                                                "Không thể thêm giá trị tùy chọn ${variantOpion}",
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                        }
+
+                                                    }
                                                 }) {
                                                 Icon(Icons.Default.Add, contentDescription = "Add")
                                             }
@@ -872,7 +962,7 @@ fun ManageProductScreen(
                                     },
                                     textStyle = TextStyle(
                                         color = BrownDefault,
-                                        fontSize = 18.sp,
+                                        fontSize = 14.sp,
                                         fontWeight = FontWeight.Normal,
 
                                         ),
@@ -901,14 +991,29 @@ fun ManageProductScreen(
                                             ),
                                             enabled = variant.isNotEmpty(),
                                             onClick = {
-                                                viewModel.addVariant(
-                                                    Variance(
-                                                    id = "",
-                                                    name = variant,
-                                                    idProduct = productId,
-                                                    isMutipleChoice = false)
-                                                )
-                                                variant = ""
+                                                scope.launch {
+                                                    if (viewModel.addVariant(
+                                                        VariationRequest(
+                                                            name = variant,
+                                                            isMultipleChoice = false,
+                                                            productId = productId
+                                                        )
+                                                    ) == 1) {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Đã thêm tùy chọn ${variant}",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                        variant = ""
+                                                    } else {
+                                                        Toast.makeText(
+                                                            context,
+                                                            "Không thể thêm tùy chọn ${variant}",
+                                                            Toast.LENGTH_SHORT
+                                                        ).show()
+                                                    }
+                                                }
+
                                             }) {
                                             Icon(Icons.Default.Add, contentDescription = "Add")
                                         }
@@ -934,16 +1039,3 @@ fun ManageProductScreen(
     }
 }
 
-@Preview
-@Composable
-fun ManageProductScreenPreview() {
-    ManageProductScreen(
-        viewModel = ManageProductViewModel(
-            savedStateHandle = null
-        ),
-        onBackClick = {},
-        isPreview = true,
-        isAdd = false,
-        isEdit = true
-    )
-}

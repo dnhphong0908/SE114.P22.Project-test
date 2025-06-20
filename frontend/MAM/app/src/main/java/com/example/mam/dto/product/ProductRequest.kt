@@ -5,7 +5,6 @@ import java.math.BigDecimal
 
 data class ProductRequest(
     val categoryId: Long,
-    val variationIds: List<Long>,
     val name: String,
     val shortDescription: String,
     val detailDescription: String,

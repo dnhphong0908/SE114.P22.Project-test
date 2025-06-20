@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.variation;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.variation.VariationOptionRequestDTO;
 import com.se114p12.backend.dtos.variation.VariationOptionResponseDTO;
 import com.se114p12.backend.services.variation.VariationOptionService;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Variation Option Module", description = "APIs for managing variation options")
 @RestController
-@RequestMapping("/api/v1/variation-options")
+@RequestMapping(AppConstant.API_BASE_PATH + "/variation-options")
 @RequiredArgsConstructor
 public class VariationOptionController {
 

@@ -87,7 +87,10 @@ public class ProductServiceImpl implements ProductService {
             .deleted(false)
             .build();
 
-    product.setImageUrl(storageService.store(dto.getImage(), "product-items"));
+    if (dto.getImage() != null && !dto.getImage().isEmpty()) {
+      product.setImageUrl(storageService.store(dto.getImage(), "product-items"));
+    }
+
     product = productRepository.save(product);
 
     // Neo4j recommendation system

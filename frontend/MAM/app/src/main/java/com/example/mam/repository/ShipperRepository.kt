@@ -1,4 +1,4 @@
-package com.example.mam.services
+package com.example.mam.repository
 
 import com.example.mam.dto.shipper.ShipperRequest
 import com.example.mam.dto.shipper.ShipperResponse
@@ -12,7 +12,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface ShipperService {
+interface ShipperRepository {
     @GET("shippers/{id}")
     suspend fun getShipperById(@Path("id") id: Long): Response<ShipperResponse>
     @PUT("shippers/{id}")

@@ -38,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -61,6 +62,8 @@ import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.viewmodel.management.ManagePromotionViewModel
+import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -72,7 +75,8 @@ import java.time.format.DateTimeFormatter
 fun ManagePromotionScreen(
     viewModel: ManagePromotionViewModel,
     onBackClick: () -> Unit,
-) {
+    isAdd: Boolean = false,
+    ) {
     val code = viewModel.code.collectAsStateWithLifecycle().value
     val description = viewModel.description.collectAsStateWithLifecycle().value
     val value = viewModel.value.collectAsStateWithLifecycle().value
@@ -84,6 +88,9 @@ fun ManagePromotionScreen(
     val datePickerState = rememberDatePickerState()
     var isShowStartDateDialog by remember { mutableStateOf(false) }
     var isShowEndDateDialog by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -119,23 +126,33 @@ fun ManagePromotionScreen(
                 icon = Icons.Outlined.Done,
                 shadow = "outer",
                 onClick = {
-                    if (code.isNotEmpty() && description.isNotEmpty() && value > 0 && startDate.isAfter(
-                            endDate
-                        )
-                    ) {
-                        viewModel.addPromotion()
-                        Toast.makeText(
-                            context,
-                            "Thêm khuyến mãi thành công",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        onBackClick()
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Vui lòng điền đầy đủ thông tin",
-                            Toast.LENGTH_SHORT
-                        ).show()
+                    scope.launch {
+                        if (code.isNotEmpty() && description.isNotEmpty() && value.isNotEmpty() && value.toInt() > 0
+                            && startDate.isBefore(endDate)
+                            && minValue.isNotEmpty() && minValue.toInt() > 0
+                        ) {
+                            if (viewModel.createPromotion() == 1){
+                                Toast.makeText(
+                                    context,
+                                    "Thêm khuyến mãi thành công",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            onBackClick()
+                            }
+                            else {
+                                Toast.makeText(
+                                    context,
+                                    "Thêm khuyến mãi thất bại",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Vui lòng điền đầy đủ thông tin",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 },
                 modifier = Modifier
@@ -181,7 +198,7 @@ fun ManagePromotionScreen(
                                 .toLocalDate()
 
                             // Kết hợp với giờ 23:59:59
-                            val endOfDay = LocalTime.of(0, 0, 0)
+                            val endOfDay = LocalTime.of(23, 59, 59)
                             LocalDateTime.of(localDate, endOfDay)
                         }
                         val endDate = dateTimeAtEndOfDay?.atZone(ZoneId.systemDefault())?.toInstant()
@@ -240,7 +257,7 @@ fun ManagePromotionScreen(
                     },
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -252,7 +269,7 @@ fun ManagePromotionScreen(
                         Text(
                             text = "Mã khuyến mãi",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )
@@ -275,7 +292,7 @@ fun ManagePromotionScreen(
                     },
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -287,7 +304,7 @@ fun ManagePromotionScreen(
                         Text(
                             text = "Mô tả",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )
@@ -305,11 +322,11 @@ fun ManagePromotionScreen(
                 OutlinedTextField(
                     value = value.toString(),
                     onValueChange = {
-                        viewModel.setValue(it.toInt())
+                        viewModel.setValue(it)
                     },
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -321,7 +338,7 @@ fun ManagePromotionScreen(
                         Text(
                             text = "Giá trị",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )
@@ -343,7 +360,7 @@ fun ManagePromotionScreen(
                     readOnly = true,
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -355,7 +372,7 @@ fun ManagePromotionScreen(
                         Text(
                             text = "Ngày bắt đầu",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )
@@ -393,7 +410,7 @@ fun ManagePromotionScreen(
                     readOnly = true,
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -405,7 +422,7 @@ fun ManagePromotionScreen(
                         Text(
                             text = "Ngày kết thúc",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )
@@ -439,11 +456,11 @@ fun ManagePromotionScreen(
                 OutlinedTextField(
                     value = minValue.toString(),
                     onValueChange = {
-                        viewModel.setMinValue(it.toInt())
+                        viewModel.setMinValue(it)
                     },
                     textStyle = TextStyle(
                         color = BrownDefault,
-                        fontSize = 18.sp,
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                     ),
                     colors = OutlinedTextFieldDefaults.colors(
@@ -455,7 +472,7 @@ fun ManagePromotionScreen(
                         Text(
                             text = "Giá trị đơn hàng tối thiểu",
                             color = BrownDefault,
-                            fontSize = 18.sp,
+                            fontSize = 14.sp,
                             fontWeight = FontWeight.SemiBold,
                             modifier = Modifier
                         )
@@ -473,11 +490,11 @@ fun ManagePromotionScreen(
     }
 }
 
-@Preview
-@Composable
-fun ManagePromotionScreenPreview() {
-    ManagePromotionScreen(
-        viewModel = ManagePromotionViewModel(),
-        onBackClick = {}
-    )
-}
+//@Preview
+//@Composable
+//fun ManagePromotionScreenPreview() {
+//    ManagePromotionScreen(
+//        viewModel = ManagePromotionViewModel(),
+//        onBackClick = {}
+//    )
+//}

@@ -6,33 +6,25 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.authentication.RefreshTokenRequest
 import com.example.mam.dto.user.UserResponse
-import com.example.mam.entity.User
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import com.example.mam.viewmodel.ImageViewModel
-import com.example.mam.viewmodel.authentication.SignUpViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
-import kotlin.math.log
 
 class ProfileViewModel(
     private val userPreferencesRepository: UserPreferencesRepository,
@@ -76,7 +68,7 @@ class ProfileViewModel(
 
     suspend fun fetchUser() {
         try {
-            val response = BaseService(userPreferencesRepository).authPrivateService.getUserInfo()
+            val response = BaseRepository(userPreferencesRepository).authPrivateRepository.getUserInfo()
             Log.d("ME","Status code: ${response.code()}")
             if(response.isSuccessful){
                 if(response.body()!=null) {
@@ -119,7 +111,7 @@ class ProfileViewModel(
             val imagePart = requestFile?.let { MultipartBody.Part.createFormData("avatar", imageFile.name, it) }
             Log.d("ME", "Image part: $imagePart")
 
-            val response = BaseService(userPreferencesRepository).userService.updateUser(
+            val response = BaseRepository(userPreferencesRepository).userRepository.updateUser(
                 _userId.value,
                 fullname, username, email, phone, imagePart, roleId
             )
@@ -141,13 +133,14 @@ class ProfileViewModel(
     suspend fun logOut(): Int{
         Log.d("ME","bat dau dang xuat")
         try {
-            val response = BaseService(userPreferencesRepository).authPrivateService.logOut(
+            val response = BaseRepository(userPreferencesRepository).authPrivateRepository.logOut(
                 RefreshTokenRequest(userPreferencesRepository.refreshToken.map { it }.first())
             )
             Log.d("ME","Status logout code: ${response.code()}")
             if (response.isSuccessful){
                 userPreferencesRepository.saveAccessToken("","")
-                userPreferencesRepository.saveAddress("")
+                userPreferencesRepository.saveAddress("", 0.0, 0.0)
+
                 return 1
             }
             else {

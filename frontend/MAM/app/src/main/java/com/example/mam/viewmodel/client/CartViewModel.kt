@@ -11,12 +11,10 @@ import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.cart.CartResponse
 import com.example.mam.dto.cart.CartItemRequest
 import com.example.mam.dto.cart.CartItemResponse
-import com.example.mam.dto.order.OrderResponse
 import com.example.mam.dto.product.ProductResponse
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import java.text.DecimalFormat
 
 class CartViewModel(
     private val userPreferencesRepository: UserPreferencesRepository
@@ -37,7 +35,7 @@ class CartViewModel(
         try {
             _isLoading.value = true
             Log.d("CartViewModel", "Loading Cart details")
-            val response = BaseService(userPreferencesRepository).cartService.getMyCart()
+            val response = BaseRepository(userPreferencesRepository).cartRepository.getMyCart()
             Log.d("CartViewModel", "Response Code: ${response.code()}")
             if (response.isSuccessful) {
                 val cartResponse = response.body()
@@ -74,7 +72,7 @@ class CartViewModel(
 
     suspend fun incrItemQuantity(item: CartItemResponse){
         try {
-            val response = BaseService(userPreferencesRepository).cartItemService.updateCartItem(
+            val response = BaseRepository(userPreferencesRepository).cartItemRepository.updateCartItem(
                 id = item.id,
                 cartItemRequest = CartItemRequest(
                     productId = item.productId,
@@ -103,7 +101,7 @@ class CartViewModel(
 
     suspend fun descItemQuantity(item: CartItemResponse){
         try {
-            val response = BaseService(userPreferencesRepository).cartItemService.updateCartItem(
+            val response = BaseRepository(userPreferencesRepository).cartItemRepository.updateCartItem(
                 id = item.id,
                 cartItemRequest = CartItemRequest(
                     productId = item.productId,
@@ -136,7 +134,7 @@ class CartViewModel(
     suspend fun deleteItem(id: Long){
         try {
             Log.d("CartViewModel", "Deleting item with ID: $id")
-            val response = BaseService(userPreferencesRepository).cartItemService.deleteCartItem(id)
+            val response = BaseRepository(userPreferencesRepository).cartItemRepository.deleteCartItem(id)
             Log.d("CartViewModel", "Response Code: ${response.code()}")
             if (response.isSuccessful) {
                 Log.d("CartViewModel", "Item deleted successfully")

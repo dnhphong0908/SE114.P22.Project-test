@@ -6,12 +6,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.authentication.RefreshTokenRequest
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
@@ -30,7 +28,7 @@ class StartViewModel(
         else {
             try {
                 val response =
-                    BaseService(userPreferencesRepository).authPublicService.refreshToken(
+                    BaseRepository(userPreferencesRepository).authPublicRepository.refreshToken(
                         RefreshTokenRequest(refreshToken = refreshToken.first()))
                 val statusCode = response.code()
                 if (response.isSuccessful) {
@@ -42,7 +40,7 @@ class StartViewModel(
                     )
                     Log.d("REFRESH", "DSAccessToken: ${accessToken.first()}")
                     Log.d("REFRESH", "DSRefreshToken: ${refreshToken.first()}")
-                    val me = BaseService(userPreferencesRepository).authPrivateService.getUserInfo().body()!!
+                    val me = BaseRepository(userPreferencesRepository).authPrivateRepository.getUserInfo().body()!!
                     return if (me.role.name == "ADMIN") 1
                     else 2
                 } else {

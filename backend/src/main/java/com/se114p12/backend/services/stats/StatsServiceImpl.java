@@ -3,6 +3,7 @@ package com.se114p12.backend.services.stats;
 import com.se114p12.backend.dtos.stats.RevenueStatsResponseDTO;
 import com.se114p12.backend.entities.order.Order;
 import com.se114p12.backend.entities.product.ProductCategory;
+import com.se114p12.backend.enums.OrderStatus;
 import com.se114p12.backend.repositories.order.OrderRepository;
 import com.se114p12.backend.repositories.product.ProductCategoryRepository;
 import java.math.BigDecimal;
@@ -12,6 +13,7 @@ import java.time.Year;
 import java.time.YearMonth;
 import java.time.ZoneId;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -147,5 +149,33 @@ public class StatsServiceImpl implements StatsService {
             Collectors.toMap(
                 ProductCategory::getName,
                 category -> soldByCategory.getOrDefault(category.getId(), BigDecimal.ZERO)));
+  }
+
+  @Override
+  public Map<String, Long> getActiveOrderCountByStatus() {
+    // Khởi tạo map với giá trị mặc định là 0
+    Map<String, Long> result = new HashMap<>();
+    result.put(OrderStatus.PENDING.name(), 0L);
+    result.put(OrderStatus.CONFIRMED.name(), 0L);
+    result.put(OrderStatus.PROCESSING.name(), 0L);
+
+    List<Order> orders = orderRepository.findAll();
+
+    // Đếm các status thực sự tồn tại
+    Map<String, Long> counted = orders.stream()
+            .filter(order -> {
+              OrderStatus status = order.getOrderStatus();
+              return status == OrderStatus.PENDING ||
+                      status == OrderStatus.CONFIRMED ||
+                      status == OrderStatus.PROCESSING;
+            })
+            .collect(Collectors.groupingBy(
+                    order -> order.getOrderStatus().name(),
+                    Collectors.counting()
+            ));
+
+    // Gộp giá trị đếm vào map mặc định
+    result.putAll(counted);
+    return result;
   }
 }

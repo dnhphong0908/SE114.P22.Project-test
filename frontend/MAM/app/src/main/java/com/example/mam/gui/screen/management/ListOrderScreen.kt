@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sort
@@ -86,6 +87,9 @@ import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.management.ListOrderViewModel
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ListOrderScreen(
@@ -93,6 +97,8 @@ fun ListOrderScreen(
     onBackClick: () -> Unit = {},
     onHomeClick: () -> Unit = {},
     onEditOrderClick: (Long) -> Unit = {},
+    isPreProcessing: Boolean = false,
+    isProcessing: Boolean = false,
     mockData: List<OrderResponse>? = null,
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
@@ -107,7 +113,7 @@ fun ListOrderScreen(
     val context = LocalContext.current
     LaunchedEffect(Unit){
         viewModel.loadSortingOptions()
-        viewModel.loadData()
+        viewModel.loadData(isProcessing, isPreProcessing)
     }
     Box(
         modifier = Modifier
@@ -146,7 +152,7 @@ fun ListOrderScreen(
                         .padding(end = 16.dp, top = 16.dp)
                 )
                 Text(
-                    text = "Đơn hàng",
+                    text = "Đơn hàng" + if(isProcessing) " đang xử lý" else if(isPreProcessing) " chưa xử lý" else "",
                     style = Typography.titleLarge,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -242,7 +248,7 @@ fun ListOrderScreen(
                                             disabledContainerColor = WhiteDefault
                                         ),
                                         onClick = {
-                                            scope.launch {viewModel.searchOrder()}
+                                            scope.launch {viewModel.searchOrder(isProcessing, isPreProcessing)}
                                             focusManager.clearFocus()
                                         }) {
                                         Icon(Icons.Default.Search, contentDescription = "Search")
@@ -342,7 +348,7 @@ fun ListOrderScreen(
                             onClick = {
                                 scope.launch {
                                     viewModel.setASC()
-                                    viewModel.sortOrder()
+                                    viewModel.sortOrder(isProcessing, isPreProcessing)
                                 }
                             },
                             modifier = Modifier.size(30.dp)
@@ -374,14 +380,14 @@ fun ListOrderScreen(
                         if (orderList.isEmpty()) {
                             item {
                                 Text(
-                                    text = "Không có đơn hàng nào",
+                                    text = "Không có đơn hàng " + if(isProcessing) "đang xử lý nào" else if(isPreProcessing) "chưa xử lý nào" else   "nào",
                                     color = GreyDefault,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.SemiBold,
                                     modifier = Modifier.padding(16.dp)
                                 )
                             }
-                        } else
+                        } else {
                             items(orderList) { order ->
                                 OrderItem(
                                     order = order,
@@ -389,6 +395,10 @@ fun ListOrderScreen(
                                     viewModel = viewModel
                                 )
                             }
+                            item{
+                                Spacer(Modifier.height(100.dp))
+                            }
+                        }
                 }
             }
         }
@@ -407,9 +417,8 @@ fun OrderItem(
          owner = viewModel.loadOwnerOfOrder(order.userId)
     }
     var expand by remember { mutableStateOf(false) }
-
         Card(
-            onClick = { },
+            onClick = { onEditClick(order.id) },
             colors = CardDefaults.cardColors(
                 containerColor = WhiteDefault
             ),
@@ -457,18 +466,18 @@ fun OrderItem(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.fillMaxWidth()
                     )
-//                    Instant.parse(order.actualDeliveryTime).atZone(ZoneId.systemDefault())?.let {
-//                        Text(
-//                            text = it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")),
-//                            textAlign = TextAlign.Start,
-//                            color = BrownDefault,
-//                            fontSize = 16.sp,
-//                            fontWeight = FontWeight.Medium,
-//                            maxLines = 1,
-//                            overflow = TextOverflow.Ellipsis,
-//                            modifier = Modifier.fillMaxWidth()
-//                        )
-//                    }
+                    Instant.parse(order.createdAt).atZone(ZoneId.systemDefault())?.let {
+                        Text(
+                            text = it.format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy")),
+                            textAlign = TextAlign.Start,
+                            color = BrownDefault,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                     Text(
                         text = "Tổng tiền: " + order.getPriceToString(),
                         textAlign = TextAlign.Start,
@@ -480,6 +489,15 @@ fun OrderItem(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
+                    if (order.orderStatus == "PENDING" ||
+                        order.orderStatus == "CONFIRMED" ||
+                        order.orderStatus == "PROCESSING")
+                        IconButton(onClick = { onEditClick(order.id) }) {
+                        Icon(Icons.Default.Edit, contentDescription = "Edit", tint = BrownDefault)
+                    }
+                    //                IconButton(onClick = { onDeleteClick(order.id) }) {
+                    //                    Icon(Icons.Default.Delete, contentDescription = "Delete", tint = BrownDefault)
+                    //                }
             }
         }
     }

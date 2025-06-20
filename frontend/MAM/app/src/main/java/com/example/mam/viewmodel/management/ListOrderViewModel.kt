@@ -11,13 +11,11 @@ import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.order.OrderRequest
 import com.example.mam.dto.order.OrderResponse
-import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.dto.user.UserResponse
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class ListOrderViewModel(
@@ -63,15 +61,23 @@ class ListOrderViewModel(
         _searchQuery.value = query
     }
 
-    suspend fun searchOrder() {
+    suspend fun searchOrder(isProcessing: Boolean, isUnProcessing: Boolean) {
         _isLoading.value = true
         var currentPage = 0
         val allOrders = mutableListOf<OrderResponse>()
-
+        val filter = if (isUnProcessing) "orderStatus ~ '*PENDING*'"
+        else if (isProcessing) "orderStatus ~ '*CONFIRMED*' or orderStatus ~ '*PROCESSING*'"
+        else ""
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .orderService.getAllOrders(filter = "actualDeliveryTime ~~ '*${_searchQuery.value}*' or shippingAddress ~~ '*${_searchQuery.value}*' or note ~~ '*${_searchQuery.value}*' or expectedDeliveryTime ~~ '*${_searchQuery.value}*' or orderStatus ~~ '*${_searchQuery.value}*' or orderDetails ~~ '*${_searchQuery.value}*'", page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .orderRepository.getAllOrders(filter =
+                    "actualDeliveryTime ~~ '*${_searchQuery.value}*' " +
+                    "or shippingAddress ~~ '*${_searchQuery.value}*' " +
+                    "or note ~~ '*${_searchQuery.value}*' " +
+                    "or expectedDeliveryTime ~~ '*${_searchQuery.value}*' " +
+                    "or orderStatus ~~ '*${_searchQuery.value}*' " +
+                    "or orderDetails ~~ '*${_searchQuery.value}*'" + if(filter.isNotEmpty()) "or ${filter}" else "", page = currentPage)
                 if (response.isSuccessful) {
                     setSearchHistory(_searchQuery.value)
                     val page = response.body()
@@ -99,7 +105,7 @@ class ListOrderViewModel(
         }
     }
 
-    suspend fun sortOrder(){
+    suspend fun sortOrder(isProcessing: Boolean, isUnProcessing: Boolean){
         _isLoading.value = true
         var currentPage = 0
         val allOrders = mutableListOf<OrderResponse>()
@@ -108,11 +114,14 @@ class ListOrderViewModel(
             "Giá tiền" -> "totalPrice"
             else -> "id"
         }
+        val filter = if (isUnProcessing) "orderStatus ~ '*PENDING*'"
+        else if (isProcessing) "orderStatus ~ '*CONFIRMED*' or orderStatus ~ '*PROCESSING*'"
+        else ""
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .orderService.getAllOrders(
-                        filter = "",
+                val response = BaseRepository(userPreferencesRepository)
+                    .orderRepository.getAllOrders(
+                        filter = filter,
                         page = currentPage,
                         sort = listOf("${sortOption}," + if (_asc.value) "asc" else "desc"))
 
@@ -149,8 +158,8 @@ class ListOrderViewModel(
 
     suspend fun loadOwnerOfOrder(id: Long): UserResponse {
         try{
-            val response = BaseService(userPreferencesRepository)
-                .userService.getUserById(id)
+            val response = BaseRepository(userPreferencesRepository)
+                .userRepository.getUserById(id)
             if (response.isSuccessful) {
                 return response.body() ?: UserResponse()
             } else {
@@ -180,15 +189,18 @@ class ListOrderViewModel(
         }
     }
 
-    suspend fun loadData() {
+    suspend fun loadData(isProcessing: Boolean, isUnProcessing: Boolean) {
         _isLoading.value = true
         var currentPage = 0
         val allOrders = mutableListOf<OrderResponse>()
+        val filter = if (isUnProcessing) "orderStatus ~ '*PENDING*'"
+        else if (isProcessing) "orderStatus ~ '*CONFIRMED*' or orderStatus ~ '*PROCESSING*'"
+        else ""
 
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .orderService.getAllOrders(filter = "", page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .orderRepository.getAllOrders(filter = filter, page = currentPage)
 
                 if (response.isSuccessful) {
                     val page = response.body()

@@ -1,8 +1,6 @@
 package com.example.mam.viewmodel.management
 
 import android.util.Log
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DoneAll
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
@@ -12,15 +10,11 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.notification.NotificationResponse
-import com.example.mam.dto.product.CategoryResponse
-import com.example.mam.entity.Notification
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import java.time.Instant
 
 class ListNotificationViewModel(
     private val userPreferencesRepository: UserPreferencesRepository
@@ -72,8 +66,8 @@ class ListNotificationViewModel(
 
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .notificationService.getAllNotifications(filter = "type ~~ '*${_searchQuery.value}*' or title ~~ '*${_searchQuery.value}*' or message ~~ '*${_searchQuery.value}*'", page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .notificationRepository.getAllNotifications(filter = "type ~~ '*${_searchQuery.value}*' or title ~~ '*${_searchQuery.value}*' or message ~~ '*${_searchQuery.value}*'", page = currentPage)
 
                 if (response.isSuccessful) {
                     setSearchHistory(_searchQuery.value)
@@ -112,8 +106,8 @@ class ListNotificationViewModel(
         }
         try {
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .notificationService.getAllNotifications(
+                val response = BaseRepository(userPreferencesRepository)
+                    .notificationRepository.getAllNotifications(
                         filter = "",
                         page = currentPage,
                         sort = listOf("${sortOption}," + if (_desc.value) "desc" else "asc"))
@@ -172,8 +166,8 @@ class ListNotificationViewModel(
 
         try{
             while(true){
-                val response = BaseService(userPreferencesRepository)
-                    .notificationService.getAllNotifications(filter = "",page = currentPage)
+                val response = BaseRepository(userPreferencesRepository)
+                    .notificationRepository.getAllNotifications(filter = "",page = currentPage)
                 if(response.isSuccessful){
                     val page = response.body()
                     if(page != null){

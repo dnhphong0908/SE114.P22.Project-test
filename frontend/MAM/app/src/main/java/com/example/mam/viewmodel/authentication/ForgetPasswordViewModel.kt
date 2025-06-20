@@ -4,23 +4,16 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
-import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.Constant
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.authentication.ChangePasswordRequest
-import com.example.mam.dto.authentication.ForgetPasswordRequest
 import com.example.mam.dto.authentication.SendOTPRequest
-import com.example.mam.services.BaseService
-import kotlinx.coroutines.Dispatchers
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 
 class ForgetPasswordViewModel(
     private val userPreferencesRepository: UserPreferencesRepository
@@ -81,7 +74,7 @@ class ForgetPasswordViewModel(
 
     suspend fun sendOTP(): Int {
         try {
-            val metadata = BaseService(userPreferencesRepository).authPublicService.getMetadata(listOf(
+            val metadata = BaseRepository(userPreferencesRepository).authPublicRepository.getMetadata(listOf(
                 Constant.metadata.OTP_ACTION.name
             ))
             Log.d("OtpViewModel", "Get metadata: ${metadata.code()}")
@@ -96,7 +89,7 @@ class ForgetPasswordViewModel(
                 action
             )
             Log.d("ForgetPasswordViewModel", "Sending OTP with request: ${request.email}, ${request.action}")
-            val respond = BaseService(userPreferencesRepository).authPublicService.sendOtp(
+            val respond = BaseRepository(userPreferencesRepository).authPublicRepository.sendOtp(
                 request
             )
             Log.d("ForgetPasswordViewModel", "Send OTP response: ${respond.code()}")
@@ -119,7 +112,7 @@ class ForgetPasswordViewModel(
                 _password.value,
             )
             Log.d("ForgetPasswordViewModel", "Changing password with request: ${request.currentPassword}, ${request.newPassword}")
-            val respond = BaseService(userPreferencesRepository).authPrivateService.changePassword(request)
+            val respond = BaseRepository(userPreferencesRepository).authPrivateRepository.changePassword(request)
             Log.d("ForgetPasswordViewModel", "Change password response: ${respond.code()}")
             return if (respond.isSuccessful) {
                 Log.d("ForgetPasswordViewModel", "Password changed successfully")

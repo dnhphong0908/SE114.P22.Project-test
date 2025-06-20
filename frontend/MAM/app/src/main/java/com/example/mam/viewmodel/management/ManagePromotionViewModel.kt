@@ -1,20 +1,34 @@
 package com.example.mam.viewmodel.management
 
+import android.util.Log
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
+import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.promotion.PromotionRequest
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import java.math.BigDecimal
 import java.time.Instant
 
-class ManagePromotionViewModel(): ViewModel() {
+class ManagePromotionViewModel(
+    savedStateHandle: SavedStateHandle?,
+    private val userPreferencesRepository: UserPreferencesRepository,
+): ViewModel() {
     private val _code = MutableStateFlow("")
     val code = _code.asStateFlow()
 
     private val _description = MutableStateFlow("")
     val description = _description.asStateFlow()
 
-    private val _value = MutableStateFlow(0)
+    private val _value = MutableStateFlow("")
     val value = _value.asStateFlow()
 
     private val _startDate = MutableStateFlow<Instant>(Instant.now())
@@ -23,7 +37,7 @@ class ManagePromotionViewModel(): ViewModel() {
     private val _endDate = MutableStateFlow<Instant>(Instant.now())
     val endDate = _endDate.asStateFlow()
 
-    private val _minValue = MutableStateFlow(0)
+    private val _minValue = MutableStateFlow("")
     val minValue = _minValue.asStateFlow()
 
     private val _createAt = MutableStateFlow(Instant.now())
@@ -43,7 +57,7 @@ class ManagePromotionViewModel(): ViewModel() {
         _description.value = description
     }
 
-    fun setValue(value: Int) {
+    fun setValue(value: String) {
         _value.value = value
     }
 
@@ -63,32 +77,65 @@ class ManagePromotionViewModel(): ViewModel() {
         return (_endDate.value.isAfter(_startDate.value) && _endDate.value.isAfter(Instant.now())) || _endDate.value == _startDate.value
     }
 
-    fun setMinValue(minValue: Int) {
+    fun setMinValue(minValue: String) {
         _minValue.value = minValue
     }
 
-    fun addPromotion() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                // Hide loading indicator
-                clearData()
-                _isLoading.value = false
+    suspend fun createPromotion(): Int{
+        _isLoading.value = true
+        try {
+            Log.d("Promotion", "Bắt đầu them Khuyen mai")
+            Log.d(
+                "Promotion",
+                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+            )
+            val request = PromotionRequest(
+                code = _code.value,
+                description = _description.value,
+                startDate = _startDate.value.toString(),
+                endDate = _endDate.value.toString(),
+                minValue = _minValue.value.toBigDecimal(),
+                discountValue = _value.value.toBigDecimal()
+            )
+
+            val response = BaseRepository(userPreferencesRepository)
+                .promotionRepository
+                .createPromotion(request)
+            Log.d("Promotion", "Status code: ${response.code()}")
+            if (response.isSuccessful) {
+                val promotion = response.body()
+                if (promotion != null) {
+                    _code.value = promotion.code
+                    _description.value = promotion.description
+                    _startDate.value = Instant.parse(promotion.startDate)
+                    _endDate.value = Instant.parse(promotion.endDate)
+                    _minValue.value = promotion.minValue.toString()
+                    _value.value = promotion.discountValue.toString()
+                }
+                return 1
+            } else {
+                Log.d("Promotion", "Them khuyen mai thất bại: ${response.errorBody()?.string()}")
+                return 0
             }
+        } catch (e: Exception) {
+            Log.d("Promotion", "Không thể them khuyen mai: ${e.message}")
+            return 0
+        } finally {
+            _isLoading.value = false
+            Log.d("Promotion", "Kết thúc them khuyen mai")
         }
     }
 
-    fun clearData() {
-        _code.value = ""
-        _description.value = ""
-        _value.value = 0
-        _startDate.value = Instant.now()
-        _endDate.value = Instant.now()
-        _minValue.value = 0
-        _createAt.value = Instant.now()
-        _updateAt.value = Instant.now()
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                val savedStateHandle = this.createSavedStateHandle()
+                ManagePromotionViewModel(
+                    savedStateHandle = savedStateHandle,
+                    userPreferencesRepository = application.userPreferencesRepository,
+                )
+            }
+        }
     }
 }

@@ -14,7 +14,7 @@ import com.example.mam.dto.cart.CartResponse
 import com.example.mam.dto.order.OrderRequest
 import com.example.mam.dto.promotion.PromotionResponse
 import com.example.mam.dto.user.UserResponse
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -41,6 +41,9 @@ class CheckOutViewModel(
     private val _address = MutableStateFlow("")
     val address = _address.asStateFlow()
 
+    private val _latitude = MutableStateFlow(0.0)
+    private val _longitude = MutableStateFlow(0.0)
+
     private val _discount = MutableStateFlow<PromotionResponse?>(null)
     val discount = _discount.asStateFlow()
 
@@ -56,7 +59,7 @@ class CheckOutViewModel(
     private val _paymentOptions = MutableStateFlow<MutableList<String>>(mutableListOf())
     val paymentOptions = _paymentOptions.asStateFlow()
 
-    val _paymentOption = MutableStateFlow(_paymentOptions.value.firstOrNull() ?: "Tiền mặt")
+    val _paymentOption = MutableStateFlow("") // Default payment option
     val paymentOption = _paymentOption.asStateFlow()
     private fun setTotal(){
         val total = _cart.value.cartItems.sumOf { it.price * it.quantity.toBigDecimal() } - (_discount.value?.discountValue
@@ -71,13 +74,22 @@ class CheckOutViewModel(
         setTotal()
     }
 
-    fun setAddress(address: String){
+    fun setAddress(address: String) {
         _address.value = address
-        viewModelScope.launch {
-            userPreferencesRepository.saveAddress(_address.value)
-        }
     }
 
+    fun setLatitude(latitude: Double) {
+        _latitude.value = latitude
+    }
+    fun setLongitude(longitude: Double) {
+        _longitude.value = longitude
+    }
+
+    fun setAdressAndCoordinates() {
+        viewModelScope.launch {
+            userPreferencesRepository.saveAddress(_address.value, _longitude.value, _latitude.value)
+        }
+    }
     fun setupPaymentOption(option: String){
         _paymentOption.value = option
     }
@@ -94,7 +106,7 @@ class CheckOutViewModel(
 
     suspend fun loadUser() {
         try {
-            val userResponse = BaseService(userPreferencesRepository).authPrivateService.getUserInfo()
+            val userResponse = BaseRepository(userPreferencesRepository).authPrivateRepository.getUserInfo()
             if (userResponse.isSuccessful) {
                 _user.value = userResponse.body() ?: UserResponse()
                 Log.d("CheckOutViewModel", "User loaded: ${_user.value.username}")
@@ -110,7 +122,7 @@ class CheckOutViewModel(
     suspend fun loadCart(){
         try {
             Log.d("CartViewModel", "Loading Cart details")
-            val response = BaseService(userPreferencesRepository).cartService.getMyCart()
+            val response = BaseRepository(userPreferencesRepository).cartRepository.getMyCart()
             Log.d("CartViewModel", "Response Code: ${response.code()}")
             if (response.isSuccessful) {
                 val cartResponse = response.body()
@@ -137,11 +149,12 @@ class CheckOutViewModel(
 
     suspend fun loadPaymentOptions() {
         try {
-            val response = BaseService(userPreferencesRepository).authPublicService.getMetadata(
+            val response = BaseRepository(userPreferencesRepository).authPublicRepository.getMetadata(
                 listOf(Constant.metadata.PAYMENT_METHOD.name)
             )
             if (response.isSuccessful) {
                 _paymentOptions.value = response.body()?.get(Constant.metadata.PAYMENT_METHOD.name)?.map { it }?.toMutableList() ?: mutableListOf()
+                _paymentOption.value = _paymentOptions.value[0]
                 Log.d("CheckOutViewModel", "Payment options loaded: ${_paymentOptions.value.size} options")
             } else {
                 Log.d("CheckOutViewModel", "Failed to load payment options: ${response.errorBody()?.string()}")
@@ -154,14 +167,12 @@ class CheckOutViewModel(
 
     suspend fun loadDiscounts() {
         try {
-            val response = BaseService(userPreferencesRepository).userPromotionService.getAvailablePromotionsForOrder(
+            val response = BaseRepository(userPreferencesRepository).userPromotionRepository.getAvailablePromotionsForOrder(
                 _user.value.id,
                 _cart.value.cartItems.sumOf { it.price * it.quantity.toBigDecimal() }.toDouble()
             )
             if (response.isSuccessful) {
-                _discountList.value = _discountList.value.toMutableList().apply {
-                    addAll(response.body() ?: mutableListOf())
-                }
+                _discountList.value = response.body()?.toMutableList() ?: mutableListOf()
                 Log.d("CheckOutViewModel", "Discounts loaded: ${_discountList.value.size} promotions")
             } else {
                 Log.d("CheckOutViewModel", "Failed to load discounts: ${response.errorBody()?.string()}")
@@ -175,19 +186,21 @@ class CheckOutViewModel(
     suspend fun checkOut(): Int{
         try{
             val request = OrderRequest(
+                _latitude.value,
+                _longitude.value,
                 _address.value,
                 _note.value,
                 _paymentOption.value,
                 _discount.value?.id
             )
             Log.d("CheckOutViewModel", "Checking out with request: $request")
-            val response = BaseService(userPreferencesRepository).orderService.createOrder(request)
+            val response = BaseRepository(userPreferencesRepository).orderRepository.createOrder(request)
             Log.d("CheckOutViewModel", "Response Code: ${response.code()}")
             if (response.isSuccessful) {
                 Log.d("CheckOutViewModel", "Order created successfully")
                 return 1 // Success
             } else {
-                Log.d("CheckOutViewModel", "Failed to check out: ${response.errorBody()?.string()}")
+                Log.d("CheckOutViewModel", "Failed to check out (BE): ${response.errorBody()?.string()}")
                 return 0 // Failure
             }
         }

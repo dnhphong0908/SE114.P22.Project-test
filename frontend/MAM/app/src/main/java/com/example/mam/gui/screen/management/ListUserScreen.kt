@@ -102,8 +102,6 @@ fun ListUserScreen(
     onUserClick: (Long) -> Unit = {},
     onAddUserClick: () -> Unit = {},
     onEditUserClick: (Long) -> Unit = {},
-    onDeleteUserClick: (Long) -> Unit = {},
-    mockData: List<UserResponse>? = null
 ) {
     val sortOptions = viewModel.sortingOptions.collectAsStateWithLifecycle().value
     val selectedSortingOption = viewModel.selectedSortingOption.collectAsStateWithLifecycle().value
@@ -114,9 +112,8 @@ fun ListUserScreen(
     val asc = viewModel.asc.collectAsStateWithLifecycle().value
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val isDeleting = viewModel.isDeleting.collectAsStateWithLifecycle().value
 
-     LaunchedEffect(key1 = isDeleting) {
+     LaunchedEffect(Unit) {
          viewModel.loadData()
      }
     Box(
@@ -364,48 +361,41 @@ fun ListUserScreen(
                         }
                     }
                 }
-                if (mockData != null) {
-                    items(mockData) { user ->
+                userList.let {
+                    items(userList) { user ->
+                        var isShowDialog by remember { mutableStateOf(false) }
                         UserItem(
                             user = user,
-                            onUserClick = onUserClick,
-                            onEditUserClick = onEditUserClick,
-                            onDeleteUserClick = onDeleteUserClick
+                            onUserClick = {
+                                onUserClick(user.id)
+                            },
+                            onEditUserClick = onEditUserClick
                         )
                     }
                 }
-                else{
-                    if (isLoading.value) {
-                        item {
-                            CircularProgressIndicator(
-                                color = OrangeDefault,
-                                modifier = Modifier
-                                    .padding(16.dp)
-                                    .size(40.dp)
-                            )
-                        }
+                item{
+                    Spacer(Modifier.height(100.dp))
+                }
+                if (isLoading.value) {
+                    item {
+                        CircularProgressIndicator(
+                            color = OrangeDefault,
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .size(40.dp)
+                        )
                     }
-                    else
-                        if (userList.isEmpty()) {
-                            item {
-                                Text(
-                                    text = "Không có tài khoản nào",
-                                    color = GreyDefault,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(16.dp)
-                                )
-                            }
-                        }
-                        else
-                            items(userList) { user ->
-                                UserItem(
-                                    user = user,
-                                    onUserClick = onUserClick,
-                                    onEditUserClick = onEditUserClick,
-                                    onDeleteUserClick = onDeleteUserClick
-                                )
-                            }
+                }
+                else if (userList.isEmpty()) {
+                    item {
+                        Text(
+                            text = "Không có người dùng nào",
+                            color = GreyDefault,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            modifier = Modifier.padding(16.dp)
+                        )
+                    }
                 }
             }
         }
@@ -431,7 +421,6 @@ fun UserItem(
     user: UserResponse,
     onUserClick: (Long) -> Unit,
     onEditUserClick: (Long) -> Unit,
-    onDeleteUserClick: (Long) -> Unit,
 ) {
     Card(
         onClick = { onUserClick(user.id) },

@@ -9,17 +9,12 @@ import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
-import com.example.mam.R
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.cart.CartItemRequest
 import com.example.mam.dto.product.ProductResponse
 import com.example.mam.dto.variation.VariationOptionResponse
-import com.example.mam.dto.variation.VariationRequest
 import com.example.mam.dto.variation.VariationResponse
-import com.example.mam.entity.Product
-import com.example.mam.entity.Variance
-import com.example.mam.entity.VarianceOption
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import java.text.DecimalFormat
@@ -88,7 +83,7 @@ class ItemViewModel(
     suspend fun loadItemDetails() {
         try {
             Log.d("ItemViewModel", "Loading item details for ID: $_itemID")
-            val response = BaseService(userPreferencesRepository).productService.getProductById(
+            val response = BaseRepository(userPreferencesRepository).productRepository.getProductById(
                 id = _itemID
             )
             Log.d("ItemViewModel", "Response Code: ${response.code()}")
@@ -113,7 +108,7 @@ class ItemViewModel(
     suspend fun loadVariances() {
         try {
             Log.d("ItemViewModel", "Loading variances for product ID: $_itemID")
-           val response = BaseService(userPreferencesRepository).variationService.getVariationByProduct(
+           val response = BaseRepository(userPreferencesRepository).variationRepository.getVariationByProduct(
                productId = _itemID
            )
             Log.d("ItemViewModel", "Reponse Code: ${response.code()}")
@@ -139,7 +134,7 @@ class ItemViewModel(
             Log.d("ItemViewModel", "Loading options for variances")
             val optionsMap = mutableMapOf<Long, List<VariationOptionResponse>>()
             for (variance in _variances.value) {
-                val response = BaseService(userPreferencesRepository).variationOptionService.getVariationOption(
+                val response = BaseRepository(userPreferencesRepository).variationOptionRepository.getVariationOption(
                     variationId = variance.id
                 )
                 if (response.isSuccessful) {
@@ -177,7 +172,7 @@ class ItemViewModel(
                 variationOptionIds = _selectedOptions.value.map { it.id }.toSet()
             )
             Log.d("ItemViewModel", "CartItemRequest: $request")
-            val response = BaseService(userPreferencesRepository).cartItemService.addCartItem(request)
+            val response = BaseRepository(userPreferencesRepository).cartItemRepository.addCartItem(request)
             Log.d("ItemViewModel", "Response Code: ${response.code()}")
             if (response.isSuccessful) {
                 Log.d("ItemViewModel", "Item added to cart successfully")

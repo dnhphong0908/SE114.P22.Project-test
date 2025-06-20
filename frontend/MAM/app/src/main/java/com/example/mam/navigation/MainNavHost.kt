@@ -386,6 +386,17 @@ fun MainNavHost(
                         ) { address ->
                             viewModel.setAddress(address)
                         }
+                        navController.previousBackStackEntry?.savedStateHandle?.getLiveData<Double>("latitude")?.observe(
+                            backStackEntry
+                        ) { latitude ->
+                            viewModel.setLatitude(latitude)
+                        }
+                        navController.previousBackStackEntry?.savedStateHandle?.getLiveData<Double>("longitude")?.observe(
+                            backStackEntry
+                        ) { longitude ->
+                            viewModel.setLongitude(longitude)
+                            viewModel.setAdressAndCoordinates()
+                        }
                     },
                     viewModel = viewModel
                 )
@@ -399,8 +410,10 @@ fun MainNavHost(
             ){
                 MapScreen(
                     onBackClicked = {navController.popBackStack()},
-                    onSelectClicked = { address ->
+                    onSelectClicked = { address, latitude, longitude ->
                         navController.previousBackStackEntry?.savedStateHandle?.set("address", address)
+                        navController.previousBackStackEntry?.savedStateHandle?.set("latitude", latitude)
+                        navController.previousBackStackEntry?.savedStateHandle?.set("longitude", longitude)
                         navController.popBackStack()
                     },
                 )
@@ -444,10 +457,8 @@ fun MainNavHost(
             ){ backStackEntry ->
                 val viewModel: DashboardViewModel = viewModel(backStackEntry, factory = DashboardViewModel.Factory)
                 DashboardScreen(
-                    onBackClicked = {
-                        navController.navigate(route = AuthenticationScreen.Start.name) {
-                        popUpTo("Dashboard") { inclusive = true }
-                        }
+                    onProfileClicked = {
+                        navController.navigate("AdminProfile")
                     },
                     onItemClicked = { item ->
                         when(item) {
@@ -460,7 +471,82 @@ fun MainNavHost(
                             "Đơn hàng" -> navController.navigate("ListOrder")
                         }
                     },
-                    onActiveOrderClicked = { order -> },
+                    onProcessingOrderClick = {
+                        navController.navigate("ProcessingOrder")
+                    },
+                    onPreProcessOrderClick = {
+                        navController.navigate("PreProcessingOrder")
+                    },
+                    viewModel = viewModel
+                )
+            }
+            composable(
+                route = "ProcessingOrder",
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
+            ) { backStackEntry ->
+                val viewModel: ListOrderViewModel = viewModel(backStackEntry, factory = ListOrderViewModel.Factory)
+                ListOrderScreen(
+                    onBackClick = {navController.popBackStack()},
+                    onEditOrderClick = { orderId ->
+                        navController.navigate("EditOrder/${orderId}")
+                    },
+                    onHomeClick = {
+                        navController.navigate("Dashboard") {
+                            popUpTo("Dashboard") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    },
+                    isProcessing = true,
+                    viewModel = viewModel
+                )
+            }
+            composable(
+                route = "PreProcessingOrder",
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
+            ) { backStackEntry ->
+                val viewModel: ListOrderViewModel = viewModel(backStackEntry, factory = ListOrderViewModel.Factory)
+                ListOrderScreen(
+                    onBackClick = {navController.popBackStack()},
+                    onEditOrderClick = { orderId ->
+                        navController.navigate("EditOrder/${orderId}")
+                    },
+                    onHomeClick = {
+                        navController.navigate("Dashboard") {
+                            popUpTo("Dashboard") { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    },
+                    isPreProcessing = true,
+                    viewModel = viewModel
+                )
+            }
+            composable(
+                route = "AdminProfile",
+                enterTransition = defaultTransitions(),
+                exitTransition = defaultExitTransitions(),
+                popEnterTransition = defaultPopEnterTransitions(),
+                popExitTransition = defaultPopExitTransitions()
+            ) { backStackEntry ->
+                val viewModel: ProfileViewModel = viewModel(backStackEntry, factory = ProfileViewModel.Factory)
+                ProfileScreen(
+                    onBackClicked = {navController.popBackStack()},
+                    onLogoutClicked = {
+                        navController.navigate(route = AuthenticationScreen.Start.name) {
+                            popUpTo("Profile") { inclusive = true }
+                        }},
+                    onChangePasswordClicked = {
+                        navController.navigate("ChangePassword")
+                    },
+                    onHistoryClicked = {
+                        navController.navigate("OrderHistory")
+                    },
+                    isAdmin = true,
                     viewModel = viewModel
                 )
             }
@@ -550,13 +636,13 @@ fun MainNavHost(
             }
             composable(
                 route = "EditProduct/{productId}",
-                arguments = listOf(navArgument("productId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("productId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageProductViewModel = viewModel(backStackEntry)
+                val viewModel: ManageProductViewModel = viewModel(backStackEntry, factory = ManageProductViewModel.Factory)
                 ManageProductScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -566,13 +652,13 @@ fun MainNavHost(
             }
             composable(
                 route = "DetailsProduct/{productId}",
-                arguments = listOf(navArgument("productId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("productId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageProductViewModel = viewModel(backStackEntry)
+                val viewModel: ManageProductViewModel = viewModel(backStackEntry, factory = ManageProductViewModel.Factory)
                 ManageProductScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -587,7 +673,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageProductViewModel = viewModel()
+                val viewModel: ManageProductViewModel = viewModel(backStackEntry, factory = ManageProductViewModel.Factory)
                 ManageProductScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -619,14 +705,14 @@ fun MainNavHost(
             }
             composable(
                 route = "EditOrder/{orderId}",
-                arguments = listOf(navArgument("orderId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("orderId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) {
                 backStackEntry ->
-                val viewModel: ManageOrderViewModel = viewModel(backStackEntry)
+                val viewModel: ManageOrderViewModel = viewModel(backStackEntry, factory = ManageOrderViewModel.Factory)
                 ManageOrderScreen(
                     onBackClick = {navController.popBackStack()},
                     viewModel = viewModel,
@@ -697,7 +783,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManagePromotionViewModel = viewModel()
+                val viewModel: ManagePromotionViewModel = viewModel(backStackEntry, factory = ManagePromotionViewModel.Factory)
                 ManagePromotionScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -735,7 +821,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageShipperViewModel = viewModel()
+                val viewModel: ManageShipperViewModel = viewModel(backStackEntry, factory = ManageShipperViewModel.Factory)
                 ManageShipperScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -745,13 +831,13 @@ fun MainNavHost(
             }
             composable(
                 route = "EditShipper/{shipperId}",
-                arguments = listOf(navArgument("shipperId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("shipperId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageShipperViewModel = viewModel(backStackEntry)
+                val viewModel: ManageShipperViewModel = viewModel(backStackEntry, factory = ManageShipperViewModel.Factory)
                 ManageShipperScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -794,7 +880,7 @@ fun MainNavHost(
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageUserViewModel = viewModel()
+                val viewModel: ManageUserViewModel = viewModel(backStackEntry, factory = ManageUserViewModel.Factory)
                 ManageUserScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -804,13 +890,13 @@ fun MainNavHost(
             }
             composable(
                 route = "EditUser/{userId}",
-                arguments = listOf(navArgument("userId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("userId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageUserViewModel = viewModel(backStackEntry)
+                val viewModel: ManageUserViewModel = viewModel(backStackEntry, factory = ManageUserViewModel.Factory)
                 ManageUserScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
@@ -820,13 +906,13 @@ fun MainNavHost(
             }
             composable(
                 route = "DetailsUser/{userId}",
-                arguments = listOf(navArgument("userId") { type = NavType.StringType }),
+                arguments = listOf(navArgument("userId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
                 exitTransition = defaultExitTransitions(),
                 popEnterTransition = defaultPopEnterTransitions(),
                 popExitTransition = defaultPopExitTransitions()
             ) { backStackEntry ->
-                val viewModel: ManageUserViewModel = viewModel(backStackEntry)
+                val viewModel: ManageUserViewModel = viewModel(backStackEntry, factory = ManageUserViewModel.Factory)
                 ManageUserScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},

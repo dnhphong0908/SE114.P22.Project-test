@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.user;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.user.UserRequestDTO;
 import com.se114p12.backend.dtos.user.UserResponseDTO;
 import com.se114p12.backend.entities.user.User;
@@ -24,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "User Module", description = "APIs for managing users")
 @RestController
-@RequestMapping("/api/v1/users")
+@RequestMapping(AppConstant.API_BASE_PATH + "/users")
 @RequiredArgsConstructor
 public class UserController {
   private final UserService userService;

@@ -1,19 +1,30 @@
 package com.example.mam.viewmodel.management
 
-import androidx.lifecycle.MutableLiveData
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kotlinx.coroutines.flow.MutableSharedFlow
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.createSavedStateHandle
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
+import com.example.mam.MAMApplication
+import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.shipper.ShipperRequest
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 
-class ManageShipperViewModel(savedStateHandle: SavedStateHandle?): ViewModel() {
-    private val shipperId = savedStateHandle?.get<String>("shipperId")
+class ManageShipperViewModel(
+    savedStateHandle: SavedStateHandle?,
+    private val userPreferencesRepository: UserPreferencesRepository,
+): ViewModel() {
+    private val shipperId = savedStateHandle?.get<Long>("shipperId") ?:0L
 
-    private val _shipperID = MutableStateFlow<String>("")
-    val shipperID: MutableStateFlow<String> get() = _shipperID
+    private val _shipperID = MutableStateFlow<Long>(shipperId)
+    val shipperID: StateFlow<Long> = _shipperID
 
     private val _shipperName = MutableStateFlow<String>("")
     val shipperName: MutableStateFlow<String> get() = _shipperName
@@ -72,61 +83,148 @@ class ManageShipperViewModel(savedStateHandle: SavedStateHandle?): ViewModel() {
         return "" // License is valid
     }
 
-    fun loadData(){
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate a network call or data fetching
-                // Replace with actual data fetching logic
+    suspend fun loadData() {
+        _isLoading.value = true
+        try {
+            Log.d("Shipper", "Bắt đầu lấy Shipper")
+            Log.d(
+                "Shipper",
+                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+            )
+            val response =
+                BaseRepository(userPreferencesRepository)
+                    .shipperRepository
+                    .getShipperById(_shipperID.value)
+            Log.d("Shipper", "Status code: ${response.code()}")
+            if (response.isSuccessful) {
+                val shipper = response.body()
+                if (shipper != null) {
+                    _shipperName.value = shipper.fullname
+                    _shipperPhone.value = shipper.phone
+                    _shipperLicense.value = shipper.licensePlate
+                    Log.d("Shipper", "Lấy Shipper thành công")
+                }
 
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
+            } else {
+                Log.d("Shipper", "Lấy Shipper thất bại: ${response.errorBody().toString()}")
             }
+        } catch (e: Exception) {
+            Log.d("Shipper", "Không thể lấy Shipper: ${e.message}")
+        } finally {
+            _isLoading.value = false
+            Log.d("Shipper", "Kết thúc lấy Shipper")
         }
+
     }
 
     fun mockData() {
-        _shipperID.value = "123456"
+        _shipperID.value = 123456
         _shipperName.value = "Nguyễn Văn A"
         _shipperPhone.value = "0123456789"
         _shipperLicense.value = "55-A1 123.45"
     }
 
     fun clearData() {
-        _shipperID.value = ""
+        _shipperID.value = 0
         _shipperName.value = ""
         _shipperPhone.value = ""
         _shipperLicense.value = ""
     }
 
-    fun updateShipper() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate a network call or data fetching
-                // Replace with actual data fetching logic
-
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
+    suspend fun updateShipper(): Int {
+        _isLoading.value = true
+        try {
+            Log.d("Shipper", "Bắt đầu cap nhat Shipper")
+            Log.d(
+                "Shipper",
+                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+            )
+            val request = ShipperRequest(
+                _shipperName.value,
+                _shipperPhone.value,
+                _shipperLicense.value
+            )
+            val response = BaseRepository(userPreferencesRepository)
+                .shipperRepository
+                .updateShipper(_shipperID.value, request)
+            Log.d("Shipper", "${_shipperName.value}, ${_shipperLicense.value}, ${_shipperPhone.value}")
+            if (response == null){
+                return 0
             }
+            Log.d("Shipper", "Status code: ${response.code()}")
+            if (response.isSuccessful) {
+                val shipper = response.body()
+                if (shipper != null) {
+                    _shipperName.value = shipper.fullname
+                    _shipperPhone.value = shipper.phone
+                    _shipperLicense.value = shipper.licensePlate
+                    Log.d("Shipper", "Cap nhat Shipper thành công")
+                }
+                return 1
+            } else {
+                Log.d("Shipper", "Cap nhat Shipper thất bại: ${response.errorBody()?.string()}")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.d("Shipper", "Không thể cap nhat Shipper: ${e.message}")
+            return 0
+        } finally {
+            _isLoading.value = false
+            Log.d("Shipper", "Kết thúc cap nhat Shipper")
         }
     }
 
-    fun addShipper() {
-        viewModelScope.launch {
-            try {
-                _isLoading.value = true
-                // Simulate a network call or data fetching
-                // Replace with actual data fetching logic
+    suspend fun addShipper(): Int {
+        _isLoading.value = true
+        try {
+            Log.d("Shipper", "Bắt đầu them ")
+            Log.d(
+                "Shipper",
+                "DSAccessToken: ${userPreferencesRepository.accessToken.first()}"
+            )
+            val request = ShipperRequest(
+                _shipperName.value,
+                _shipperPhone.value,
+                _shipperLicense.value
+            )
+            val response = BaseRepository(userPreferencesRepository)
+                .shipperRepository
+                .createShipper(request)
 
-            } catch (e: Exception) {
-                // Handle error
-            } finally {
-                _isLoading.value = false
+            if (response == null){
+                return 0
+            }
+            Log.d("Shipper", "Status code: ${response.code()}")
+            if (response.isSuccessful) {
+                val shipper = response.body()
+                if (shipper != null) {
+                    _shipperName.value = shipper.fullname
+                    _shipperPhone.value = shipper.phone
+                    _shipperLicense.value = shipper.licensePlate
+                    Log.d("Shipper", "Them Shipper thành công")
+                }
+                return 1
+            } else {
+                Log.d("Shipper", "Them Shipper thất bại: ${response.errorBody()?.string()}")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.d("Shipper", "Không thể them Shipper: ${e.message}")
+            return 0
+        } finally {
+            _isLoading.value = false
+            Log.d("Shipper", "Kết thúc them Shipper")
+        }
+    }
+    companion object {
+        val Factory: ViewModelProvider.Factory = viewModelFactory {
+            initializer {
+                val application = (this[APPLICATION_KEY] as MAMApplication)
+                val savedStateHandle = this.createSavedStateHandle()
+                ManageShipperViewModel(
+                    savedStateHandle = savedStateHandle,
+                    userPreferencesRepository = application.userPreferencesRepository,
+                )
             }
         }
     }

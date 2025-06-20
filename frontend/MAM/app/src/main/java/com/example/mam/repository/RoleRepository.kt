@@ -1,4 +1,4 @@
-package com.example.mam.services
+package com.example.mam.repository
 
 import com.example.mam.dto.role.RoleRequest
 import com.example.mam.dto.role.RoleResponse
@@ -12,7 +12,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface RoleService {
+interface RoleRepository {
     @GET("roles/{id}")
     suspend fun getRoleById(@Path("id") id: Long): Response<RoleResponse>
     @PUT("roles/{id}")

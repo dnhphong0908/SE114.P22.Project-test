@@ -8,9 +8,8 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
-import com.example.mam.dto.product.CategoryResponse
 import com.example.mam.dto.product.ProductResponse
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -67,8 +66,8 @@ class SearchViewModel(
             Log.d("SearchViewModel", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
 
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .productService.getAllProducts(filter = "name ~~ '*${_searchQuery.value}*' " +
+                val response = BaseRepository(userPreferencesRepository)
+                    .productRepository.getAllProducts(filter = "name ~~ '*${_searchQuery.value}*' " +
                             "or shortDescription ~~ '*${_searchQuery.value}*'" +
                             "or detailDescription ~~ '*${_searchQuery.value}*'"
                         , page = currentPage, size = 20)
@@ -118,8 +117,8 @@ class SearchViewModel(
             Log.d("SearchViewModel", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
 
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .productService.getAllProducts(
+                val response = BaseRepository(userPreferencesRepository)
+                    .productRepository.getAllProducts(
                         filter = "",
                         sort = if (_asc.value) listOf("$sortOption,asc") else listOf("$sortOption,desc"),
                         page = currentPage, size = 20)
@@ -172,8 +171,8 @@ class SearchViewModel(
             Log.d("SearchViewModel", "DSAccessToken: ${userPreferencesRepository.accessToken.first()}")
 
             while (true) { // Loop until the last page
-                val response = BaseService(userPreferencesRepository)
-                    .productService.getAllProducts(filter = "", page = currentPage, size = 20)
+                val response = BaseRepository(userPreferencesRepository)
+                    .productRepository.getAllProducts(filter = "", page = currentPage, size = 20)
 
                 Log.d("SearchViewModel", "Status code: ${response.code()}")
 

@@ -1,4 +1,4 @@
-package com.example.mam.services
+package com.example.mam.repository
 
 import com.example.mam.dto.variation.VariationOptionRequest
 import com.example.mam.dto.variation.VariationOptionResponse
@@ -12,7 +12,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface VariationOptionService {
+interface VariationOptionRepository {
     @PUT("variation-options/{id}")
     suspend fun updateVariationOption(@Path("id") id: Long): Response<VariationOptionResponse>
     @DELETE("variation-options/{id}")

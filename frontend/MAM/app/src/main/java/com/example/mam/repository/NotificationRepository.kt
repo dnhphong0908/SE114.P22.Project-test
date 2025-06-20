@@ -1,4 +1,4 @@
-package com.example.mam.services
+package com.example.mam.repository
 
 import com.example.mam.dto.notification.NotificationRequest
 import com.example.mam.dto.notification.NotificationResponse
@@ -12,7 +12,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface NotificationService {
+interface NotificationRepository {
     @PUT("notifications/read/{id}")
     suspend fun markNotificationAsRead(@Path("id") id: Long): Response<Void>
     @POST("notifications/send")

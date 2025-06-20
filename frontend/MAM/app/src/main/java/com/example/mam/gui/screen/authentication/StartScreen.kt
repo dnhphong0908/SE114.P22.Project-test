@@ -126,19 +126,19 @@ fun StartScreen(
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
             ) {
-                OuterShadowFilledButton(
-                    text = "Đăng ký qua Google",
-                    image = R.drawable.ic_google,
-                    onClick = onGGSignUpClicked,
-                    modifier = Modifier
-                        .fillMaxWidth(0.8f)
-                )
-                HorizontalDivider(
-                    color = BrownDefault,
-                    modifier = Modifier
-                        .fillMaxWidth(0.8f),
-
-                )
+//                OuterShadowFilledButton(
+//                    text = "Đăng ký qua Google",
+//                    image = R.drawable.ic_google,
+//                    onClick = onGGSignUpClicked,
+//                    modifier = Modifier
+//                        .fillMaxWidth(0.8f)
+//                )
+//                HorizontalDivider(
+//                    color = BrownDefault,
+//                    modifier = Modifier
+//                        .fillMaxWidth(0.8f),
+//
+//                )
                 OuterShadowFilledButton(
                     text = "Đăng ký",
                     onClick = onSignUpClicked,

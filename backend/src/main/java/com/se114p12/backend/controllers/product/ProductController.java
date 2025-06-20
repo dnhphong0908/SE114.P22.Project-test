@@ -1,6 +1,7 @@
 package com.se114p12.backend.controllers.product;
 
 import com.se114p12.backend.annotations.ErrorResponse;
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.product.ProductRequestDTO;
 import com.se114p12.backend.dtos.product.ProductResponseDTO;
 import com.se114p12.backend.entities.product.Product;
@@ -26,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "Product Module", description = "APIs for managing products")
 @RestController
-@RequestMapping("/api/v1/products")
+@RequestMapping(AppConstant.API_BASE_PATH + "/products")
 @RequiredArgsConstructor
 public class ProductController {
 

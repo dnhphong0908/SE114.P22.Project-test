@@ -14,7 +14,7 @@ import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.authentication.ForgetPasswordRequest
 import com.example.mam.dto.authentication.SendOTPRequest
 import com.example.mam.dto.authentication.VerifyOTPRequest
-import com.example.mam.services.BaseService
+import com.example.mam.repository.BaseRepository
 import com.example.mam.viewmodel.authentication.otp.OtpAction
 import com.example.mam.viewmodel.authentication.otp.OtpState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,7 +42,7 @@ class OtpViewModel(
 
     suspend fun reSendOTP(): Int {
         try {
-            val metadata = BaseService(userPreferencesRepository).authPublicService.getMetadata(listOf(
+            val metadata = BaseRepository(userPreferencesRepository).authPublicRepository.getMetadata(listOf(
                 Constant.metadata.OTP_ACTION.name
             ))
             Log.d("OtpViewModel", "Get metadata: ${metadata.code()}")
@@ -57,7 +57,7 @@ class OtpViewModel(
                 action
             )
             Log.d("ForgetPasswordViewModel", "Sending OTP with request: ${request.email}, ${request.action}")
-            val respond = BaseService(userPreferencesRepository).authPublicService.sendOtp(
+            val respond = BaseRepository(userPreferencesRepository).authPublicRepository.sendOtp(
                 request
             )
             Log.d("ForgetPasswordViewModel", "Send OTP response: ${respond.code()}")
@@ -76,7 +76,7 @@ class OtpViewModel(
 
     suspend fun verifyOtp(): Int {
         try {
-            val metadata = BaseService(userPreferencesRepository).authPublicService.getMetadata(listOf(
+            val metadata = BaseRepository(userPreferencesRepository).authPublicRepository.getMetadata(listOf(
                 Constant.metadata.OTP_ACTION.name
             ))
             Log.d("OtpViewModel", "Get metadata: ${metadata.code()}")
@@ -91,7 +91,7 @@ class OtpViewModel(
                 action = metadata.body()?.get(Constant.metadata.OTP_ACTION.name)?.get(0) ?: ""
             )
             Log.d("OtpViewModel", "Verifying OTP: $otpRequest")
-            val otpResponse = BaseService(userPreferencesRepository).authPublicService.verifyOtp(otpRequest)
+            val otpResponse = BaseRepository(userPreferencesRepository).authPublicRepository.verifyOtp(otpRequest)
             Log.d("OtpViewModel", "Verify OTP response: ${otpResponse.code()}")
             if (otpResponse.isSuccessful) {
                 val code = otpResponse.body()?.code ?: return 0
@@ -100,7 +100,7 @@ class OtpViewModel(
                     code, _password.value
                 )
                 Log.d("OtpViewModel", "Changing password with request: ${request.code}, ${request.newPassword}")
-                val response = BaseService(userPreferencesRepository).authPublicService.forgetPassword(request)
+                val response = BaseRepository(userPreferencesRepository).authPublicRepository.forgetPassword(request)
                 Log.d("OtpViewModel", "Forget password response: ${response.code()}")
                 if (response.isSuccessful) {
                     Log.d("OtpViewModel", "Password changed successfully")

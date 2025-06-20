@@ -39,6 +39,7 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Sell
 import androidx.compose.material.icons.filled.ShoppingBag
 import androidx.compose.material.icons.outlined.Logout
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -68,6 +69,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -108,9 +110,10 @@ import kotlin.random.Random
 @Composable
 fun DashboardScreen(
     viewModel: DashboardViewModel,
-    onBackClicked: () -> Unit = {},
+    onProfileClicked: () -> Unit = {},
     onItemClicked: (String) -> Unit = {},
-    onActiveOrderClicked: (String) -> Unit = {},
+    onPreProcessOrderClick: () -> Unit = {},
+    onProcessingOrderClick: () -> Unit = {}
 ) {
     // Your UI code here
     // You can use viewModel to access the data and state
@@ -120,8 +123,13 @@ fun DashboardScreen(
     val isLoading = viewModel.isLoading.collectAsState()
     val processingOrderNum = viewModel.processingOrderNum.collectAsState().value
     val notProcessingOrderNum = viewModel.notProcessingOrderNum.collectAsState().value
+    var processingCount by remember { mutableStateOf(0L) }
+    var preProcessCount by remember { mutableStateOf(0L) }
     LaunchedEffect(key1 = Unit) {
         viewModel.loadData()
+        val countStatus = viewModel.countOrderByStatus()
+        processingCount = countStatus["CONFIRMED"]?.let { countStatus["PROCESSING"]?.plus(it) } ?: 0L
+        preProcessCount = countStatus["PENDING"]?:0L
     }
     Column(
         verticalArrangement = Arrangement.spacedBy(20.dp),
@@ -141,26 +149,9 @@ fun DashboardScreen(
             CircleIconButton(
                 backgroundColor = OrangeLighter,
                 foregroundColor = OrangeDefault,
-                icon = Icons.Outlined.Logout,
+                icon = Icons.Outlined.Person,
                 shadow = "outer",
-                onClick = {
-                    scope.launch {
-                        val result = viewModel.logOut()
-                        if (result == 1) {
-                            Toast.makeText(
-                                context,
-                                "Đăng xuất thành công",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            onBackClicked()
-                        }
-                        else Toast.makeText(
-                            context,
-                            "Đăng xuất thất bại",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                },
+                onClick = onProfileClicked,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .padding(top = 16.dp, start = 16.dp)
@@ -207,7 +198,6 @@ fun DashboardScreen(
                     state = rememberScrollState())
         )
         {
-
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
@@ -221,7 +211,7 @@ fun DashboardScreen(
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 4.dp,
                         ),
-                        onClick = { },
+                        onClick = onProcessingOrderClick,
                         shape = RoundedCornerShape(20.dp),
                     ) {
                         Text(
@@ -233,7 +223,7 @@ fun DashboardScreen(
                                 .padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 5.dp)
                         )
                         Text(
-                            text = processingOrderNum.toString(),
+                            text = processingCount.toString(),
                             color = OrangeDefault,
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
@@ -249,7 +239,7 @@ fun DashboardScreen(
                         elevation = CardDefaults.cardElevation(
                             defaultElevation = 4.dp,
                         ),
-                        onClick = { },
+                        onClick = onPreProcessOrderClick,
                         shape = RoundedCornerShape(20.dp),
                     ) {
                         Text(
@@ -262,7 +252,7 @@ fun DashboardScreen(
                                 .padding(top = 10.dp, start = 10.dp, end = 10.dp, bottom = 5.dp)
                         )
                         Text(
-                            text = notProcessingOrderNum.toString(),
+                            text = preProcessCount.toString(),
                             color = OrangeDefault,
                             fontSize = 26.sp,
                             fontWeight = FontWeight.Bold,
@@ -311,13 +301,12 @@ fun DashboardScreen(
                                 ),
                                 shape = RoundedCornerShape(20.dp),
                                 modifier = Modifier
-                                    .size(90.dp)
                             ) {
                                 Column(
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     modifier = Modifier
-                                        .fillMaxSize()
+                                        .width(90.dp)
 
                                 ) {
                                     Icon(
@@ -330,7 +319,7 @@ fun DashboardScreen(
                                     )
                                     Text(
                                         text = it.label,
-                                        fontSize = 14.sp,
+                                        fontSize = 12.sp,
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier
                                             .padding(
@@ -425,12 +414,10 @@ fun MonthRevenueChart(
     var isMonthly by remember { mutableStateOf(true) }
     val pointsData = viewModel.revenueList.collectAsStateWithLifecycle().value
     val isLoading = viewModel.isLoadingRevenue.collectAsStateWithLifecycle().value
+    val scope = rememberCoroutineScope()
     LaunchedEffect(key1 = year, key2 = isMonthly) {
-        if (isMonthly) {
-            viewModel.loadRevenueMonthlyList(year)
-        } else {
-            viewModel.loadRevenueQuarterList(year)
-        }
+            viewModel.loadRevenueMonthlyList(year, isMonthly)
+
     }
     if (isLoading) {
         // Show loading indicator
@@ -469,7 +456,11 @@ fun MonthRevenueChart(
                     .clip(RoundedCornerShape(20.dp))
             ) {
                 IconButton(
-                    onClick = { year-- },
+                    onClick = {
+                        year--
+                          scope.launch{
+                              viewModel.loadRevenueMonthlyList(year, isMonthly)
+                          }},
                     modifier = Modifier
                         .padding(top = 16.dp, start = 16.dp)
                         .size(40.dp)
@@ -495,7 +486,10 @@ fun MonthRevenueChart(
                         .fillMaxWidth()
                 )
                 IconButton(
-                    onClick = { year++ },
+                    onClick = { year++
+                        scope.launch{
+                            viewModel.loadRevenueMonthlyList(year, isMonthly)
+                        }},
                     modifier = Modifier
                         .padding(top = 16.dp, end = 16.dp)
                         .size(40.dp)
@@ -617,20 +611,16 @@ fun SoldCategoryChart(
     viewModel: DashboardViewModel,
     modifier: Modifier = Modifier,
 ) {
-    val year by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).year) }
-    val month by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).monthValue) }
+    var year by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).year) }
+    var month by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).monthValue) }
     val quarter by remember { mutableStateOf<Int>(Instant.now().atZone(ZoneId.systemDefault()).monthValue / 3 + 1) }
     val context = LocalContext.current
-    var isMonthly by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
     val chartData = viewModel.categorySoldList.collectAsStateWithLifecycle().value
 
-    LaunchedEffect(key1 = month, key2 = quarter, key3 = isMonthly) {
-        if (isMonthly) {
+    LaunchedEffect(key1 = month) {
             viewModel.loadCategorySoldMonthlyList(month, year)
-        } else {
-            viewModel.loadCategorySoldQuarterList(quarter, year)
-        }
+
     }
     val isLoading = viewModel.isLoadingCategory.collectAsStateWithLifecycle().value
     val pieChartData = chartData.mapIndexed { index, pair ->
@@ -704,7 +694,16 @@ fun SoldCategoryChart(
                     .clip(RoundedCornerShape(20.dp))
             ) {
                 IconButton(
-                    onClick = { },
+                    onClick = {
+                        scope.launch {
+                            month--
+                            if (month <= 0) {
+                                year--
+                                month = 12
+                            }
+                            viewModel.loadCategorySoldMonthlyList(month, year)
+                        }
+                    },
                     modifier = Modifier
                         .padding(top = 16.dp, start = 16.dp)
                         .size(40.dp)
@@ -716,11 +715,7 @@ fun SoldCategoryChart(
                     )
                 }
                 Text(
-                    text = "Tỉ lệ danh mục bán ra\n" + if (isMonthly) {
-                        "theo tháng"
-                    } else {
-                        "theo quý"
-                    },
+                    text = "Tỉ lệ danh mục bán ra\n theo tháng",
                     color = BrownDefault,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
@@ -730,7 +725,16 @@ fun SoldCategoryChart(
                         .fillMaxWidth()
                 )
                 IconButton(
-                    onClick = { },
+                    onClick = {
+                        scope.launch {
+                            month++
+                            if (month > 12) {
+                                year++
+                                month = 1
+                            }
+                            viewModel.loadCategorySoldMonthlyList(month, year)
+                        }
+                    },
                     modifier = Modifier
                         .padding(top = 16.dp, end = 16.dp)
                         .size(40.dp)
@@ -761,50 +765,8 @@ fun SoldCategoryChart(
             ) { slice ->
                 Toast.makeText(context, slice.label, Toast.LENGTH_SHORT).show()
             }
-
         }
-        Row(
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .zIndex(1f)
-        ) {
-            Text(
-                text = "Theo quý: ",
-                color = BrownDefault,
-                fontSize = 16.sp,
-                textAlign = TextAlign.Start,
-                modifier = Modifier
-                    .padding(8.dp)
-            )
-            Switch(
-                checked = !isMonthly,
-                onCheckedChange = { isMonthly = !isMonthly },
-                colors = SwitchDefaults.colors(
-                    checkedTrackColor = OrangeDefault,
-                    uncheckedTrackColor = WhiteDefault,
-                    checkedThumbColor = WhiteDefault,
-                    uncheckedThumbColor = OrangeDefault,
-                    uncheckedBorderColor = OrangeDefault,
-                ),
-                thumbContent = {
-                    Icon(
-                        imageVector = Icons.Default.Check,
-                        contentDescription = null,
-                        tint = if (!isMonthly) OrangeDefault else WhiteDefault,
-                        modifier = Modifier
-                            .size(20.dp)
-                            .padding(2.dp)
-                    )
-                },
-                modifier = Modifier
-                    .padding(8.dp)
-            )
-        }
-
     }
-
 }
 
 

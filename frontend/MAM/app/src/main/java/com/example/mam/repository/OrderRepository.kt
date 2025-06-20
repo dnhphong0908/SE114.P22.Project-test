@@ -1,4 +1,4 @@
-package com.example.mam.services
+package com.example.mam.repository
 
 import com.example.mam.dto.order.OrderRequest
 import com.example.mam.dto.order.OrderResponse
@@ -11,7 +11,7 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
-interface OrderService {
+interface OrderRepository {
     @PUT("orders/update/{id}")
     suspend fun updateOrderStatus(
         @Path("id") id: Long,
