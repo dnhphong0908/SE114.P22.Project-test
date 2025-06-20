@@ -4,22 +4,28 @@ import com.se114p12.backend.neo4j.entities.ProductNode;
 import java.util.List;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.neo4j.repository.query.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProductNeo4jRepository extends Neo4jRepository<ProductNode, Long> {
 
   @Query(
-      "MATCH (p:ProductNode)<-[:ORDERED]-(u:UserNode) " + "RETURN p ORDER BY count(u) DESC LIMIT 5")
+      "MATCH (p:ProductNode)<-[:ORDERED]-(u:UserNode) "
+          + "WITH p, count(u) AS orderCount "
+          + "RETURN p.id "
+          + "ORDER BY orderCount DESC "
+          + "LIMIT 5")
   List<Long> findGeneralRecommended();
 
   @Query(
       "MATCH (u:UserNode {id:"
           + " $userId})-[:ORDERED]->(p:ProductNode)-[:BELONGS_TO]->(c:CategoryNode) MATCH"
           + " (c)<-[:BELONGS_TO]-(recommended:ProductNode) WHERE NOT (u)-[:ORDERED]->(recommended)"
-          + " RETURN recommended.id ORDER BY count(*) DESC LIMIT 5")
+          + " WITH recommended, count(*) AS score "
+          + " RETURN recommended.id ORDER BY score DESC LIMIT 5")
   // + " ORDER BY recommended.rating DESC")
-  List<Long> findRecommendByCategory(Long userId);
+  List<Long> findRecommendByCategory(@Param("userId") Long userId);
 
   // collaborative filtering by user
   @Query(
@@ -27,8 +33,9 @@ public interface ProductNeo4jRepository extends Neo4jRepository<ProductNode, Lon
           + "WHERE u2.id <> $userId "
           + "MATCH (u2)-[o:ORDERED]->(recommended:ProductNode) "
           + "WHERE NOT (u1)-[:ORDERED]->(recommended) "
-          + "RETURN recommended.id ORDER BY o.count DESC, count(*) DESC LIMIT 5")
-  List<Long> findRecommendedByHistory(Long userId);
+          + "WITH recommended, count(*) AS score "
+          + "RETURN recommended.id ORDER BY score DESC LIMIT 5")
+  List<Long> findRecommendedByHistory(@Param("userId") Long userId);
 
   // co-purchase analysis.
   @Query(
@@ -36,6 +43,7 @@ public interface ProductNeo4jRepository extends Neo4jRepository<ProductNode, Lon
           + "WHERE u2.id <> $userId "
           + "MATCH (u2)-[o:ORDERED]->(recommended:ProductNode)<-[:BOUTH_WITH]-(p) "
           + "WHERE NOT (u1)-[:ORDERED]->(recommended) "
-          + "RETURN recommended.id ORDER BY o.count DESC, count(*) DESC LIMIT 5")
-  List<Long> findRecommendedByCoPurchase(Long userId);
+          + "WITH recommended, count(*) AS score "
+          + "RETURN recommended.id ORDER BY score DESC LIMIT 5")
+  List<Long> findRecommendedByCoPurchase(@Param("userId") Long userId);
 }

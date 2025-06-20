@@ -94,6 +94,7 @@ public class DataInitializer implements ApplicationRunner {
   private void validateAdminInfo() {
     // use spring validation annotations in RegisterRequestDTO class
     RegisterRequestDTO request = new RegisterRequestDTO();
+    request.setFullname(adminUsername);
     request.setUsername(adminUsername);
     request.setEmail(adminEmail);
     request.setPhone(adminPhone);
