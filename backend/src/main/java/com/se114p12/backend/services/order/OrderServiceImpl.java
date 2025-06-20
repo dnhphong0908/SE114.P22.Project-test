@@ -1,5 +1,7 @@
 package com.se114p12.backend.services.order;
 
+import com.se114p12.backend.configs.ShopLocationConfig;
+import com.se114p12.backend.dtos.delivery.DeliveryResponseDTO;
 import com.se114p12.backend.dtos.order.OrderRequestDTO;
 import com.se114p12.backend.dtos.order.OrderResponseDTO;
 import com.se114p12.backend.entities.cart.Cart;
@@ -22,6 +24,7 @@ import com.se114p12.backend.repositories.order.OrderDetailRepository;
 import com.se114p12.backend.repositories.order.OrderRepository;
 import com.se114p12.backend.repositories.promotion.PromotionRepository;
 import com.se114p12.backend.repositories.shipper.ShipperRepository;
+import com.se114p12.backend.services.delivery.MapService;
 import com.se114p12.backend.services.promotion.UserPromotionService;
 import com.se114p12.backend.util.JwtUtil;
 import com.se114p12.backend.vo.PageVO;
@@ -39,6 +42,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @Service
 public class OrderServiceImpl implements OrderService {
+  private final ShopLocationConfig shopLocationConfig;
+
   private final OrderRepository orderRepository;
   private final OrderDetailRepository orderDetailRepository;
   private final OrderMapper orderMapper;
@@ -53,6 +58,8 @@ public class OrderServiceImpl implements OrderService {
 
   private final PromotionRepository promotionRepository;
   private final UserPromotionService userPromotionService;
+
+  private final MapService mapService;
 
   @Override
   public PageVO<OrderResponseDTO> getAll(Specification<Order> specification, Pageable pageable) {
@@ -107,7 +114,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     Order order = new Order();
-    order.setShippingAddress(orderRequestDTO.getShippingAddress());
+    order.setDestinationLatitude(orderRequestDTO.getDestinationLatitude());
+    order.setDestinationLongitude(orderRequestDTO.getDestinationLongitude());
     order.setNote(orderRequestDTO.getNote());
     order.setUser(
         userRepository
@@ -175,9 +183,11 @@ public class OrderServiceImpl implements OrderService {
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
-    if (orderRequestDTO.getShippingAddress() != null) {
-      order.setShippingAddress(orderRequestDTO.getShippingAddress());
+    if (orderRequestDTO.getDestinationLatitude() != null && orderRequestDTO.getDestinationLongitude() != null) {
+      order.setDestinationLatitude(orderRequestDTO.getDestinationLatitude());
+      order.setDestinationLongitude(orderRequestDTO.getDestinationLongitude());
     }
+
     if (orderRequestDTO.getNote() != null) {
       order.setNote(orderRequestDTO.getNote());
     }
@@ -246,17 +256,39 @@ public class OrderServiceImpl implements OrderService {
       throw new BadRequestException("Can't update order status to " + status);
     }
     if (status == OrderStatus.SHIPPING) {
-
-      // Chọn shipper để giao hàng
       List<Shipper> availableShippers = shipperRepository.findByIsAvailableTrue();
       if (availableShippers.isEmpty()) {
         throw new BadRequestException("No available shippers to assign for this order");
       }
-      Shipper selectedShipper =
-          availableShippers.get(new Random().nextInt(availableShippers.size()));
+
+      Shipper selectedShipper = availableShippers.get(new Random().nextInt(availableShippers.size()));
       selectedShipper.setIsAvailable(false);
       order.setShipper(selectedShipper);
+
+      // Tọa độ địa chỉ cứng của quán
+      double originLat = shopLocationConfig.getLat();
+      double originLng = shopLocationConfig.getLng();
+
+      // Tọa độ địa chỉ của khách
+      Double destLat = order.getDestinationLatitude();
+      Double destLng = order.getDestinationLongitude();
+
+      if (destLat == null || destLng == null) {
+        throw new BadRequestException("Destination coordinates are missing.");
+      }
+
+      try {
+        DeliveryResponseDTO deliveryInfo = mapService.calculateExpectedDeliveryTime(
+                originLat, originLng, destLat, destLng
+        );
+        Instant now = Instant.now();
+        Instant expectedTime = now.plusSeconds(deliveryInfo.getExpectedDeliveryTimeInSeconds() + 300);
+        order.setExpectedDeliveryTime(expectedTime);
+      } catch (Exception e) {
+        throw new BadRequestException("Unable to calculate expected delivery time: " + e.getMessage());
+      }
     }
+
     order.setOrderStatus(status);
     orderRepository.save(order);
   }
