@@ -11,11 +11,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConditionalOnProperty(
-        name = "firebase.enabled",
-        havingValue = "true",
-        matchIfMissing = false
-)
 public class FirebaseConfig {
 
   @Value("${firebase.config.path}")

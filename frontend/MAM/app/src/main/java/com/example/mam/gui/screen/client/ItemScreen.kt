@@ -246,7 +246,7 @@ fun ItemScreen(
                             )
                         }
                     }
-                    else if(option.name == "Kích cỡ bánh") {
+                    else if(option.name == "Kích cỡ" && item.categoryName == "Pizza") {
                         var sizeOption: VariationOptionResponse
                         optionsMap[option.id]?.let {
                             LaunchedEffect(it) {
