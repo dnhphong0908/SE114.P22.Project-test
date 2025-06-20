@@ -24,7 +24,10 @@ import java.util.List;
 public class Order extends BaseEntity {
 
     @NotNull
-    private String shippingAddress;
+    private Double destinationLatitude;
+
+    @NotNull
+    private Double destinationLongitude;
 
     private BigDecimal totalPrice;
 
