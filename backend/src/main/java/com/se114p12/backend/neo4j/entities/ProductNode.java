@@ -1,5 +1,6 @@
 package com.se114p12.backend.neo4j.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,5 +18,5 @@ public class ProductNode {
   private CategoryNode category;
 
   @Relationship(type = "BOUGHT_WITH")
-  private List<BoughtWithRelationship> coPurchasedProducts;
+  private List<BoughtWithRelationship> coPurchasedProducts = new ArrayList<>();
 }

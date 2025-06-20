@@ -1,5 +1,6 @@
 package com.se114p12.backend.neo4j.entities;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,5 +15,5 @@ public class UserNode {
   @Id private Long id;
 
   @Relationship(type = "ORDERED")
-  private List<OrderedRelationship> orderedProducts;
+  private List<OrderedRelationship> orderedProducts = new ArrayList<>();
 }
