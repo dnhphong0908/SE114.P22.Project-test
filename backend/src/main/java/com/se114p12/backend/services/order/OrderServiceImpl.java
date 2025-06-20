@@ -124,6 +124,7 @@ public class OrderServiceImpl implements OrderService {
     Order order = new Order();
     order.setDestinationLatitude(orderRequestDTO.getDestinationLatitude());
     order.setDestinationLongitude(orderRequestDTO.getDestinationLongitude());
+    order.setShippingAddress(orderRequestDTO.getShippingAddress());
     order.setNote(orderRequestDTO.getNote());
     order.setUser(
         userRepository
