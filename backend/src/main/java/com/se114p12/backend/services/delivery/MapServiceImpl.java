@@ -17,11 +17,12 @@ import java.util.Map;
 @Service
 public class MapServiceImpl implements MapService {
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final RestTemplate restTemplate;
     private final MapboxConfig mapboxConfig;
 
     public MapServiceImpl(MapboxConfig mapboxConfig) {
         this.mapboxConfig = mapboxConfig;
+        this.restTemplate = new RestTemplate();
     }
 
     @Override
