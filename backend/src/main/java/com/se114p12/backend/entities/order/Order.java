@@ -29,6 +29,9 @@ public class Order extends BaseEntity {
     @NotNull
     private Double destinationLongitude;
 
+    @NotNull
+    private String shippingAddress;
+
     private BigDecimal totalPrice;
 
     private String note;
