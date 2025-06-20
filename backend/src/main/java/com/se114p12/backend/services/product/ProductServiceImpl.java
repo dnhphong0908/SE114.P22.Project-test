@@ -15,6 +15,7 @@ import com.se114p12.backend.repositories.product.ProductRepository;
 import com.se114p12.backend.services.general.StorageService;
 import com.se114p12.backend.vo.PageVO;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -106,20 +107,30 @@ public class ProductServiceImpl implements ProductService {
 
   @Override
   public ProductResponseDTO update(Long id, ProductRequestDTO dto) {
-    Product existingProduct = productRepository.findById(id)
+    Product existingProduct =
+        productRepository
+            .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
-    existingProduct.setName((dto.getName() == null || dto.getName().isEmpty())
-            ? existingProduct.getName() : dto.getName());
+    existingProduct.setName(
+        (dto.getName() == null || dto.getName().isEmpty())
+            ? existingProduct.getName()
+            : dto.getName());
 
-    existingProduct.setShortDescription((dto.getShortDescription() == null || dto.getShortDescription().isEmpty())
-            ? existingProduct.getShortDescription() : dto.getShortDescription() );
+    existingProduct.setShortDescription(
+        (dto.getShortDescription() == null || dto.getShortDescription().isEmpty())
+            ? existingProduct.getShortDescription()
+            : dto.getShortDescription());
 
-    existingProduct.setDetailDescription((dto.getDetailDescription() == null || dto.getDetailDescription().isEmpty())
-            ? existingProduct.getDetailDescription() : dto.getDetailDescription());
+    existingProduct.setDetailDescription(
+        (dto.getDetailDescription() == null || dto.getDetailDescription().isEmpty())
+            ? existingProduct.getDetailDescription()
+            : dto.getDetailDescription());
 
-    existingProduct.setOriginalPrice((dto.getOriginalPrice() == null)
-            ? existingProduct.getOriginalPrice() : dto.getOriginalPrice());
+    existingProduct.setOriginalPrice(
+        (dto.getOriginalPrice() == null)
+            ? existingProduct.getOriginalPrice()
+            : dto.getOriginalPrice());
 
     existingProduct.setUpdatedAt(Instant.now());
 
@@ -172,7 +183,8 @@ public class ProductServiceImpl implements ProductService {
   public List<ProductResponseDTO> getRecommendedProducts() {
     List<Long> recommendedProductIds = recommendService.getRecommendProductIds();
 
-    List<Product> recommendedProducts = productRepository.findAllById(recommendedProductIds);
+    List<Product> recommendedProducts =
+        new ArrayList<>(productRepository.findAllById(recommendedProductIds));
 
     if (recommendedProducts.size() < 10) {
       Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
