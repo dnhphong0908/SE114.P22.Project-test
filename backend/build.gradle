@@ -8,6 +8,18 @@ bootJar {
     mainClass = 'com.se114p12.backend.BackendApplication'
 }
 
+// // fix neo4j issue with Java 23
+bootRun {
+  jvmArgs += [
+    "--add-opens=java.base/java.lang=ALL-UNNAMED"
+  ]
+}
+
+tasks.named("test") {
+    jvmArgs += "--add-opens=java.base/java.lang=ALL-UNNAMED"
+}
+
+
 group = 'com.se114-p12'
 version = '0.0.1-SNAPSHOT'
 
@@ -46,6 +58,7 @@ dependencies {
     implementation 'com.turkraft.springfilter:jpa:3.2.0'
     implementation 'com.google.api-client:google-api-client:2.7.2'
     implementation 'com.twilio.sdk:twilio:10.7.2'
+    implementation 'com.google.firebase:firebase-admin:9.5.0'
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     annotationProcessor 'org.projectlombok:lombok'

@@ -17,6 +17,12 @@ import com.se114p12.backend.enums.PaymentStatus;
 import com.se114p12.backend.exceptions.BadRequestException;
 import com.se114p12.backend.exceptions.ResourceNotFoundException;
 import com.se114p12.backend.mappers.order.OrderMapper;
+import com.se114p12.backend.neo4j.entities.BoughtWithRelationship;
+import com.se114p12.backend.neo4j.entities.OrderedRelationship;
+import com.se114p12.backend.neo4j.entities.ProductNode;
+import com.se114p12.backend.neo4j.entities.UserNode;
+import com.se114p12.backend.neo4j.repositories.ProductNeo4jRepository;
+import com.se114p12.backend.neo4j.repositories.UserNeo4jRepository;
 import com.se114p12.backend.repositories.authentication.UserRepository;
 import com.se114p12.backend.repositories.cart.CartItemRepository;
 import com.se114p12.backend.repositories.cart.CartRepository;
@@ -59,6 +65,8 @@ public class OrderServiceImpl implements OrderService {
   private final PromotionRepository promotionRepository;
   private final UserPromotionService userPromotionService;
 
+  private final UserNeo4jRepository userNeo4jRepository;
+  private final ProductNeo4jRepository productNeo4jRepository;
   private final MapService mapService;
 
   @Override
@@ -173,6 +181,7 @@ public class OrderServiceImpl implements OrderService {
     cart.getCartItems().clear();
     cartRepository.deleteById(cart.getId());
 
+    updateRecommend(order);
     return orderMapper.entityToResponseDTO(order);
   }
 
@@ -315,5 +324,80 @@ public class OrderServiceImpl implements OrderService {
               return variationName + ": " + values;
             })
         .collect(Collectors.joining(", "));
+  }
+
+  // ============================ NEO4J RECOMMEND SYSTEM ============================
+  private void updateRecommend(Order order) {
+    // Neo4j recommendation systemAdd commentMore actions
+
+    Long currentUserId = jwtUtil.getCurrentUserId();
+    // 1. User ordered products
+    UserNode userNode =
+        userNeo4jRepository
+            .findById(currentUserId)
+            .orElseGet(
+                () -> {
+                  UserNode newUser = new UserNode();
+                  newUser.setId(currentUserId);
+                  newUser.setOrderedProducts(new ArrayList<>());
+                  return newUser;
+                });
+
+    Map<Long, OrderedRelationship> orderedMap =
+        userNode.getOrderedProducts().stream()
+            .collect(Collectors.toMap(rel -> rel.getProductNode().getId(), rel -> rel));
+    Map<Long, ProductNode> productNodeMap = new HashMap<>();
+
+    for (OrderDetail detail : order.getOrderDetails()) {
+      Long productId = detail.getProductId();
+      ProductNode productNode =
+          productNeo4jRepository
+              .findById(productId)
+              .orElseGet(
+                  () -> {
+                    ProductNode newProductNode = new ProductNode();
+                    newProductNode.setId(productId);
+                    return productNeo4jRepository.save(newProductNode);
+                  });
+      productNodeMap.put(productId, productNode);
+
+      OrderedRelationship rel = orderedMap.get(productId);
+      if (rel != null) {
+        rel.setCount(rel.getCount() + detail.getQuantity());
+      } else {
+        OrderedRelationship newRel = new OrderedRelationship();
+        newRel.setProductNode(productNode);
+        newRel.setCount(detail.getQuantity());
+        userNode.getOrderedProducts().add(newRel);
+      }
+    }
+    userNeo4jRepository.save(userNode);
+
+    // 2.bought with relationship
+    List<ProductNode> productNodes = new ArrayList<>(productNodeMap.values());
+    int n = productNodes.size();
+    for (int i = 0; i < n; i++) {
+      for (int j = i + 1; j < n; j++) {
+        ProductNode p1 = productNodes.get(i);
+        ProductNode p2 = productNodes.get(j);
+
+        upsertBoughtWith(p1, p2);
+        upsertBoughtWith(p2, p1);
+      }
+    }
+    productNeo4jRepository.saveAll(productNodes);
+  }
+
+  private void upsertBoughtWith(ProductNode source, ProductNode target) {
+    for (BoughtWithRelationship rel : source.getCoPurchasedProducts()) {
+      if (rel.getProduct().getId().equals(target.getId())) {
+        rel.setCount(rel.getCount() + 1);
+        return;
+      }
+    }
+    BoughtWithRelationship newRel = new BoughtWithRelationship();
+    newRel.setProduct(target);
+    newRel.setCount(1L);
+    source.getCoPurchasedProducts().add(newRel);
   }
 }
