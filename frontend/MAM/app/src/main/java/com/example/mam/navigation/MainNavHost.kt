@@ -386,6 +386,17 @@ fun MainNavHost(
                         ) { address ->
                             viewModel.setAddress(address)
                         }
+                        navController.previousBackStackEntry?.savedStateHandle?.getLiveData<Double>("latitude")?.observe(
+                            backStackEntry
+                        ) { latitude ->
+                            viewModel.setLatitude(latitude)
+                        }
+                        navController.previousBackStackEntry?.savedStateHandle?.getLiveData<Double>("longitude")?.observe(
+                            backStackEntry
+                        ) { longitude ->
+                            viewModel.setLongitude(longitude)
+                            viewModel.setAdressAndCoordinates()
+                        }
                     },
                     viewModel = viewModel
                 )
@@ -399,8 +410,10 @@ fun MainNavHost(
             ){
                 MapScreen(
                     onBackClicked = {navController.popBackStack()},
-                    onSelectClicked = { address ->
+                    onSelectClicked = { address, latitude, longitude ->
                         navController.previousBackStackEntry?.savedStateHandle?.set("address", address)
+                        navController.previousBackStackEntry?.savedStateHandle?.set("latitude", latitude)
+                        navController.previousBackStackEntry?.savedStateHandle?.set("longitude", longitude)
                         navController.popBackStack()
                     },
                 )

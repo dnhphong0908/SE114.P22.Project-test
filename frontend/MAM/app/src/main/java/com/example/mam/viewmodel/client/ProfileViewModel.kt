@@ -139,7 +139,8 @@ class ProfileViewModel(
             Log.d("ME","Status logout code: ${response.code()}")
             if (response.isSuccessful){
                 userPreferencesRepository.saveAccessToken("","")
-                userPreferencesRepository.saveAddress("")
+                userPreferencesRepository.saveAddress("", 0.0, 0.0)
+
                 return 1
             }
             else {

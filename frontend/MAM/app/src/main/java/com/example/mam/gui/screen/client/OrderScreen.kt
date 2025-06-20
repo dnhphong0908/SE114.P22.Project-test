@@ -99,6 +99,9 @@ import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.client.CheckOutViewModel
 import com.example.mam.viewmodel.client.OrderViewModel
 import kotlinx.coroutines.launch
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun OrderScreen(
@@ -250,8 +253,14 @@ fun OrderScreen(
                         "PENDING" -> "Đơn hàng chờ được xác nhận"
                         "CONFIRMED" -> "Đơn hàng đã được tiếp nhận"
                         "PROCESSING" -> "Đơn hàng đang được chế biến"
-                        "SHIPPING" -> "Đơn hàng đang được giao tới bạn"
-                        "COMPLETED" -> "Đơn hàng đã được giao tới bạn"
+                        "SHIPPING" -> "Đơn hàng đang được giao tới bạn.\n Thời gian giao hàng dự kiến: " +
+                                Instant.parse(order.expectedDeliveryTime)
+                                    .atZone(ZoneId.systemDefault())
+                            .format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy"))
+                        "COMPLETED" -> "Đơn hàng đã được giao tới bạn.\n Thời gian giao hàng: " +
+                                Instant.parse(order.actualDeliveryTime)
+                                    .atZone(ZoneId.systemDefault())
+                            .format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy"))
                         "CANCELED" -> "Đơn hàng đã bị hủy"
                         else -> "Đơn hàng không xác định"
                     },
