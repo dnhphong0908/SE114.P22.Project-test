@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.Map;
 
 @Tag(name = "VNPAY Payment Module", description = "Endpoints for integrating VNPAY payment")
@@ -33,9 +34,9 @@ public class VnPayController {
             @ApiResponse(responseCode = "400", description = "Invalid input parameters", content = @Content)
     })
     @ErrorResponse
-    @GetMapping("/create-payment")
-    public ResponseEntity<JsonObject> createPayment(@RequestBody VnPayRequestDTO dto, HttpServletRequest req) throws Exception {
-        JsonObject response = vnPayService.createPaymentUrl(dto, req);
+    @PostMapping("/create-payment")
+    public ResponseEntity<Map<String, Object>> createPayment(@RequestBody VnPayRequestDTO dto, HttpServletRequest req) {
+        Map<String, Object> response = vnPayService.createPaymentUrl(dto, req);
         return ResponseEntity.ok(response);
     }
 
@@ -48,7 +49,7 @@ public class VnPayController {
     })
     @ErrorResponse
     @PostMapping("/ipn")
-    public ResponseEntity<Map<String, String>> handleIpn(@RequestParam Map<String, String> params) {
+    public ResponseEntity<Map<String, String>> handleIpn(@RequestBody Map<String, String> params) {
         Map<String, String> result = vnPayService.handleIpn(params);
         return ResponseEntity.ok(result);
     }
@@ -63,8 +64,13 @@ public class VnPayController {
     @ErrorResponse
     @GetMapping("/return")
     public String handleReturn(
-            @Parameter(description = "All return parameters from VnPay") @RequestParam Map<String, String> params
+            @Parameter(description = "All return parameters from VnPay") @RequestParam Map<String, String> params,
+            HttpServletRequest request
     ) {
+        request.getParameterMap().forEach((key, value) -> {
+            System.out.println("Param: " + key + "=" + Arrays.toString(value));
+        });
+
         String secureHash = params.get("vnp_SecureHash");
         boolean isValid = vnPayService.verifyPayment(params, secureHash);
 

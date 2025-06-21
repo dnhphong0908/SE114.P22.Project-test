@@ -23,7 +23,7 @@ public class VnPayService {
     private final VnPayConfig vnPayConfig;
     private final OrderRepository orderRepository;
 
-    public JsonObject createPaymentUrl(VnPayRequestDTO dto, HttpServletRequest req) {
+    public Map<String, Object> createPaymentUrl(VnPayRequestDTO dto, HttpServletRequest req) {
         String vnp_Version = "2.1.0";
         String vnp_Command = "pay";
         String vnp_TxnRef = dto.getTxnRef();
@@ -77,14 +77,14 @@ public class VnPayService {
             }
         }
 
-        String vnp_SecureHash = vnPayConfig.hmacSHA512(vnPayConfig.getVnp_HashSecret(), hashData.toString());
+        String vnp_SecureHash = VnPayConfig.hmacSHA512(vnPayConfig.getVnp_HashSecret(), hashData.toString());
         String queryUrl = query + "&vnp_SecureHash=" + vnp_SecureHash;
         String paymentUrl = vnPayConfig.getVnp_PayUrl() + "?" + queryUrl;
 
-        JsonObject job = new JsonObject();
-        job.addProperty("code", "00");
-        job.addProperty("message", "success");
-        job.addProperty("data", paymentUrl);
+        Map<String, Object> job = new HashMap<>();
+        job.put("code", "00");
+        job.put("message", "success");
+        job.put("data", paymentUrl);
 
         return job;
     }
@@ -107,7 +107,7 @@ public class VnPayService {
                 hashData.append("&");
         }
 
-        String calculatedHash = vnPayConfig.hmacSHA512(hashSecret, hashData.toString());
+        String calculatedHash = VnPayConfig.hmacSHA512(hashSecret, hashData.toString());
         return calculatedHash.equalsIgnoreCase(vnpSecureHash);
     }
 

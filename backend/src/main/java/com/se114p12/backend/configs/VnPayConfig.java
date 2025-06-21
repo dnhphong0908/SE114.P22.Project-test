@@ -34,18 +34,19 @@ public class VnPayConfig {
         return ip;
     }
 
-    public String hmacSHA512(String key, String data) {
+    public static String hmacSHA512(String key, String data) {
         try {
             Mac hmac = Mac.getInstance("HmacSHA512");
-            SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
-            hmac.init(secretKeySpec);
-            byte[] bytes = hmac.doFinal(data.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hash = new StringBuilder();
-            for (byte b : bytes)
-                hash.append(String.format("%02x", b));
-            return hash.toString();
+            SecretKeySpec secretKey = new SecretKeySpec(key.getBytes(StandardCharsets.UTF_8), "HmacSHA512");
+            hmac.init(secretKey);
+            byte[] hashBytes = hmac.doFinal(data.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder(hashBytes.length * 2);
+            for (byte b : hashBytes) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
         } catch (Exception e) {
-            throw new RuntimeException("Lỗi tạo chữ ký HMAC", e);
+            throw new IllegalStateException("Failed to generate HMAC SHA512 signature", e);
         }
     }
 }
