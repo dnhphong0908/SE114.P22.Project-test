@@ -96,6 +96,7 @@ class SignInViewModel(
                 }
                 Log.d("LOGIN", "AccessToken: ${token?.accessToken}")
                 Log.d("LOGIN", "RefreshToken: ${token?.refreshToken}")
+                Log.d("LOGIN", "User: ${_me.value}")
                 // Lưu access token và refresh token vào DataStore
                 userPreferencesRepository.saveAccessToken(token?.accessToken ?: "", token?.refreshToken ?:"")
                 Log.d("LOGIN", "DSAccessToken: ${accessToken.first()}")

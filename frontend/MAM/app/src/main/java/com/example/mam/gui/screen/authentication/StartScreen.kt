@@ -68,12 +68,16 @@ fun StartScreen(
     val scrollState = rememberScrollState()
 
     var phoneNumber by remember { mutableStateOf("") }
+    var idToken by remember { mutableStateOf("") }
 
     val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
         GoogleSignInUtils.getGoogleIdToken(
             context = context,
             scope = scope,
             launcher = null,
+            handle = { token ->
+                idToken = token
+            }
         )
 
     }
@@ -116,29 +120,32 @@ fun StartScreen(
                 viewModel = viewModel,
                 onDismiss = { isGoogleRegister = false },
                 onConfirm = {
-                    val idToken = GoogleSignInUtils.getGoogleIdToken(
+                    GoogleSignInUtils.getGoogleIdToken(
                         context = context,
                         scope = scope,
-                        launcher = launcher
-                    )
-                    scope.launch {
-                        val result = viewModel.RegisterWithFireBase(idToken)
-                        if (result == 1) {
-                            onGGSignUpClicked()
-                            Toast.makeText(
-                                context,
-                                "Đăng ký thành công",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            isGoogleRegister = false
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Đăng ký thất bại",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                        launcher = launcher,
+                        handle = { token ->
+                            idToken = token
+                            scope.launch {
+                                val result = viewModel.RegisterWithFireBase(idToken)
+                                if (result == 1) {
+                                    onGGSignUpClicked()
+                                    Toast.makeText(
+                                        context,
+                                        "Đăng ký thành công",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    isGoogleRegister = false
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Đăng ký thất bại",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
                         }
-                    }
+                    )
                 },
             )
         }
@@ -188,6 +195,7 @@ fun StartScreen(
                     color = WhiteDefault,
                     textColor = BrownDefault,
                     onClick = {
+
                         isGoogleRegister =true
                     },
                     modifier = Modifier

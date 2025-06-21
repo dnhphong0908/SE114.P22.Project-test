@@ -31,15 +31,14 @@ class GoogleSignInUtils {
             context: Context,
             scope: CoroutineScope,
             launcher: ManagedActivityResultLauncher<Intent, ActivityResult>?,
-        ): String {
+            handle: (String) -> Unit = {}
+        ){
             val credentialManager = CredentialManager.create(context)
-            var idToken = ""
             val request = GetCredentialRequest.Builder()
                 .addCredentialOption(getCredentialOptions(context))
                 .build()
             scope.launch {
                 try {
-
                     val result = credentialManager.getCredential(context,request)
                     when(result.credential){
                         is CustomCredential ->{
@@ -55,7 +54,8 @@ class GoogleSignInUtils {
                                         Log.d("GoogleSignIn", "User Name: ${it.displayName}")
                                         Log.d("GoogleSignIn", "User Photo URL: ${it.photoUrl}")
                                         Log.d("GoogleSignIn", "User ID Token: ${it.getIdToken(true).await().token}")
-                                        idToken = it.getIdToken(true).await().token ?: ""
+                                        val idToken = it.getIdToken(true).await().token ?: ""
+                                        handle.invoke(idToken)
                                     }
                                 }
                             }
@@ -70,7 +70,6 @@ class GoogleSignInUtils {
                     e.printStackTrace()
                 }
             }
-            return idToken
         }
 
         suspend fun getGoogleIdToken(

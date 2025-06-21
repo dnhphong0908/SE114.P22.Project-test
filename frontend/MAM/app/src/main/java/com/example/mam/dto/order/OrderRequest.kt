@@ -6,5 +6,5 @@ data class OrderRequest(
     val shippingAddress: String = "",
     val note: String ?= null,
     val paymentMethod: String = "",
-    val promotionCodeId: Long ?= null,
+    val promotionId: Long ?= null,
 )

@@ -79,6 +79,9 @@ fun SignInScreen(
             context = context,
             scope = scope,
             launcher = null,
+            handle = { token ->
+
+            }
         )
 
     }
@@ -262,53 +265,56 @@ fun SignInScreen(
             OuterShadowFilledButton(
                 text = "Đăng nhập với Google",
                 onClick = {
-                    val idToken = GoogleSignInUtils.getGoogleIdToken(
+                   GoogleSignInUtils.getGoogleIdToken(
                         context = context,
                         scope = scope,
                         launcher = launcher,
-                    )
-                    scope.launch {
-                        val result = viewModel.signInWithFirebase(idToken)
-                        if (result == 2) {
-                            Toast.makeText(
-                                context,
-                                "Đăng nhập thành công",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            onSignInClicked()
+                        handle = { idToken ->
+                            scope.launch {
+                                val result = viewModel.signInWithFirebase(idToken)
+                                if (result == 2) {
+                                    Toast.makeText(
+                                        context,
+                                        "Đăng nhập thành công",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    onSignInClicked()
 
-                        } else if (result == 1) {
-                            Toast.makeText(
-                                context,
-                                "Đăng nhập thành công",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            onSignInManager()
-                        } else if (result == -1) {
-                            Toast.makeText(
-                                context,
-                                "Tài khoản của bạn đã bị xóa",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            isShowDeletedDialog = true
-                        } else if (result == -2) {
-                            Toast.makeText(
-                                context,
-                                "Tài khoản của bạn đã bị khóa",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            isShowBlockedDialog = true
-                        } else if (result == -3) {
-                            isShowPendingDialog = true
+                                } else if (result == 1) {
+                                    Toast.makeText(
+                                        context,
+                                        "Đăng nhập thành công",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    onSignInManager()
+                                } else if (result == -1) {
+                                    Toast.makeText(
+                                        context,
+                                        "Tài khoản của bạn đã bị xóa",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    isShowDeletedDialog = true
+                                } else if (result == -2) {
+                                    Toast.makeText(
+                                        context,
+                                        "Tài khoản của bạn đã bị khóa",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                    isShowBlockedDialog = true
+                                } else if (result == -3) {
+                                    isShowPendingDialog = true
+                                }
+                                else {
+                                    Toast.makeText(
+                                        context,
+                                        "Đăng nhập thất bại",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
                         }
-                        else {
-                            Toast.makeText(
-                                context,
-                                "Đăng nhập thất bại",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
+
+                    )
                 },
                 color = WhiteDefault,
                 textColor = BrownDefault,

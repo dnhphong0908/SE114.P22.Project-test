@@ -54,7 +54,7 @@ class StartViewModel(
                 val user = response.body()
                 return 1
             } else {
-                Log.d("FIREBASE", "Status Code: $statusCode")
+                Log.d("FIREBASE", "Status error: ${response.errorBody()?.string()}")
                 return 0
             }
         } catch (e: Exception) {

@@ -77,7 +77,6 @@ class CartViewModel(
                 cartItemRequest = CartItemRequest(
                     productId = item.productId,
                     quantity = item.quantity + 1,
-                    price = item.price,
                     variationOptionIds = item.variationOptionIds
                 )
             )
@@ -106,7 +105,6 @@ class CartViewModel(
                 cartItemRequest = CartItemRequest(
                     productId = item.productId,
                     quantity = if (item.quantity > 1) item.quantity - 1 else 1,
-                    price = item.price,
                     variationOptionIds = item.variationOptionIds
                 )
             )

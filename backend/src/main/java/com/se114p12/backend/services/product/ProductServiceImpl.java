@@ -184,9 +184,7 @@ public class ProductServiceImpl implements ProductService {
     List<Long> recommendedProductIds = recommendService.getRecommendProductIds();
     System.out.println(recommendedProductIds);
     List<Product> recommendedProducts = new ArrayList<>(productRepository.findAllById(recommendedProductIds));
-
-    List<Product> recommendedProducts =
-        new ArrayList<>(productRepository.findAllById(recommendedProductIds));
+    System.out.println(recommendedProducts.stream().map(v->v.getId()).toList());
 
     if (recommendedProducts.size() < 10) {
       Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -194,7 +192,7 @@ public class ProductServiceImpl implements ProductService {
       recommendedProducts.addAll(
           additional.stream()
               .filter(product -> !recommendedProductIds.contains(product.getId()))
-              .limit(5 - recommendedProducts.size())
+              .limit(10 - recommendedProducts.size())
               .toList());
     }
 

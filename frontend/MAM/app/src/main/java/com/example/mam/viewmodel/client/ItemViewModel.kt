@@ -163,12 +163,10 @@ class ItemViewModel(
         try {
             val basePrice = _item.value.originalPrice
             val additionalPrice = _selectedOptions.value.sumOf { it.additionalPrice }
-            val itemTotal = basePrice.plus(additionalPrice.toBigDecimal())
             Log.d("ItemViewModel", "Adding item to cart: ${_item.value.name}, Quantity: ${_quantity.value}")
             val request = CartItemRequest(
                 productId = _item.value.id,
                 quantity = _quantity.value.toLong(),
-                price = itemTotal,
                 variationOptionIds = _selectedOptions.value.map { it.id }.toSet()
             )
             Log.d("ItemViewModel", "CartItemRequest: $request")
