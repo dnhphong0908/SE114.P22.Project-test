@@ -874,21 +874,6 @@ fun MainNavHost(
                 )
             }
             composable(
-                route = "AddUser",
-                enterTransition = defaultTransitions(),
-                exitTransition = defaultExitTransitions(),
-                popEnterTransition = defaultPopEnterTransitions(),
-                popExitTransition = defaultPopExitTransitions()
-            ) { backStackEntry ->
-                val viewModel: ManageUserViewModel = viewModel(backStackEntry, factory = ManageUserViewModel.Factory)
-                ManageUserScreen(
-                    viewModel = viewModel,
-                    onBackClick = {navController.popBackStack()},
-                    isAdd = true,
-                    isEdit = false,
-                )
-            }
-            composable(
                 route = "EditUser/{userId}",
                 arguments = listOf(navArgument("userId") { type = NavType.LongType }),
                 enterTransition = defaultTransitions(),
@@ -900,7 +885,6 @@ fun MainNavHost(
                 ManageUserScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
-                    isAdd = false,
                     isEdit = true,
                 )
             }
@@ -916,7 +900,6 @@ fun MainNavHost(
                 ManageUserScreen(
                     viewModel = viewModel,
                     onBackClick = {navController.popBackStack()},
-                    isAdd = false,
                     isEdit = false,
                 )
             }

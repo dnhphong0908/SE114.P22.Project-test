@@ -237,6 +237,7 @@ public class UserServiceImpl implements UserService {
   public void updateUserStatus(Long id, UserStatus status) {
     User user = findUserById(id);
     user.setStatus(status);
+    userRepository.save(user);
   }
 
   // Private helper methods
