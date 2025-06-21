@@ -64,6 +64,19 @@ class CartViewModel(
 
     suspend fun loadAdditionalProduct(){
         try {
+            val response = BaseRepository(userPreferencesRepository).productRepository.getRecommendedProducts()
+            Log.d("CartViewModel", "Response Code: ${response.code()}")
+            if (response.isSuccessful) {
+                val products = response.body()
+                if (products != null) {
+                    _recommendedProducts.value = products
+                    Log.d("CartViewModel", "Recommended products loaded: ${_recommendedProducts.value.size} items")
+                } else {
+                    Log.d("CartViewModel", "No recommended products found")
+                }
+            } else {
+                Log.d("CartViewModel", "Failed to load recommended products: ${response.errorBody()?.string()}")
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             Log.d("CartViewModel", "Failed to load additional products: ${e.message}")

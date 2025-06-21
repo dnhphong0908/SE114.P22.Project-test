@@ -117,6 +117,7 @@ fun HomeScreen(
     }
     LaunchedEffect(LocalLifecycleOwner.current) {
         viewmodel.loadListCategory()
+        viewmodel.loadAdditionalProduct()
     }
     LaunchedEffect(key1 = categories, key2 = LocalLifecycleOwner.current) {
         if(categories.isNotEmpty() && productMap.isEmpty()){
@@ -251,6 +252,18 @@ fun HomeScreen(
                             Spacer(Modifier.width(5.dp))
                         }
                     }
+                }
+                item{
+                    ProductContainer(
+                        category = CategoryResponse(
+                            name = "Đề xuất",
+                            description = "Danh sách sản phẩm đề xuất",
+                            imageUrl = "https://em-content.zobj.net/source/apple/81/glowing-star_1f31f.png"
+                        ),
+                        products = viewmodel.recommendedProducts.collectAsState().value,
+                        onClick = { product -> onItemClicked(product) },
+                        modifier = Modifier.fillMaxWidth(0.9f)
+                    )
                 }
                 items(categories) { category ->
                     val products = productMap[category.id] ?: emptyList()

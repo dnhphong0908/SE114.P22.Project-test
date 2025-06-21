@@ -14,6 +14,7 @@ import com.example.mam.dto.user.UserResponse
 import com.example.mam.repository.BaseRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 
 class HomeScreenViewModel(
@@ -25,6 +26,29 @@ class HomeScreenViewModel(
     private val _listCategory = MutableStateFlow<MutableList<CategoryResponse>>(mutableListOf())
     private val _listProduct = MutableStateFlow<MutableList<ProductResponse>>(mutableListOf())
     private val _user = MutableStateFlow<UserResponse>(UserResponse())
+
+    private val _recommendedProducts = MutableStateFlow<List<ProductResponse>>(emptyList())
+    val recommendedProducts = _recommendedProducts.asStateFlow()
+    suspend fun loadAdditionalProduct(){
+        try {
+            val response = BaseRepository(userPreferencesRepository).productRepository.getRecommendedProducts()
+            Log.d("CartViewModel", "Response Code: ${response.code()}")
+            if (response.isSuccessful) {
+                val products = response.body()
+                if (products != null) {
+                    _recommendedProducts.value = products
+                    Log.d("CartViewModel", "Recommended products loaded: ${_recommendedProducts.value.size} items")
+                } else {
+                    Log.d("CartViewModel", "No recommended products found")
+                }
+            } else {
+                Log.d("CartViewModel", "Failed to load recommended products: ${response.errorBody()?.string()}")
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            Log.d("CartViewModel", "Failed to load additional products: ${e.message}")
+        }
+    }
 
     private val _productMap = MutableStateFlow<Map<Long, List<ProductResponse>>>(emptyMap())
     val productMap: StateFlow<Map<Long, List<ProductResponse>>> = _productMap

@@ -12,6 +12,7 @@ import com.example.mam.data.Constant
 import com.example.mam.data.UserPreferencesRepository
 import com.example.mam.dto.cart.CartResponse
 import com.example.mam.dto.order.OrderRequest
+import com.example.mam.dto.product.ProductResponse
 import com.example.mam.dto.promotion.PromotionResponse
 import com.example.mam.dto.user.UserResponse
 import com.example.mam.repository.BaseRepository
@@ -51,6 +52,7 @@ class CheckOutViewModel(
         mutableListOf(
         )
     )
+
     val discountList = _discountList.asStateFlow()
 
     private val _note = MutableStateFlow<String?>(null)
