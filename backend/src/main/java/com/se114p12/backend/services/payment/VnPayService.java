@@ -107,7 +107,7 @@ public class VnPayService {
                 hashData.append("&");
         }
 
-        String calculatedHash = vnPayConfig.hmacSHA512(hashSecret, hashData.toString());
+        String calculatedHash = VnPayConfig.hmacSHA512(hashSecret, hashData.toString());
         return calculatedHash.equalsIgnoreCase(vnpSecureHash);
     }
 
