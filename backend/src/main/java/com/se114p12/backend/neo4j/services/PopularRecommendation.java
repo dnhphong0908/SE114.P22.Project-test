@@ -1,5 +1,6 @@
 package com.se114p12.backend.neo4j.services;
 
+import com.se114p12.backend.neo4j.enums.RecommendationSource;
 import com.se114p12.backend.neo4j.repositories.ProductNeo4jRepository;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -7,15 +8,17 @@ import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
-public class GeneralRecommendation {
+public class PopularRecommendation implements RecommendationStrategy {
 
   private final ProductNeo4jRepository productRepository;
 
-  public List<Long> getRecommendedProductIds() {
-    return productRepository.findGeneralRecommended();
+  @Override
+  public List<Long> getRecommendedProductIds(Long userId) {
+    return productRepository.findPopularProducts();
   }
 
+  @Override
   public Double getScore() {
-    return 0.0; // General recommendations have a default score
+    return RecommendationSource.POPULAR.getScore();
   }
 }
