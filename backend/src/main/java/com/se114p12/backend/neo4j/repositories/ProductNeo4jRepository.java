@@ -49,7 +49,7 @@ public interface ProductNeo4jRepository extends Neo4jRepository<ProductNode, Lon
   @Query(
       "MATCH (u1:UserNode {id: $userId})-[:ORDERED]->(p:ProductNode)<-[:ORDERED]-(u2:UserNode) "
           + "WHERE u2.id <> $userId "
-          + "MATCH (u2)-[o:ORDERED]->(recommended:ProductNode)<-[:BOUTH_WITH]-(p) "
+          + "MATCH (u2)-[o:ORDERED]->(recommended:ProductNode)<-[:BOUGHT_WITH]-(p) "
           + "WHERE NOT (u1)-[:ORDERED]->(recommended) "
           + "WITH recommended, count(*) AS score "
           + "RETURN recommended.id ORDER BY score DESC LIMIT 5")

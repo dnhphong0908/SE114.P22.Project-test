@@ -15,9 +15,11 @@ import com.se114p12.backend.repositories.product.ProductRepository;
 import com.se114p12.backend.services.general.StorageService;
 import com.se114p12.backend.vo.PageVO;
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -182,9 +184,16 @@ public class ProductServiceImpl implements ProductService {
   @Override
   public List<ProductResponseDTO> getRecommendedProducts() {
     List<Long> recommendedProductIds = recommendService.getRecommendProductIds();
-    System.out.println(recommendedProductIds);
-    List<Product> recommendedProducts = new ArrayList<>(productRepository.findAllById(recommendedProductIds));
-    System.out.println(recommendedProducts.stream().map(v->v.getId()).toList());
+
+    Map<Long, Product> productMap =
+        productRepository.findAllById(recommendedProductIds).stream()
+            .collect(Collectors.toMap(Product::getId, product -> product));
+
+    List<Product> recommendedProducts =
+        recommendedProductIds.stream()
+            .map(productMap::get)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toList());
 
     if (recommendedProducts.size() < 10) {
       Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
