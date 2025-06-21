@@ -25,7 +25,7 @@ public class Variation extends BaseEntity {
   private String name;
 
   @OneToMany(mappedBy = "variation", cascade = CascadeType.ALL, orphanRemoval = true)
-  private List<VariationOption> options = new ArrayList<>();
+  private List<VariationOption> variationOptions = new ArrayList<>();
 
   private Boolean isMultipleChoice;
 }
