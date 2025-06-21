@@ -47,7 +47,6 @@ public class UserServiceImpl implements UserService {
   private final PasswordEncoder passwordEncoder;
   private final UserRepository userRepository;
   private final RoleRepository roleRepository;
-  private final CartRepository cartRepository;
   private final JwtUtil jwtUtil;
   private final VerificationService verificationService;
   private final MailService mailService;
@@ -223,13 +222,13 @@ public class UserServiceImpl implements UserService {
   @Override
   public void assignRoleToUser(Long userId, Long roleId) {
     User user =
-        userRepository
-            .findById(userId)
-            .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+            userRepository
+                    .findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     Role role =
-        roleRepository
-            .findById(roleId)
-            .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
+            roleRepository
+                    .findById(roleId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
     user.setRole(role);
     userRepository.save(user);
   }
@@ -238,7 +237,6 @@ public class UserServiceImpl implements UserService {
   public void updateUserStatus(Long id, UserStatus status) {
     User user = findUserById(id);
     user.setStatus(status);
-    userRepository.save(user);
   }
 
   // Private helper methods
