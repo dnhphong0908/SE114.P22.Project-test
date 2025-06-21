@@ -28,9 +28,9 @@ public class Product extends BaseEntity {
   @JsonBackReference
   private ProductCategory category;
 
-  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+  @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
   @JsonManagedReference
-  private List<Variation> variations;
+  private List<Variation> variations = new ArrayList<>();
 
   @Column(nullable = false, length = 255)
   @NotBlank

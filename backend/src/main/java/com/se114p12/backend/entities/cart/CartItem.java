@@ -6,7 +6,7 @@ import com.se114p12.backend.entities.product.Product;
 import com.se114p12.backend.entities.variation.VariationOption;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
 
@@ -30,7 +30,7 @@ public class CartItem extends BaseEntity {
       name = "cart_item_variation_options",
       joinColumns = @JoinColumn(name = "cart_item_id"),
       inverseJoinColumns = @JoinColumn(name = "variation_option_id"))
-  private Set<VariationOption> variationOptions;
+  private Set<VariationOption> variationOptions = new HashSet<>();
 
   private Boolean available = true;
 }
