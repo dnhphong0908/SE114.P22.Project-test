@@ -203,7 +203,7 @@ public class UserServiceImpl implements UserService {
     User user = new User();
     user.setEmail(payload.getEmail());
     user.setFullname(payload.getName());
-    user.setUsername(UUID.randomUUID().toString());
+    user.setUsername(payload.getEmail());
     if (!smsService.lookupPhoneNumber(firebaseRegisterRequestDTO.getPhoneNumber())) {
       throw new BadRequestException("Invalid phone number");
     }
