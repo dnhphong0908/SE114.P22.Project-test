@@ -50,6 +50,9 @@ public class Order extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private PaymentStatus paymentStatus;
 
+    @Column(name = "txn_ref", unique = true)
+    private String txnRef;
+
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;

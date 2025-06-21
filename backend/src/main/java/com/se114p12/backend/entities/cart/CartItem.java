@@ -25,8 +25,6 @@ public class CartItem extends BaseEntity {
 
   @NotNull private Long quantity;
 
-  @NotNull private BigDecimal price;
-
   @ManyToMany
   @JoinTable(
       name = "cart_item_variation_options",

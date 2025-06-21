@@ -135,6 +135,7 @@ public class OrderServiceImpl implements OrderService {
     order.setPaymentMethod(orderRequestDTO.getPaymentMethod());
     order.setOrderStatus(OrderStatus.PENDING);
     order.setPaymentStatus(PaymentStatus.PENDING);
+    order.setTxnRef(UUID.randomUUID().toString().replace("-", "").substring(0, 8));
 
     order.setOrderDetails(new ArrayList<>());
     order.setActualDeliveryTime(null); // sẽ được cập nhật bởi khách
@@ -150,7 +151,7 @@ public class OrderServiceImpl implements OrderService {
       orderDetail.setProductImage(product.getImageUrl());
       orderDetail.setQuantity(cartItem.getQuantity());
       orderDetail.setVariationInfo(extractVariationInfo(cartItem));
-      orderDetail.setPrice(cartItem.getPrice());
+      orderDetail.setPrice(product.getOriginalPrice());
       orderDetail.setCategoryId(product.getCategory().getId());
       orderDetail.setCategoryName(product.getCategory().getName());
       totalPrice =

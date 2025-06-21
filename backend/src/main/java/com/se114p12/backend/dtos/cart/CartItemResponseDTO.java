@@ -9,7 +9,6 @@ import lombok.Data;
 public class CartItemResponseDTO extends BaseResponseDTO {
   private Long cartId;
   private Long quantity;
-  private BigDecimal price;
 
   private Long productId;
   private String productName;
