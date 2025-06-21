@@ -8,6 +8,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.authentication.FirebaseLoginRequest
 import com.example.mam.dto.authentication.SendVerifyEmailRequest
 import com.example.mam.dto.authentication.SignInRequest
 import com.example.mam.dto.user.UserResponse
@@ -76,6 +77,42 @@ class SignInViewModel(
             }
         } catch (e: Exception) {
             Log.e("LOGIN", "Lỗi khi đăng nhập: ${e.message}")
+            return 0
+        }
+    }
+
+    suspend fun signInWithFirebase(idToken: String): Int {
+        try {
+            val request = FirebaseLoginRequest(idToken)
+            // Gọi service đăng nhập với Firebase
+            val response = BaseRepository(userPreferencesRepository).authPublicRepository.loginFirebase(request)
+            val statusCode = response.code()
+            Log.d("LOGIN", "Status Code: $statusCode")
+
+            if (response.isSuccessful) {
+                val token = response.body()
+                if (token != null) {
+                    _me.value = token.user
+                }
+                Log.d("LOGIN", "AccessToken: ${token?.accessToken}")
+                Log.d("LOGIN", "RefreshToken: ${token?.refreshToken}")
+                // Lưu access token và refresh token vào DataStore
+                userPreferencesRepository.saveAccessToken(token?.accessToken ?: "", token?.refreshToken ?:"")
+                Log.d("LOGIN", "DSAccessToken: ${accessToken.first()}")
+                Log.d("LOGIN", "DSRefreshToken: ${refreshToken.first()}")
+
+                return if (_me.value.status == "DELETED") -1
+                else if (_me.value.status == "BLOCKED") -2
+                else if (_me.value.status == "PENDING") -3
+                else if (_me.value.role.name == "ADMIN") 1
+                else if (_me.value.role.name == "USER") 2
+                else 0
+            } else {
+                Log.e("LOGIN", "Đăng nhập thất bại với mã lỗi: ${response.errorBody()?.string()}")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.e("LOGIN", "Lỗi khi đăng nhập với Firebase: ${e.message}")
             return 0
         }
     }

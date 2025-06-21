@@ -18,25 +18,28 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import kotlin.coroutines.resume
+import kotlin.coroutines.suspendCoroutine
 
 class GoogleSignInUtils {
 
     companion object {
-        fun doGoogleSignIn(
+        fun getGoogleIdToken(
             context: Context,
             scope: CoroutineScope,
             launcher: ManagedActivityResultLauncher<Intent, ActivityResult>?,
-            login: () -> Unit
-        ) {
+        ): String {
             val credentialManager = CredentialManager.create(context)
-
+            var idToken = ""
             val request = GetCredentialRequest.Builder()
                 .addCredentialOption(getCredentialOptions(context))
                 .build()
             scope.launch {
                 try {
+
                     val result = credentialManager.getCredential(context,request)
                     when(result.credential){
                         is CustomCredential ->{
@@ -52,7 +55,7 @@ class GoogleSignInUtils {
                                         Log.d("GoogleSignIn", "User Name: ${it.displayName}")
                                         Log.d("GoogleSignIn", "User Photo URL: ${it.photoUrl}")
                                         Log.d("GoogleSignIn", "User ID Token: ${it.getIdToken(true).await().token}")
-                                        login.invoke()
+                                        idToken = it.getIdToken(true).await().token ?: ""
                                     }
                                 }
                             }
@@ -67,7 +70,50 @@ class GoogleSignInUtils {
                     e.printStackTrace()
                 }
             }
+            return idToken
         }
+
+        suspend fun getGoogleIdToken(
+            context: Context,
+            launcher: ManagedActivityResultLauncher<Intent, ActivityResult>?
+        ): String = suspendCoroutine { continuation ->
+            val credentialManager = CredentialManager.create(context)
+            val request = GetCredentialRequest.Builder()
+                .addCredentialOption(getCredentialOptions(context))
+                .build()
+
+            CoroutineScope(Dispatchers.Main).launch {
+                try {
+                    val result = credentialManager.getCredential(context, request)
+                    when (val credential = result.credential) {
+                        is CustomCredential -> {
+                            if (credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                                val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                                val googleTokenId = googleIdTokenCredential.idToken
+                                val authCredential = GoogleAuthProvider.getCredential(googleTokenId, null)
+                                val user = Firebase.auth.signInWithCredential(authCredential).await().user
+
+                                val idToken = user?.getIdToken(true)?.await()?.token
+                                continuation.resume(idToken ?: "")
+                            } else {
+                                continuation.resume("")
+                            }
+                        }
+
+                        else -> {
+                            continuation.resume("")
+                        }
+                    }
+                } catch (e: NoCredentialException) {
+                    launcher?.launch(getIntent())
+                    continuation.resume("")
+                } catch (e: GetCredentialException) {
+                    e.printStackTrace()
+                    continuation.resume("")
+                }
+            }
+        }
+
 
         private fun getIntent(): Intent {
             return Intent(Settings.ACTION_ADD_ACCOUNT).apply {

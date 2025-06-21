@@ -1,7 +1,6 @@
 package com.example.mam.gui.screen.authentication
 
 import android.annotation.SuppressLint
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,7 +44,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mam.GoogleSignInUtils
 import com.example.mam.R
-import com.example.mam.dto.authentication.SendVerifyEmailRequest
 import com.example.mam.gui.component.CircleIconButton
 import com.example.mam.gui.component.CustomDialog
 import com.example.mam.gui.component.EditField
@@ -60,12 +58,7 @@ import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.authentication.SignInViewModel
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
-import com.google.android.gms.common.api.ApiException
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun SignInScreen(
@@ -82,13 +75,10 @@ fun SignInScreen(
     val context = LocalContext.current
 
     val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
-        GoogleSignInUtils.doGoogleSignIn(
+        GoogleSignInUtils.getGoogleIdToken(
             context = context,
             scope = scope,
             launcher = null,
-            login = {
-                Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
-            }
         )
 
     }
@@ -272,14 +262,53 @@ fun SignInScreen(
             OuterShadowFilledButton(
                 text = "Đăng nhập với Google",
                 onClick = {
-                    GoogleSignInUtils.doGoogleSignIn(
+                    val idToken = GoogleSignInUtils.getGoogleIdToken(
                         context = context,
                         scope = scope,
                         launcher = launcher,
-                        login = {
-                            Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
-                        }
                     )
+                    scope.launch {
+                        val result = viewModel.signInWithFirebase(idToken)
+                        if (result == 2) {
+                            Toast.makeText(
+                                context,
+                                "Đăng nhập thành công",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onSignInClicked()
+
+                        } else if (result == 1) {
+                            Toast.makeText(
+                                context,
+                                "Đăng nhập thành công",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            onSignInManager()
+                        } else if (result == -1) {
+                            Toast.makeText(
+                                context,
+                                "Tài khoản của bạn đã bị xóa",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            isShowDeletedDialog = true
+                        } else if (result == -2) {
+                            Toast.makeText(
+                                context,
+                                "Tài khoản của bạn đã bị khóa",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            isShowBlockedDialog = true
+                        } else if (result == -3) {
+                            isShowPendingDialog = true
+                        }
+                        else {
+                            Toast.makeText(
+                                context,
+                                "Đăng nhập thất bại",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
                 },
                 color = WhiteDefault,
                 textColor = BrownDefault,

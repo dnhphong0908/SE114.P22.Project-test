@@ -8,8 +8,11 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
 import com.example.mam.data.UserPreferencesRepository
+import com.example.mam.dto.authentication.FirebaseLoginRequest
+import com.example.mam.dto.authentication.FirebaseRegisterRequest
 import com.example.mam.dto.authentication.RefreshTokenRequest
 import com.example.mam.repository.BaseRepository
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
@@ -18,6 +21,47 @@ class StartViewModel(
 ): ViewModel() {
     private val accessToken = userPreferencesRepository.accessToken.map { it }
     private val refreshToken = userPreferencesRepository.refreshToken.map { it }
+
+    private val _phoneNumber = MutableStateFlow("")
+    val phoneNumber = _phoneNumber
+
+
+    fun setPhoneNumber(it: String) {
+        _phoneNumber.value = it
+    }
+
+    fun isPhoneNumberValid(): Boolean {
+        val phoneNumber = _phoneNumber.value
+        val regex = "^0\\d{9}$".toRegex()
+        return regex.matches(phoneNumber)
+    }
+
+    suspend fun RegisterWithFireBase(idToken: String): Int {
+        Log.d("FIREBASE", "ID Token: $idToken")
+        if (idToken.isEmpty()) {
+            Log.d("FIREBASE", "No ID token found, returning 0")
+            return 0
+        }
+        try {
+            val response = BaseRepository(userPreferencesRepository).authPublicRepository.registerFirebase(
+                FirebaseRegisterRequest(
+                    idToken = idToken,
+                    phoneNumber = _phoneNumber.value)
+            )
+            val statusCode = response.code()
+            Log.d("FIREBASE", "Status Code: $statusCode")
+            if (response.isSuccessful) {
+                val user = response.body()
+                return 1
+            } else {
+                Log.d("FIREBASE", "Status Code: $statusCode")
+                return 0
+            }
+        } catch (e: Exception) {
+            Log.e("FIREBASE", "Lỗi khi đăng nhập bằng Firebase: ${e.message}")
+            return 0
+        }
+    }
 
     suspend fun getAccessToken(): Int {
         Log.d("REFRESH", "DSRefreshToken: ${refreshToken.first()}")
