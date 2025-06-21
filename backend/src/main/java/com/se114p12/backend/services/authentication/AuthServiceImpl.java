@@ -127,6 +127,7 @@ public class AuthServiceImpl implements AuthService {
     AuthResponseDTO authenticationResponseDTO = new AuthResponseDTO();
     authenticationResponseDTO.setAccessToken(accessToken);
     authenticationResponseDTO.setRefreshToken(refreshToken);
+    authenticationResponseDTO.setUser(userMapper.entityToResponse(user));
     return authenticationResponseDTO;
   }
 
