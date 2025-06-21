@@ -18,6 +18,7 @@ import com.se114p12.backend.exceptions.BadRequestException;
 import com.se114p12.backend.exceptions.ResourceNotFoundException;
 import com.se114p12.backend.mappers.order.OrderMapper;
 import com.se114p12.backend.neo4j.entities.BoughtWithRelationship;
+import com.se114p12.backend.neo4j.entities.CategoryNode;
 import com.se114p12.backend.neo4j.entities.OrderedRelationship;
 import com.se114p12.backend.neo4j.entities.ProductNode;
 import com.se114p12.backend.neo4j.entities.UserNode;
@@ -193,7 +194,8 @@ public class OrderServiceImpl implements OrderService {
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
-    if (orderRequestDTO.getDestinationLatitude() != null && orderRequestDTO.getDestinationLongitude() != null) {
+    if (orderRequestDTO.getDestinationLatitude() != null
+        && orderRequestDTO.getDestinationLongitude() != null) {
       order.setDestinationLatitude(orderRequestDTO.getDestinationLatitude());
       order.setDestinationLongitude(orderRequestDTO.getDestinationLongitude());
     }
@@ -271,7 +273,8 @@ public class OrderServiceImpl implements OrderService {
         throw new BadRequestException("No available shippers to assign for this order");
       }
 
-      Shipper selectedShipper = availableShippers.get(new Random().nextInt(availableShippers.size()));
+      Shipper selectedShipper =
+          availableShippers.get(new Random().nextInt(availableShippers.size()));
       selectedShipper.setIsAvailable(false);
       order.setShipper(selectedShipper);
 
@@ -288,14 +291,15 @@ public class OrderServiceImpl implements OrderService {
       }
 
       try {
-        DeliveryResponseDTO deliveryInfo = mapService.calculateExpectedDeliveryTime(
-                originLat, originLng, destLat, destLng
-        );
+        DeliveryResponseDTO deliveryInfo =
+            mapService.calculateExpectedDeliveryTime(originLat, originLng, destLat, destLng);
         Instant now = Instant.now();
-        Instant expectedTime = now.plusSeconds(deliveryInfo.getExpectedDeliveryTimeInSeconds() + 300);
+        Instant expectedTime =
+            now.plusSeconds(deliveryInfo.getExpectedDeliveryTimeInSeconds() + 300);
         order.setExpectedDeliveryTime(expectedTime);
       } catch (Exception e) {
-        throw new BadRequestException("Unable to calculate expected delivery time: " + e.getMessage());
+        throw new BadRequestException(
+            "Unable to calculate expected delivery time: " + e.getMessage());
       }
     }
 
@@ -358,6 +362,9 @@ public class OrderServiceImpl implements OrderService {
                   () -> {
                     ProductNode newProductNode = new ProductNode();
                     newProductNode.setId(productId);
+                    CategoryNode categoryNode = new CategoryNode();
+                    categoryNode.setId(detail.getCategoryId());
+                    newProductNode.setCategory(categoryNode);
                     return productNeo4jRepository.save(newProductNode);
                   });
       productNodeMap.put(productId, productNode);
