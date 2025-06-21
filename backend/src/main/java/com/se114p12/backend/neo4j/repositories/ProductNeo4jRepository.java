@@ -11,12 +11,20 @@ import org.springframework.stereotype.Repository;
 public interface ProductNeo4jRepository extends Neo4jRepository<ProductNode, Long> {
 
   @Query(
-      "MATCH (p:ProductNode)<-[:ORDERED]-(u:UserNode) "
-          + "WITH p, count(u) AS orderCount "
+      "MATCH (p:ProductNode)<-[:ORDERED]-(:UserNode) "
+          + "WITH p, count(*) AS orderCount "
           + "RETURN p.id "
           + "ORDER BY orderCount DESC "
           + "LIMIT 5")
-  List<Long> findGeneralRecommended();
+  List<Long> findPopularProducts();
+
+  @Query(
+      "MATCH (u:UserNode {id: $userId})-[:ORDERED]->(p:ProductNode) "
+          + "WITH p, count(*) AS orderCount "
+          + "RETURN p.id "
+          + "ORDER BY orderCount DESC "
+          + "LIMIT 5")
+  List<Long> findReOrderRecommendation(@Param("userId") Long userId);
 
   @Query(
       "MATCH (u:UserNode {id:"

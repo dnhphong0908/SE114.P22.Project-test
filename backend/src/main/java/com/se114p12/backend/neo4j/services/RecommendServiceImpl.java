@@ -15,29 +15,29 @@ import org.springframework.transaction.annotation.Transactional;
 public class RecommendServiceImpl implements RecommendService {
 
   private final List<RecommendationStrategy> recommendationStrategies = new ArrayList<>();
-  private final GeneralRecommendation generalRecommendation;
   private final JwtUtil jwtUtil;
 
   // Injecting the recommendation strategies
+  private final ReOrderRecommendation reOrderRecommendation;
   private final HistoryBaseRecommendation historyBaseRecommendation;
   private final CategoryBaseRecommendation categoryBaseRecommendation;
   private final CoPurchaseRecommendation coPurchaseRecommendation;
+  private final PopularRecommendation popularRecommendation;
 
   // register recommendation strategies
   @PostConstruct
   private void init() {
+    recommendationStrategies.add(reOrderRecommendation);
     recommendationStrategies.add(historyBaseRecommendation);
     recommendationStrategies.add(categoryBaseRecommendation);
     recommendationStrategies.add(coPurchaseRecommendation);
+    recommendationStrategies.add(popularRecommendation);
   }
 
   @Transactional
   public List<Long> getRecommendProductIds() {
     Long userId = jwtUtil.getCurrentUserId();
-    if (userId == null) {
-      return generalRecommendation.getRecommendedProductIds();
-    }
-
+    if (userId == null) throw new IllegalStateException("User is not authenticated");
     Map<Long, Double> productScores = new HashMap<>();
     for (RecommendationStrategy strategy : recommendationStrategies) {
       List<Long> recommendedProductIds = strategy.getRecommendedProductIds(userId);
