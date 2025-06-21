@@ -1,4 +1,4 @@
-package com.se114p12.backend.configs;
+package com.se114p12.backend.seeders;
 
 import com.se114p12.backend.dtos.authentication.RegisterRequestDTO;
 import com.se114p12.backend.entities.authentication.Role;
@@ -6,27 +6,21 @@ import com.se114p12.backend.entities.user.User;
 import com.se114p12.backend.enums.LoginProvider;
 import com.se114p12.backend.enums.RoleName;
 import com.se114p12.backend.enums.UserStatus;
-import com.se114p12.backend.repositories.authentication.RoleRepository;
 import com.se114p12.backend.repositories.authentication.UserRepository;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validator;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationArguments;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
 
-@Component
 @RequiredArgsConstructor
-public class DataInitializer implements ApplicationRunner {
-
-  private final RoleRepository roleRepository;
+@Service
+public class UserInitializer {
   private final UserRepository userRepository;
-  private final PasswordEncoder passwordEncoder;
   private final Validator validator;
+  private final PasswordEncoder passwordEncoder;
 
   // Admin user details
   @Value("${admin.username}")
@@ -41,46 +35,23 @@ public class DataInitializer implements ApplicationRunner {
   @Value("${admin.phone}")
   private String adminPhone;
 
-  @Transactional
-  @Override
-  public void run(ApplicationArguments args) throws Exception {
-    // Create default roles if they do not exist
-    createRoles();
-    Role adminRole = roleRepository.findByName(RoleName.ADMIN.getValue()).orElseThrow();
+  public void initializeAdminUser(Role adminRole) {
 
-    if (adminRole.getUsers().isEmpty()) {
-      // Validate admin user information
-      validateAdminInfo();
-
-      // Create admin user
-      createAdminUser();
+    if (adminRole.getName() == null || !adminRole.getName().equals(RoleName.ADMIN.getValue())) {
+      throw new IllegalArgumentException("Invalid admin role provided");
     }
-  }
 
-  private void createRoles() {
-    for (RoleName roleName : RoleName.values()) {
-      if (!roleRepository.existsByName(roleName.getValue())) {
-        Role role = new Role();
-        role.setName(roleName.getValue());
-        role.setDescription(roleName.getDescription());
-        role.setActive(true);
-        role = roleRepository.save(role);
-      }
-    }
-  }
-
-  private void createAdminUser() {
-    if (userRepository.existsByUsername(adminUsername)) {
+    if (!adminRole.getUsers().isEmpty()) {
+      System.out.println("Admin user already exists, skipping initialization.");
       return;
     }
-    if (userRepository.existsByEmail(adminEmail)) {
-      return;
-    }
-    if (userRepository.existsByPhone(adminPhone)) {
-      return;
-    }
+
+    // Validate admin user information
+    validateAdminInfo();
+
+    // Check if the admin user already exists
     User adminUser = new User();
-    adminUser.setRole(roleRepository.findByName(RoleName.ADMIN.getValue()).orElseThrow());
+    adminUser.setRole(adminRole);
     adminUser.setUsername(adminUsername);
     adminUser.setPhone(adminPhone);
     adminUser.setEmail(adminEmail);
