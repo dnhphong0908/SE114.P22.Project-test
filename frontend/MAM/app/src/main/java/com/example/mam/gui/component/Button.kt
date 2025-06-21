@@ -240,7 +240,7 @@ fun OuterShadowFilledButton(
                     )
                 }
                 image?.let {
-                    Icon(
+                    Image(
                         painter = painterResource(image),
                         contentDescription = null,
                         modifier = Modifier

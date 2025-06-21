@@ -3,6 +3,8 @@ package com.example.mam.gui.screen.authentication
 import android.annotation.SuppressLint
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -41,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mam.GoogleSignInUtils
 import com.example.mam.R
 import com.example.mam.dto.authentication.SendVerifyEmailRequest
 import com.example.mam.gui.component.CircleIconButton
@@ -50,11 +53,15 @@ import com.example.mam.gui.component.OuterShadowFilledButton
 import com.example.mam.gui.component.PasswordField
 import com.example.mam.gui.component.UnderlinedClickableText
 import com.example.mam.gui.component.outerShadow
+import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyDark
 import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
+import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.authentication.SignInViewModel
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.ApiException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
@@ -73,6 +80,18 @@ fun SignInScreen(
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+        GoogleSignInUtils.doGoogleSignIn(
+            context = context,
+            scope = scope,
+            launcher = null,
+            login = {
+                Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
+            }
+        )
+
+    }
 
     var isShowDeletedDialog by remember { mutableStateOf(false)}
     var isShowBlockedDialog by remember { mutableStateOf(false)}
@@ -246,7 +265,27 @@ fun SignInScreen(
                 },
                 isEnable = (signInState.password.isNotEmpty() && signInState.credentialId.isNotEmpty()),
                 modifier = Modifier
-                    .fillMaxWidth(0.5f)
+                    .fillMaxWidth(0.7f)
+                    .height(40.dp),
+            )
+
+            OuterShadowFilledButton(
+                text = "Đăng nhập với Google",
+                onClick = {
+                    GoogleSignInUtils.doGoogleSignIn(
+                        context = context,
+                        scope = scope,
+                        launcher = launcher,
+                        login = {
+                            Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
+                        }
+                    )
+                },
+                color = WhiteDefault,
+                textColor = BrownDefault,
+                image = R.drawable.ic_google,
+                modifier = Modifier
+                    .fillMaxWidth(0.7f)
                     .height(40.dp),
             )
             Spacer(Modifier.height(10.dp))
