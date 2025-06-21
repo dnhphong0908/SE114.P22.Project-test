@@ -101,6 +101,8 @@ class CheckOutViewModel(
     fun loadAddress(){
         viewModelScope.launch {
             if(userPreferencesRepository.address.map { it }.first().isNotEmpty()) _address.value = userPreferencesRepository.address.map { it }.first()
+            if(userPreferencesRepository.latitude.map { it }.first() != 0.0) _latitude.value = userPreferencesRepository.latitude.map { it }.first()
+            if(userPreferencesRepository.longitude.map { it }.first() != 0.0) _longitude.value = userPreferencesRepository.longitude.map { it }.first()
         }
     }
 

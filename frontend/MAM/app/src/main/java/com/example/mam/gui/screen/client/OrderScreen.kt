@@ -362,7 +362,7 @@ fun OrderScreen(
                         modifier = Modifier.padding(start = 10.dp)
                     )
                     Text(
-                        text = "Phương thức thanh toán: ",
+                        text = "Phương thức thanh toán: " + order.paymentMethod,
                         fontSize = 14.sp,
                         color = BrownDefault,
                         fontWeight = FontWeight.Medium,

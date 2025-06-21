@@ -15,6 +15,7 @@ import com.se114p12.backend.repositories.product.ProductRepository;
 import com.se114p12.backend.services.general.StorageService;
 import com.se114p12.backend.vo.PageVO;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -171,16 +172,16 @@ public class ProductServiceImpl implements ProductService {
   @Override
   public List<ProductResponseDTO> getRecommendedProducts() {
     List<Long> recommendedProductIds = recommendService.getRecommendProductIds();
+    System.out.println(recommendedProductIds);
+    List<Product> recommendedProducts = new ArrayList<>(productRepository.findAllById(recommendedProductIds));
 
-    List<Product> recommendedProducts = productRepository.findAllById(recommendedProductIds);
-
-    if (recommendedProducts.size() < 10) {
+    if (recommendedProducts.size() < 5) {
       Pageable pageable = PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "createdAt"));
       List<Product> additional = productRepository.findAll(pageable).getContent();
       recommendedProducts.addAll(
           additional.stream()
               .filter(product -> !recommendedProductIds.contains(product.getId()))
-              .limit(10 - recommendedProducts.size())
+              .limit(5 - recommendedProducts.size())
               .toList());
     }
 

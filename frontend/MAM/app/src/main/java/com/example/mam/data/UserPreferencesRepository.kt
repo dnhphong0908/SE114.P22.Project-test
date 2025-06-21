@@ -71,4 +71,28 @@ class UserPreferencesRepository (
         .map { preferences ->
             preferences[ADDRESS] ?: ""
         }
+    val longitude: Flow<Double> = dataStore.data
+        .catch {
+            if(it is IOException) {
+                Log.e("DataStoreError", "Error reading preferences.", it)
+                emit(emptyPreferences())
+            } else {
+                throw it
+            }
+        }
+        .map { preferences ->
+            preferences[LONGITUDE] ?: 0.0
+        }
+    val latitude: Flow<Double> = dataStore.data
+        .catch {
+            if(it is IOException) {
+                Log.e("DataStoreError", "Error reading preferences.", it)
+                emit(emptyPreferences())
+            } else {
+                throw it
+            }
+        }
+        .map { preferences ->
+            preferences[LATITUDE] ?: 0.0
+        }
 }

@@ -388,7 +388,7 @@ fun ManageOrderScreen(
                                 .padding(start = 10.dp)
                                 .fillMaxWidth()
                         )
-                        if (order.createdAt.isNotEmpty())
+                        if (order.createdAt.isNotEmpty() && order.createdAt.isNotBlank())
                         Instant.parse(order.createdAt).atZone(ZoneId.systemDefault()).let {
                             Text(
                                 text = "Ngày đặt: " + it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")),
@@ -401,7 +401,7 @@ fun ManageOrderScreen(
                                     .padding(start = 10.dp, end = 10.dp)
                             )
                         }
-                        if (order.expectedDeliveryTime.isNotEmpty())
+                        if (order.expectedDeliveryTime != null && order.expectedDeliveryTime.isNotEmpty())
                         Instant.parse(order.expectedDeliveryTime).atZone(ZoneId.systemDefault()).let {
                             Text(
                                 text = "Thời gian giao hàng dự kiến: " + it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")),
@@ -414,7 +414,7 @@ fun ManageOrderScreen(
                                     .padding(start = 10.dp, end = 10.dp)
                             )
                         }
-                        if( order.actualDeliveryTime.isNotEmpty())
+                        if( order.actualDeliveryTime != null && order.actualDeliveryTime.isNotEmpty())
                         Instant.parse(order.actualDeliveryTime).atZone(ZoneId.systemDefault()).let {
                             Text(
                                 text = "Thời gian giao hàng thực tế: " + it.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")),
