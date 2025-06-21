@@ -43,6 +43,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.mam.GoogleSignInUtils
 import com.example.mam.R
 import com.example.mam.dto.authentication.SendVerifyEmailRequest
 import com.example.mam.gui.component.CircleIconButton
@@ -79,6 +80,18 @@ fun SignInScreen(
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+
+    val launcher = rememberLauncherForActivityResult(contract = ActivityResultContracts.StartActivityForResult()) {
+        GoogleSignInUtils.doGoogleSignIn(
+            context = context,
+            scope = scope,
+            launcher = null,
+            login = {
+                Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
+            }
+        )
+
+    }
 
     var isShowDeletedDialog by remember { mutableStateOf(false)}
     var isShowBlockedDialog by remember { mutableStateOf(false)}
@@ -252,22 +265,27 @@ fun SignInScreen(
                 },
                 isEnable = (signInState.password.isNotEmpty() && signInState.credentialId.isNotEmpty()),
                 modifier = Modifier
-                    .fillMaxWidth(0.5f)
+                    .fillMaxWidth(0.7f)
                     .height(40.dp),
             )
 
             OuterShadowFilledButton(
                 text = "Đăng nhập với Google",
                 onClick = {
-                    scope.launch {
-                        launcher.launch(googleSignInClient.signInIntent)
-                    }
+                    GoogleSignInUtils.doGoogleSignIn(
+                        context = context,
+                        scope = scope,
+                        launcher = launcher,
+                        login = {
+                            Toast.makeText(context, "Login successful", Toast.LENGTH_SHORT).show()
+                        }
+                    )
                 },
                 color = WhiteDefault,
                 textColor = BrownDefault,
                 image = R.drawable.ic_google,
                 modifier = Modifier
-                    .fillMaxWidth(0.5f)
+                    .fillMaxWidth(0.7f)
                     .height(40.dp),
             )
             Spacer(Modifier.height(10.dp))
