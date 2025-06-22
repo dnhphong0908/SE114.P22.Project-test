@@ -26,10 +26,13 @@ public class CategoryInitializer {
     for (ProductCategory category : categories) {
       System.out.println("Processing category: " + category.getName());
       for (Product product : category.getProducts()) {
+        product.getVariations().stream()
+            .forEach(v -> v.getVariationOptions().forEach(o -> o.setVariation(v)));
         String path =
             imageLoader.saveImageFromUrl(product.getImageUrl(), AppConstant.PRODUCT_FOLDER);
         product.setImageUrl(path);
         product.setIsAvailable(true);
+        product.setCategory(category);
       }
       String path =
           imageLoader.saveImageFromUrl(category.getImageUrl(), AppConstant.CATEGORY_FOLDER);
