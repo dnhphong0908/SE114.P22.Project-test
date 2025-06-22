@@ -1,4 +1,4 @@
-package com.se114p12.backend.seeders;
+package com.se114p12.backend.util;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
