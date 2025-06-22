@@ -14,6 +14,7 @@ public class DataInitializer implements ApplicationRunner {
 
   private final RoleInitializer roleInitializer;
   private final UserInitializer userInitializer;
+  private final CategoryInitializer categoryInitializer;
   private final RoleRepository roleRepository;
 
   @Transactional
@@ -28,5 +29,7 @@ public class DataInitializer implements ApplicationRunner {
         roleRepository
             .findByName(RoleName.ADMIN.getValue())
             .orElseThrow(() -> new IllegalStateException("Admin role not found")));
+
+    // categoryInitializer.initializeCategories();
   }
 }

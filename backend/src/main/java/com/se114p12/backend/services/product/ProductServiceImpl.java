@@ -1,5 +1,6 @@
 package com.se114p12.backend.services.product;
 
+import com.se114p12.backend.constants.AppConstant;
 import com.se114p12.backend.dtos.product.ProductRequestDTO;
 import com.se114p12.backend.dtos.product.ProductResponseDTO;
 import com.se114p12.backend.entities.product.Product;
@@ -91,7 +92,7 @@ public class ProductServiceImpl implements ProductService {
             .build();
 
     if (dto.getImage() != null && !dto.getImage().isEmpty()) {
-      product.setImageUrl(storageService.store(dto.getImage(), "product-items"));
+      product.setImageUrl(storageService.store(dto.getImage(), AppConstant.PRODUCT_FOLDER));
     }
 
     product = productRepository.save(product);
@@ -145,7 +146,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     if (dto.getImage() != null && !dto.getImage().isEmpty()) {
-      String fileUrl = storageService.store(dto.getImage(), "product-items");
+      String fileUrl = storageService.store(dto.getImage(), AppConstant.PRODUCT_FOLDER);
       existingProduct.setImageUrl(fileUrl);
     }
 

@@ -24,8 +24,14 @@ public class JsonLoader {
    * @param <T> the type of the object to return
    * @return an object of type T
    */
-  public List<ProductCategory> loadCategoriesFromJson() throws IOException {
-    Path path = Paths.get("classpath:data/categories_with_products.json");
-    return objectMapper.readValue(path.toFile(), new TypeReference<List<ProductCategory>>() {});
+  public List<ProductCategory> loadCategoriesFromJson() {
+    try {
+
+      Path path = Paths.get("src/main/resources/data/categories_with_products_variations.json");
+      System.out.println("Loading categories from: " + path.toAbsolutePath());
+      return objectMapper.readValue(path.toFile(), new TypeReference<List<ProductCategory>>() {});
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to load categories from JSON", e);
+    }
   }
 }
