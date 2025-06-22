@@ -227,27 +227,7 @@ fun ItemScreen(
                     )
                 }
                 items(variances){ option ->
-                    if (option.isMultipleChoice ){
-                        var selectedOption: VariationOptionResponse
-                        optionsMap[option.id]?.let {
-                            LaunchedEffect(it) {
-                                viewModel.selectRatioOption( it.first())
-                            }
-                            RadioOption(
-                                title = option.name,
-                                options = it,
-                                onClick = { option ->
-                                    selectedOption = option
-                                    viewModel.selectRatioOption(option)
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 10.dp)
-                            )
-                        }
-                    }
-                    else if(option.name == "Kích cỡ" && item.categoryName == "Pizza") {
-                        var sizeOption: VariationOptionResponse
+                    if(option.name == "Kích cỡ" && item.categoryName == "Pizza") {
                         optionsMap[option.id]?.let {
                             LaunchedEffect(it) {
                                 viewModel.selectRatioOption( it.first())
@@ -256,10 +236,26 @@ fun ItemScreen(
                                 title = option.name,
                                 options = it,
                                 onClick = { option ->
-                                    sizeOption = option
                                     viewModel.selectRatioOption(option)
                                 },
                                 image = R.drawable.ic_size_pizza,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 10.dp)
+                            )
+                        }
+                    }
+                    else if (!option.isMultipleChoice){
+                        optionsMap[option.id]?.let {
+                            LaunchedEffect(it) {
+                                viewModel.selectRatioOption( it.first())
+                            }
+                            RadioOption(
+                                title = option.name,
+                                options = it,
+                                onClick = { option ->
+                                    viewModel.selectRatioOption(option)
+                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 10.dp)

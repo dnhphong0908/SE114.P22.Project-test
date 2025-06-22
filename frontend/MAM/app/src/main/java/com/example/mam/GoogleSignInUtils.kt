@@ -31,7 +31,8 @@ class GoogleSignInUtils {
             context: Context,
             scope: CoroutineScope,
             launcher: ManagedActivityResultLauncher<Intent, ActivityResult>?,
-            handle: (String) -> Unit = {}
+            handle: (String) -> Unit = {},
+            timeout: () -> Unit = { /* No-op */ }
         ){
             val credentialManager = CredentialManager.create(context)
             val request = GetCredentialRequest.Builder()
@@ -68,6 +69,9 @@ class GoogleSignInUtils {
                     launcher?.launch(getIntent())
                 }catch (e:GetCredentialException){
                     e.printStackTrace()
+                }
+                finally {
+                    timeout.invoke()
                 }
             }
         }

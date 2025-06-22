@@ -1,17 +1,24 @@
 package com.example.mam.gui.component
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ModalBottomSheetDefaults.properties
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
@@ -27,10 +34,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.ErrorColor
 import com.example.mam.ui.theme.GreyDefault
+import com.example.mam.ui.theme.OrangeDefault
 import com.example.mam.ui.theme.WhiteDefault
 import com.example.mam.viewmodel.authentication.StartViewModel
 
@@ -187,4 +196,30 @@ fun SignUpDialog(
             }
         }
     }
+}
+
+@Composable
+fun LoadingAlertDialog() {
+    AlertDialog(
+        onDismissRequest = {},
+        title = null,
+        text = {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp)
+            ) {
+                CircularProgressIndicator(
+                    color = OrangeDefault,
+                )
+            }
+        },
+        modifier = Modifier
+            .fillMaxWidth(0.4f)
+        ,
+        confirmButton = {},
+        dismissButton = {},
+        properties = DialogProperties(dismissOnClickOutside = false)
+    )
 }

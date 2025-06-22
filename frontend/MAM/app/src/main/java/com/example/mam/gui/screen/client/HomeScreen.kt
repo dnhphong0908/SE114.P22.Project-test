@@ -100,7 +100,7 @@ fun HomeScreen(
             val lastItemOffset = visibleItems.lastOrNull()?.offset ?: 0
 
             if (visibleItems.any { it.index == lastItemIndex -1}) {
-                lastItemIndex - 2 // Nếu item cuối cùng đang hiển thị, trả về index cuối cùng
+                lastItemIndex - 3 // Nếu item cuối cùng đang hiển thị, trả về index cuối cùng
             } else {
                 firstVisibleItemIndex // Nếu chưa lướt đến cuối, trả về index của item đầu tiên hiển thị
             }
@@ -110,8 +110,8 @@ fun HomeScreen(
         snapshotFlow { childListState.firstVisibleItemIndex }
             .collect { index ->
                 // Scroll the LazyRow to the corresponding category
-                if (index >= 2 && index < categories.size + 2) { // Adjust for header and image
-                        rowListState.animateScrollToItem(index - 2) // Adjust index for categories
+                if (index >= 3 && index < categories.size + 3) { // Adjust for header and image
+                        rowListState.animateScrollToItem(index - 3) // Adjust index for categories
                 }
             }
     }
@@ -243,10 +243,10 @@ fun HomeScreen(
                                 onClick = {
                                     scope.launch {
                                     val targetIndex = categories.indexOf(category)
-                                    childListState.scrollToItem(targetIndex + 2)}
+                                    childListState.scrollToItem(targetIndex + 3)}
 
                                 },
-                                isEnable = !(categories.indexOf(category) == isRowScrolled.value -2),
+                                isEnable = !(categories.indexOf(category) == isRowScrolled.value -3),
                                 modifier = Modifier
                             )
                             Spacer(Modifier.width(5.dp))
