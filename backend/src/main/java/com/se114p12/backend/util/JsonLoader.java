@@ -27,7 +27,7 @@ public class JsonLoader {
   public List<ProductCategory> loadCategoriesFromJson() {
     try {
 
-      Path path = Paths.get("src/main/resources/data/categories_with_products_variations.json");
+      Path path = Paths.get("src/main/resources/data/mock_data.json");
       System.out.println("Loading categories from: " + path.toAbsolutePath());
       return objectMapper.readValue(path.toFile(), new TypeReference<List<ProductCategory>>() {});
     } catch (IOException e) {
