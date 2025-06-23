@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
+import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.mam.MAMApplication
@@ -16,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 class HomeScreenViewModel(
     private val userPreferencesRepository: UserPreferencesRepository
@@ -140,6 +142,11 @@ class HomeScreenViewModel(
         }
     }
 
+    fun setAdressAndCoordinates( address: String, longitude: Double, latitude: Double) {
+        viewModelScope.launch {
+            userPreferencesRepository.saveAddress(address, longitude, latitude)
+        }
+    }
     suspend fun loadListProduct(id: Long): List<ProductResponse>{
         try {
             Log.d("Category", "Bắt đầu lấy Danh mục")

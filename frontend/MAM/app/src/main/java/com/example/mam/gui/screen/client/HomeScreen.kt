@@ -1,5 +1,11 @@
 package com.example.mam.gui.screen.client
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.pm.PackageManager
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -52,6 +58,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.mam.R
@@ -69,8 +76,10 @@ import com.example.mam.ui.theme.OrangeLight
 import com.example.mam.ui.theme.OrangeLighter
 import com.example.mam.ui.theme.Typography
 import com.example.mam.viewmodel.client.HomeScreenViewModel
+import com.mapbox.geojson.Point
 import kotlinx.coroutines.launch
 
+@SuppressLint("MissingPermission")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun HomeScreen(
@@ -108,6 +117,54 @@ fun HomeScreen(
             }
         }
     }
+    val permissionRequest = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions(),
+        onResult = { permissions ->
+            if (!permissions.values.all { it }) {
+                //handle permission denied
+            }
+            else {
+
+            }
+        }
+    )
+    LaunchedEffect(Unit) {
+        try {
+            // Use Android's FusedLocationProviderClient for location retrieval
+            val fusedLocationClient = com.google.android.gms.location.LocationServices.getFusedLocationProviderClient(context)
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let {
+                    viewmodel.setAdressAndCoordinates(
+                        address = getAddressFromCoordinates(context, it.latitude, it.longitude),
+                        longitude = it.longitude,
+                        latitude = it.latitude
+                    )
+                } ?: run {
+                    // Handle case where location is null
+                }
+            }.addOnFailureListener {
+                // Handle failure to retrieve location
+            }
+        } catch (e: Exception) {
+            when (e) {
+                is SecurityException -> {
+                    permissionRequest.launch(
+                        arrayOf(
+                            android.Manifest.permission.ACCESS_FINE_LOCATION,
+                            android.Manifest.permission.ACCESS_COARSE_LOCATION
+                        )
+                    )
+                }
+                else -> {
+                    Toast(context).apply {
+                        setText("Không thể lấy vị trí hiện tại")
+                        show()
+                    }
+                }
+            }
+        }
+    }
+
     LaunchedEffect(key1 = childListState) {
         snapshotFlow { childListState.firstVisibleItemIndex }
             .collect { index ->
@@ -117,6 +174,7 @@ fun HomeScreen(
                 }
             }
     }
+
     LaunchedEffect(LocalLifecycleOwner.current) {
         viewmodel.loadListCategory()
         viewmodel.loadAdditionalProduct()
