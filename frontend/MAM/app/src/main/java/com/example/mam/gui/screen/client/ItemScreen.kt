@@ -81,6 +81,7 @@ fun ItemScreen(
     val variances = viewModel.variances.collectAsStateWithLifecycle().value
     val optionsMap = viewModel.optionsMap.collectAsStateWithLifecycle().value
     val selectedOptions = viewModel.selectedOptions.collectAsStateWithLifecycle().value
+    val cartCount = viewModel.cartCount.collectAsStateWithLifecycle().value
     var total by remember { mutableStateOf("") }
 
     LaunchedEffect(selectedOptions, quantity) {
@@ -91,6 +92,10 @@ fun ItemScreen(
         viewModel.loadVariances()
         viewModel.loadOptions()
         total = viewModel.getTotalPrice()
+    }
+
+    LaunchedEffect(Unit) {
+        viewModel.loadCartCount()
     }
 
     val context = LocalContext.current
@@ -152,6 +157,8 @@ fun ItemScreen(
                     backgroundColor = OrangeLighter,
                     foregroundColor = OrangeDefault,
                     icon = Icons.Outlined.ShoppingCart,
+                    isBadges = true,
+                    badgesCount = cartCount,
                     shadow = "outer",
                     onClick = onCartClicked,
                     modifier = Modifier
@@ -326,6 +333,7 @@ fun ItemScreen(
                                     Toast.LENGTH_SHORT
                                 ).show()
                                 onAddClick()
+                                viewModel.loadCartCount()
                             } else {
                                 Toast.makeText(
                                     context,

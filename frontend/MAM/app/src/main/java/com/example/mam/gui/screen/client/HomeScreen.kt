@@ -86,6 +86,8 @@ fun HomeScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val categories: List<CategoryResponse> = viewmodel.getListCategory()
+    val cartCount = viewmodel.cartCount.collectAsState().value
+    val notificationCount = viewmodel.notificationCount.collectAsState().value
     val productMap by viewmodel
         .productMap
         .collectAsState()
@@ -118,6 +120,8 @@ fun HomeScreen(
     LaunchedEffect(LocalLifecycleOwner.current) {
         viewmodel.loadListCategory()
         viewmodel.loadAdditionalProduct()
+        viewmodel.loadCartCount()
+        viewmodel.loadNotificationCount()
     }
     LaunchedEffect(key1 = categories, key2 = LocalLifecycleOwner.current) {
         if(categories.isNotEmpty() && productMap.isEmpty()){
@@ -149,6 +153,8 @@ fun HomeScreen(
                     foregroundColor = OrangeDefault,
                     icon = Icons.Filled.NotificationsNone,
                     shadow = "outer",
+                    badgesCount = notificationCount,
+                    isBadges = true,
                     onClick = onNotificationClicked,
                     modifier = Modifier
                         .align(Alignment.TopStart)
@@ -311,6 +317,8 @@ fun HomeScreen(
                     backgroundColor = OrangeLight,
                     foregroundColor = OrangeDefault,
                     icon = Icons.Outlined.ShoppingCart,
+                    badgesCount = cartCount,
+                    isBadges = true,
                     onClick = onCartClicked,
                     modifier = Modifier
                 )
