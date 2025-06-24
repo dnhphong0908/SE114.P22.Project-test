@@ -79,7 +79,7 @@ public class CartItemServiceImpl implements CartItemService {
                 return cartItemMapper.toDTO(cartItemRepository.save(item));
             }
         }
-        
+
         return cartItemMapper.toDTO(cartItemRepository.save(newItem));
     }
 
