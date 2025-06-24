@@ -92,6 +92,12 @@ public class CartItemServiceImpl implements CartItemService {
         updated.setId(id);
         updated.setCart(existing.getCart());
 
+        BigDecimal basePrice = updated.getProduct().getOriginalPrice();
+        BigDecimal additionalPrice = updated.getVariationOptions().stream()
+                .map(vo -> BigDecimal.valueOf(vo.getAdditionalPrice() != null ? vo.getAdditionalPrice() : 0.0))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        updated.setPrice(basePrice.add(additionalPrice));
+
         return cartItemMapper.toDTO(cartItemRepository.save(updated));
     }
 
