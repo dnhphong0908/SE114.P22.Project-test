@@ -17,13 +17,6 @@ public interface ReviewRepository extends JpaRepository<Review, Long>, JpaSpecif
     // Lấy tất cả review (phân trang)
     Page<Review> findAll(Pageable pageable);
 
-    // Lấy review theo userId (phân trang)
-    @EntityGraph(attributePaths = {"user", "order"})
-    Page<Review> findByUserId(Long userId, Pageable pageable);
-
     // Lấy review theo orderId (phân trang)
     Page<Review> findByOrderId(Long orderId, Pageable pageable);
-
-    // Lấy review theo cả userId và orderId (phân trang)
-    Page<Review> findByUserIdAndOrderId(Long userId, Long orderId, Pageable pageable);
 }
