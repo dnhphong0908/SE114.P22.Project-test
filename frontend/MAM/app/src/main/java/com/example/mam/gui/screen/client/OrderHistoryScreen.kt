@@ -3,6 +3,7 @@
 import android.app.DatePickerDialog
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,19 +19,32 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonColors
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,6 +53,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,6 +68,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,11 +78,14 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import com.example.mam.dto.order.OrderResponse
+import com.example.mam.dto.review.ReviewResponse
 import com.example.mam.entity.Order
 import com.example.mam.entity.OrderItem
 import com.example.mam.gui.component.BasicOutlinedButton
 import com.example.mam.gui.component.CircleIconButton
+import com.example.mam.gui.component.OuterShadowFilledButton
 import com.example.mam.gui.component.outerShadow
+import com.example.mam.gui.screen.management.getStatusUpdateMessage
 import com.example.mam.ui.theme.BrownDefault
 import com.example.mam.ui.theme.GreyDark
 import com.example.mam.ui.theme.GreyDefault
@@ -306,4 +326,107 @@ fun OrderHistoryItem(order: OrderResponse, onClick: () -> Unit = {}) {
         }
     }
 }
+
+ @Composable
+ fun OrderRating(
+     onEditClick: (ReviewResponse) -> Unit = {},
+     review: ReviewResponse
+ ){
+     var isEdit by remember { mutableStateOf(false) }
+     var rating by remember { mutableIntStateOf(review.rate) }
+     var comment by remember { mutableStateOf(review.content) }
+     Column(
+         modifier = Modifier
+             .fillMaxWidth()
+             .wrapContentSize(Alignment.Center),
+         verticalArrangement = Arrangement.spacedBy(8.dp),
+         horizontalAlignment = Alignment.CenterHorizontally
+     ) {
+         Row(
+             modifier = Modifier.padding(vertical = 8.dp),
+             horizontalArrangement = Arrangement.spacedBy(4.dp)
+         ) {
+             repeat(5) { index ->
+                 Icon(
+                     imageVector = if (index < rating) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                     contentDescription = null,
+                     tint = OrangeDefault,
+                     modifier = Modifier
+                         .size(32.dp)
+                         .clickable {
+                             if (isEdit) rating = index + 1 }
+                 )
+             }
+         }
+         OutlinedTextField(
+             value = comment,
+             onValueChange = { comment = it },
+             readOnly = !isEdit,
+             textStyle = TextStyle(
+                 color = BrownDefault,
+                 fontSize = 14.sp,
+                 fontWeight = FontWeight.Normal,
+             ),
+             colors = OutlinedTextFieldDefaults.colors(
+                 focusedBorderColor = BrownDefault,
+                 unfocusedBorderColor = GreyDefault,
+             ),
+             label = {
+                 Text(
+                     text = "Nội dung đánh giá",
+                     color = BrownDefault,
+                     fontSize = 14.sp,
+                     fontWeight = FontWeight.SemiBold,
+                     modifier = Modifier
+                 )
+             },
+             trailingIcon = {
+                    if (!isEdit)  {
+                        IconButton(
+                            colors = IconButtonColors(
+                                containerColor = WhiteDefault,
+                                contentColor = BrownDefault,
+                                disabledContentColor = BrownDefault,
+                                disabledContainerColor = WhiteDefault
+                            ),
+                            onClick = { isEdit = true }) {
+                            Icon(Icons.Default.Edit, contentDescription = "Chỉnh sửa đánh giá")
+                        }
+                    }
+             },
+             shape = RoundedCornerShape(20.dp),
+             modifier = Modifier.fillMaxWidth(),
+             keyboardOptions = KeyboardOptions.Default.copy(
+                 keyboardType = KeyboardType.Text,
+                 imeAction = ImeAction.Done
+             ),
+         )
+         if(isEdit){
+             OuterShadowFilledButton(
+                 text = "Lưu đánh giá",
+                 onClick = {
+                     isEdit = false
+                 },
+                 textColor = WhiteDefault,
+                 color = OrangeDefault,
+                 shadowColor = GreyDark,
+                 modifier = Modifier
+                     .fillMaxWidth(0.9f)
+                     .padding(5.dp)
+             )
+         }
+     }
+ }
+
+ @Preview
+@Composable
+ fun Review() {
+     OrderRating(
+         review = ReviewResponse(
+             id = 1,
+             rate = 4,
+             content = "Đánh giá sản phẩm rất tốt, giao hàng nhanh chóng.",
+         )
+     )
+ }
 
